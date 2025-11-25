@@ -1,0 +1,141 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../contexts/LanguageContext';
+import { motion } from 'motion/react';
+import { Lock, User } from 'lucide-react';
+import logo from 'figma:asset/94ebc97f0b39e2d897b246155bbfe246bad602f0.png';
+
+export function AdminLogin() {
+  const navigate = useNavigate();
+  const { language, t } = useLanguage();
+  const [credentials, setCredentials] = useState({
+    username: '',
+    password: '',
+  });
+  const [error, setError] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    // Mock authentication
+    if (credentials.username === 'admin' && credentials.password === 'demo123') {
+      // Store auth token (mock)
+      sessionStorage.setItem('adminAuth', 'true');
+      navigate('/admin/dashboard');
+    } else {
+      setError(
+        language === 'zh'
+          ? '用户名或密码错误。提示：用户名 admin，密码 demo123'
+          : 'Invalid credentials. Hint: username admin, password demo123'
+      );
+    }
+  };
+
+  return (
+    <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md"
+      >
+        {/* Logo and Title */}
+        <div className="text-center mb-8">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', delay: 0.2 }}
+            className="flex justify-center mb-4"
+          >
+            <img src={logo} alt="VMCA Logo" className="h-20 w-20" />
+          </motion.div>
+          <h1 className="text-[#2B5F9E] mb-2">{t('admin.login.title')}</h1>
+          <p className="text-gray-600">VMCA Management System</p>
+        </div>
+
+        {/* Login Form */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-white rounded-2xl shadow-lg p-8"
+        >
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-gray-700 mb-2">
+                {t('admin.login.username')}
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <User className="w-5 h-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  required
+                  value={credentials.username}
+                  onChange={(e) =>
+                    setCredentials({ ...credentials, username: e.target.value })
+                  }
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
+                  placeholder="admin"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-gray-700 mb-2">
+                {t('admin.login.password')}
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="w-5 h-5 text-gray-400" />
+                </div>
+                <input
+                  type="password"
+                  required
+                  value={credentials.password}
+                  onChange={(e) =>
+                    setCredentials({ ...credentials, password: e.target.value })
+                  }
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
+                  placeholder="demo123"
+                />
+              </div>
+            </div>
+
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm"
+              >
+                {error}
+              </motion.div>
+            )}
+
+            <motion.button
+              type="submit"
+              className="w-full px-6 py-3 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {t('admin.login.submit')}
+            </motion.button>
+          </form>
+
+          <div className="mt-6 p-4 bg-[#F5EFE6] rounded-lg text-sm text-gray-700">
+            <p className="mb-2">
+              <strong>{language === 'zh' ? '演示账号：' : 'Demo Account:'}</strong>
+            </p>
+            <p className="mb-1">{t('admin.login.username')}: admin</p>
+            <p>{t('admin.login.password')}: demo123</p>
+          </div>
+
+          <p className="text-xs text-gray-500 mt-4 text-center">
+            {t('common.note')}
+          </p>
+        </motion.div>
+      </motion.div>
+    </div>
+  );
+}
