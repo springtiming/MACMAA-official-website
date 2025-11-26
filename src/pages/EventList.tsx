@@ -20,17 +20,21 @@ export function EventList() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
+        className="mb-6 sm:mb-8"
       >
-        <h1 className="text-[#2B5F9E] mb-4">{t("events.title")}</h1>
-        <p className="text-gray-600">{t("common.note")}</p>
+        <h1 className="text-[#2B5F9E] mb-3 sm:mb-4 text-3xl sm:text-4xl px-2">
+          {t("events.title")}
+        </h1>
+        <p className="text-gray-600 text-sm sm:text-base px-2">
+          {t("common.note")}
+        </p>
       </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
         {mockEvents.map((event, index) => (
           <motion.div
             key={event.id}
@@ -38,7 +42,7 @@ export function EventList() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.1 }}
             whileHover={{ scale: 1.02 }}
-            className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden"
+            className="bg-white rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden"
           >
             <div className="md:flex">
               <div className="md:w-2/5">
@@ -50,34 +54,36 @@ export function EventList() {
                   />
                 </div>
               </div>
-              <div className="md:w-3/5 p-6 flex flex-col">
+              <div className="md:w-3/5 p-4 sm:p-6 flex flex-col">
                 <div className="mb-2">
-                  <span className="inline-block px-3 py-1 bg-[#6BA868] text-white text-sm rounded-full">
+                  <span className="inline-block px-2.5 sm:px-3 py-1 bg-[#6BA868] text-white text-xs sm:text-sm rounded-full">
                     {t("events.upcoming")}
                   </span>
                 </div>
-                <h3 className="text-[#2B5F9E] mb-3">{event.title[language]}</h3>
-                <p className="text-gray-600 mb-4 flex-1 line-clamp-2">
+                <h3 className="text-[#2B5F9E] mb-2 sm:mb-3 text-lg sm:text-xl">
+                  {event.title[language]}
+                </h3>
+                <p className="text-gray-600 mb-3 sm:mb-4 flex-1 line-clamp-2 text-sm sm:text-base">
                   {event.description[language]}
                 </p>
 
-                <div className="space-y-2 text-sm text-gray-700 mb-4">
+                <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-700 mb-3 sm:mb-4">
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-[#EB8C3A]" />
+                    <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#EB8C3A] flex-shrink-0" />
                     <span>{formatDate(event.date)}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-[#EB8C3A]" />
+                    <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#EB8C3A] flex-shrink-0" />
                     <span>{event.location[language]}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 text-[#EB8C3A]" />
+                    <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#EB8C3A] flex-shrink-0" />
                     <span>
                       {event.fee === 0 ? t("common.free") : `$${event.fee} AUD`}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-[#EB8C3A]" />
+                    <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#EB8C3A] flex-shrink-0" />
                     <span>
                       {event.registered}/{event.capacity}{" "}
                       {language === "zh" ? "已报名" : "registered"}

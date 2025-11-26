@@ -31,41 +31,41 @@ export function About() {
   ];
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-16"
+        className="text-center mb-10 sm:mb-16"
       >
-        <h1 className="text-[#2B5F9E] mb-6 text-5xl md:text-6xl">
+        <h1 className="text-[#2B5F9E] mb-4 sm:mb-6 text-3xl sm:text-4xl md:text-5xl lg:text-6xl px-2">
           {t("nav.about")}
         </h1>
-        <p className="text-gray-700 max-w-2xl mx-auto">
+        <p className="text-gray-700 max-w-2xl mx-auto text-sm sm:text-base px-4">
           {t("home.about.desc")}
         </p>
       </motion.div>
 
       {/* Main Content - Single Unified Card */}
-      <section className="mb-16">
+      <section className="mb-10 sm:mb-16">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="bg-[#F5EFE6] rounded-3xl p-8 md:p-12"
+          className="bg-[#F5EFE6] rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12"
         >
           {/* Mission & Vision */}
-          <div className="mb-16 pb-16 border-b border-gray-300">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <div className="mb-10 sm:mb-16 pb-10 sm:pb-16 border-b border-gray-300">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12">
               {/* Mission */}
               <div>
-                <div className="w-16 h-16 bg-[#2B5F9E]/10 rounded-full flex items-center justify-center mb-6">
-                  <Target className="w-8 h-8 text-[#2B5F9E]" />
+                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#2B5F9E]/10 rounded-full flex items-center justify-center mb-4 sm:mb-6">
+                  <Target className="w-7 h-7 sm:w-8 sm:h-8 text-[#2B5F9E]" />
                 </div>
-                <h2 className="mb-6 text-[#2B5F9E] text-3xl">
+                <h2 className="mb-4 sm:mb-6 text-[#2B5F9E] text-2xl sm:text-3xl">
                   {language === "zh" ? "我们的使命" : "Our Mission"}
                 </h2>
-                <p className="text-gray-700 leading-relaxed">
+                <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
                   {language === "zh"
                     ? "澳洲万年市华人互助会的使命，是为万年市及周边地区的华人社区提供支持与关怀，促进文化交流、长者福祉、多元文化融合，并通过各种活动增强社区成员之间的联系。"
                     : "MACMAA is committed to providing support and care for the Chinese community in Manningham and surrounding areas, promoting cultural exchange, senior wellbeing, multicultural integration, and strengthening connections among community members."}
@@ -74,13 +74,13 @@ export function About() {
 
               {/* Vision */}
               <div>
-                <div className="w-16 h-16 bg-[#6BA868]/10 rounded-full flex items-center justify-center mb-6">
-                  <Sparkles className="w-8 h-8 text-[#6BA868]" />
+                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#6BA868]/10 rounded-full flex items-center justify-center mb-4 sm:mb-6">
+                  <Sparkles className="w-7 h-7 sm:w-8 sm:h-8 text-[#6BA868]" />
                 </div>
-                <h2 className="mb-6 text-[#2B5F9E] text-3xl">
+                <h2 className="mb-4 sm:mb-6 text-[#2B5F9E] text-2xl sm:text-3xl">
                   {language === "zh" ? "我们的愿景" : "Our Vision"}
                 </h2>
-                <p className="text-gray-700 leading-relaxed">
+                <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
                   {language === "zh"
                     ? "我们致力于成为一个温暖、有力、富影响力的社区组织，让每一位成员都能找到归属感、支持、尊严与成长空间，成为连接文化与社区的桥梁。"
                     : "We strive to become a warm, strong, and influential community organization where every member can find belonging, support, dignity, and growth opportunities, serving as a bridge connecting culture and community."}
@@ -90,12 +90,12 @@ export function About() {
           </div>
 
           {/* Our Story */}
-          <div className="mb-16 pb-16 border-b border-gray-300">
-            <h2 className="text-[#2B5F9E] mb-8 text-center text-3xl">
+          <div className="mb-10 sm:mb-16 pb-10 sm:pb-16 border-b border-gray-300">
+            <h2 className="text-[#2B5F9E] mb-6 sm:mb-8 text-center text-2xl sm:text-3xl px-2">
               {language === "zh" ? "我们的故事" : "Our Story"}
             </h2>
 
-            <div className="prose prose-lg max-w-none text-gray-700 space-y-4">
+            <div className="prose prose-lg max-w-none text-gray-700 space-y-3 sm:space-y-4 text-sm sm:text-base">
               <p>
                 {language === "zh"
                   ? '澳洲万市华人互助会（MACMAA）成立于2023年，由陈雅女士发起，最初只是一个简单的想法——"让在异乡的华人有一个互相支持、温暖的家"。'
@@ -129,12 +129,12 @@ export function About() {
           </div>
 
           {/* What We Do */}
-          <div className="mb-12">
-            <h2 className="text-[#2B5F9E] mb-8 text-center text-3xl">
+          <div className="mb-8 sm:mb-12">
+            <h2 className="text-[#2B5F9E] mb-6 sm:mb-8 text-center text-2xl sm:text-3xl px-2">
               {language === "zh" ? "我们做什么" : "What We Do"}
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-2 gap-y-3 max-w-5xl mx-auto pl-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-2 gap-y-3 sm:gap-y-4 max-w-5xl mx-auto pl-6 sm:pl-12">
               {services.map((service, index) => (
                 <motion.div
                   key={index}
@@ -142,18 +142,18 @@ export function About() {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.05 }}
-                  className="flex items-center gap-4 text-gray-700"
+                  className="flex items-start sm:items-center gap-3 sm:gap-4 text-gray-700"
                 >
-                  <Check className="w-5 h-5 text-[#6BA868] flex-shrink-0" />
-                  <p>{service}</p>
+                  <Check className="w-4 h-4 sm:w-5 sm:h-5 text-[#6BA868] flex-shrink-0 mt-0.5 sm:mt-0" />
+                  <p className="text-sm sm:text-base">{service}</p>
                 </motion.div>
               ))}
             </div>
           </div>
 
           {/* Contact Info - Founder Profile */}
-          <div className="pt-10 border-t border-gray-300">
-            <h2 className="text-[#2B5F9E] mb-10 text-center text-3xl">
+          <div className="pt-8 sm:pt-10 border-t border-gray-300">
+            <h2 className="text-[#2B5F9E] mb-6 sm:mb-10 text-center text-2xl sm:text-3xl px-2">
               {language === "zh" ? "创始人/会长" : "Founder & President"}
             </h2>
 
@@ -173,20 +173,20 @@ export function About() {
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        className="bg-gradient-to-r from-[#2B5F9E] to-[#6BA868] rounded-3xl p-12 text-center text-white"
+        className="bg-gradient-to-r from-[#2B5F9E] to-[#6BA868] rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 text-center text-white"
       >
-        <h2 className="mb-4">
+        <h2 className="mb-3 sm:mb-4 text-2xl sm:text-3xl px-2">
           {language === "zh" ? "加入我们的大家庭" : "Join Our Community"}
         </h2>
-        <p className="mb-8 text-blue-50 max-w-2xl mx-auto">
+        <p className="mb-6 sm:mb-8 text-blue-50 max-w-2xl mx-auto text-sm sm:text-base px-4">
           {language === "zh"
             ? "无论新移民、长者、家庭或年轻朋友，都欢迎加入我们的大家庭。"
             : "Whether you are a new migrant, senior, family, or young friend, you are welcome to join our community."}
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
           <motion.button
             onClick={() => (window.location.href = "/membership")}
-            className="px-8 py-3 bg-white text-[#2B5F9E] rounded-lg hover:bg-gray-100 transition-colors"
+            className="px-6 sm:px-8 py-3 bg-white text-[#2B5F9E] rounded-lg hover:bg-gray-100 transition-colors text-sm sm:text-base"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -194,7 +194,7 @@ export function About() {
           </motion.button>
           <motion.button
             onClick={() => (window.location.href = "/events")}
-            className="px-8 py-3 bg-transparent border-2 border-white text-white rounded-lg hover:bg-white hover:text-[#2B5F9E] transition-colors"
+            className="px-6 sm:px-8 py-3 bg-transparent border-2 border-white text-white rounded-lg hover:bg-white hover:text-[#2B5F9E] transition-colors text-sm sm:text-base"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >

@@ -31,7 +31,7 @@ export function Membership() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-12">
+    <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       <AnimatePresence mode="wait">
         {!submitted ? (
           <motion.div
@@ -41,22 +41,26 @@ export function Membership() {
             exit={{ opacity: 0, y: -20 }}
           >
             {/* Header Section */}
-            <div className="text-center mb-12">
+            <div className="text-center mb-8 sm:mb-12">
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", delay: 0.2 }}
-                className="w-20 h-20 bg-gradient-to-br from-[#2B5F9E] to-[#6BA868] rounded-full flex items-center justify-center mx-auto mb-6"
+                className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-[#2B5F9E] to-[#6BA868] rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6"
               >
-                <Users className="w-10 h-10 text-white" />
+                <Users className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
               </motion.div>
-              <h1 className="text-[#2B5F9E] mb-4">{t("membership.title")}</h1>
-              <p className="text-gray-700 max-w-2xl mx-auto mb-2">
+              <h1 className="text-[#2B5F9E] mb-3 sm:mb-4 text-3xl sm:text-4xl px-2">
+                {t("membership.title")}
+              </h1>
+              <p className="text-gray-700 max-w-2xl mx-auto mb-2 text-sm sm:text-base px-4">
                 {t("membership.subtitle")}
               </p>
-              <div className="text-[#2B5F9E]">
-                <p className="mb-1">{t("membership.fee")}</p>
-                <p className="text-sm text-gray-600">
+              <div className="text-[#2B5F9E] px-4">
+                <p className="mb-1 text-base sm:text-lg">
+                  {t("membership.fee")}
+                </p>
+                <p className="text-xs sm:text-sm text-gray-600">
                   {t("membership.feeNote")}
                 </p>
               </div>
@@ -67,11 +71,15 @@ export function Membership() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="bg-gradient-to-r from-[#2B5F9E] to-[#6BA868] rounded-xl p-6 mb-12 text-white text-center"
+              className="bg-gradient-to-r from-[#2B5F9E] to-[#6BA868] rounded-xl p-5 sm:p-6 mb-8 sm:mb-12 text-white text-center"
             >
-              <h3 className="mb-2">{t("home.weekly.title")}</h3>
-              <p className="mb-1">{t("home.weekly.time")}</p>
-              <p>{t("home.weekly.location")}</p>
+              <h3 className="mb-2 text-xl sm:text-2xl">
+                {t("home.weekly.title")}
+              </h3>
+              <p className="mb-1 text-sm sm:text-base">
+                {t("home.weekly.time")}
+              </p>
+              <p className="text-xs sm:text-sm">{t("home.weekly.location")}</p>
             </motion.div>
 
             {/* Application Form */}
@@ -79,17 +87,17 @@ export function Membership() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
-              className="bg-white rounded-2xl shadow-lg p-8"
+              className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-5 sm:p-8"
             >
-              <h2 className="text-[#2B5F9E] mb-6">
+              <h2 className="text-[#2B5F9E] mb-5 sm:mb-6 text-2xl sm:text-3xl">
                 {t("membership.form.title")}
               </h2>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
                 {/* Personal Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   <div>
-                    <label className="block text-gray-700 mb-2">
+                    <label className="block text-gray-700 mb-2 text-sm sm:text-base">
                       {t("membership.form.chineseName")} *
                     </label>
                     <input
@@ -102,12 +110,12 @@ export function Membership() {
                           chineseName: e.target.value,
                         })
                       }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E] text-sm sm:text-base"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-gray-700 mb-2">
+                    <label className="block text-gray-700 mb-2 text-sm sm:text-base">
                       {t("membership.form.englishName")} *
                     </label>
                     <input
@@ -120,14 +128,14 @@ export function Membership() {
                           englishName: e.target.value,
                         })
                       }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E] text-sm sm:text-base"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   <div>
-                    <label className="block text-gray-700 mb-2">
+                    <label className="block text-gray-700 mb-2 text-sm sm:text-base">
                       {t("membership.form.gender")} *
                     </label>
                     <div className="flex gap-6">
@@ -161,7 +169,7 @@ export function Membership() {
                   </div>
 
                   <div>
-                    <label className="block text-gray-700 mb-2">
+                    <label className="block text-gray-700 mb-2 text-sm sm:text-base">
                       {t("membership.form.birthday")} *
                     </label>
                     <input
@@ -171,13 +179,13 @@ export function Membership() {
                       onChange={(e) =>
                         setFormData({ ...formData, birthday: e.target.value })
                       }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E] text-sm sm:text-base"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-gray-700 mb-2">
+                  <label className="block text-gray-700 mb-2 text-sm sm:text-base">
                     {t("membership.form.phone")} *
                   </label>
                   <input
@@ -187,12 +195,12 @@ export function Membership() {
                     onChange={(e) =>
                       setFormData({ ...formData, phone: e.target.value })
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E] text-sm sm:text-base"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-gray-700 mb-2">
+                  <label className="block text-gray-700 mb-2 text-sm sm:text-base">
                     {t("membership.form.email")}
                   </label>
                   <input
@@ -201,12 +209,12 @@ export function Membership() {
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E] text-sm sm:text-base"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-gray-700 mb-2">
+                  <label className="block text-gray-700 mb-2 text-sm sm:text-base">
                     {t("membership.form.address")} *
                   </label>
                   <input
@@ -216,7 +224,7 @@ export function Membership() {
                     onChange={(e) =>
                       setFormData({ ...formData, address: e.target.value })
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E] text-sm sm:text-base"
                   />
                 </div>
 
@@ -228,7 +236,7 @@ export function Membership() {
 
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-gray-700 mb-2">
+                      <label className="block text-gray-700 mb-2 text-sm sm:text-base">
                         {t("membership.form.emergencyName")} *
                       </label>
                       <input
@@ -241,13 +249,13 @@ export function Membership() {
                             emergencyName: e.target.value,
                           })
                         }
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
+                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E] text-sm sm:text-base"
                       />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                       <div>
-                        <label className="block text-gray-700 mb-2">
+                        <label className="block text-gray-700 mb-2 text-sm sm:text-base">
                           {t("membership.form.emergencyPhone")} *
                         </label>
                         <input
@@ -260,12 +268,12 @@ export function Membership() {
                               emergencyPhone: e.target.value,
                             })
                           }
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
+                          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E] text-sm sm:text-base"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-gray-700 mb-2">
+                        <label className="block text-gray-700 mb-2 text-sm sm:text-base">
                           {t("membership.form.emergencyRelation")} *
                         </label>
                         <input
@@ -278,7 +286,7 @@ export function Membership() {
                               emergencyRelation: e.target.value,
                             })
                           }
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
+                          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E] text-sm sm:text-base"
                           placeholder={
                             language === "zh"
                               ? "例如：配偶、子女"
@@ -292,7 +300,7 @@ export function Membership() {
 
                 {/* Membership Type */}
                 <div className="bg-[#F5EFE6] rounded-lg p-4">
-                  <label className="block text-gray-700 mb-2">
+                  <label className="block text-gray-700 mb-2 text-sm sm:text-base">
                     {t("membership.form.memberType")}
                   </label>
                   <p className="text-[#2B5F9E]">

@@ -25,22 +25,26 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm">
-      <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-20 items-center justify-between">
+      <nav className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-8">
+        <div className="flex h-16 sm:h-20 items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3">
-            <img src={logo} alt="MACMAA Logo" className="h-14 w-14" />
+          <Link to="/" className="flex items-center gap-2 sm:gap-3">
+            <img
+              src={logo}
+              alt="MACMAA Logo"
+              className="h-12 w-12 sm:h-14 sm:w-14"
+            />
             <span className="hidden sm:block text-[#2B5F9E]">
               {language === "zh" ? "MACMAA" : "MACMAA"}
             </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-6 lg:gap-8">
             {navItems.map((item) => (
               <Link key={item.path} to={item.path} className="relative">
                 <motion.span
-                  className={`transition-colors ${
+                  className={`text-sm lg:text-base transition-colors ${
                     isActive(item.path)
                       ? "text-[#2B5F9E]"
                       : "text-gray-700 hover:text-[#2B5F9E]"
@@ -61,16 +65,18 @@ export function Header() {
           </div>
 
           {/* Language Switcher & Mobile Menu */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             {/* Language Switcher */}
             <motion.button
               onClick={() => setLanguage(language === "zh" ? "en" : "zh")}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#F5EFE6] text-[#2B5F9E] hover:bg-[#E8DCC8] transition-colors"
+              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-[#F5EFE6] text-[#2B5F9E] hover:bg-[#E8DCC8] transition-colors text-sm"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <Globe className="w-4 h-4" />
-              <span>{language === "zh" ? "EN" : "中文"}</span>
+              <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="text-xs sm:text-sm">
+                {language === "zh" ? "EN" : "中文"}
+              </span>
             </motion.button>
 
             {/* Mobile Menu Button */}
@@ -79,9 +85,9 @@ export function Header() {
               className="md:hidden p-2 text-gray-700"
             >
               {mobileMenuOpen ? (
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5 sm:w-6 sm:h-6" />
               ) : (
-                <Menu className="w-6 h-6" />
+                <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
               )}
             </button>
           </div>
@@ -93,14 +99,14 @@ export function Header() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden py-4 border-t"
+            className="md:hidden py-2 sm:py-4 border-t"
           >
             {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`block py-3 px-4 ${
+                className={`block py-2.5 sm:py-3 px-3 sm:px-4 text-sm sm:text-base ${
                   isActive(item.path)
                     ? "bg-[#F5EFE6] text-[#2B5F9E]"
                     : "text-gray-700 hover:bg-gray-50"

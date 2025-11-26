@@ -94,13 +94,13 @@ export function Home() {
     <div>
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#F5EFE6] to-[#E8DCC8] overflow-hidden">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20 md:py-28">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-28">
           <div className="text-center">
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="text-[#2B5F9E] mb-6 text-4xl md:text-5xl lg:text-6xl"
+              className="text-[#2B5F9E] mb-4 sm:mb-6 text-3xl sm:text-4xl md:text-5xl lg:text-6xl px-2"
               style={{ fontWeight: 700 }}
             >
               {t("home.hero.title")}
@@ -109,7 +109,7 @@ export function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-gray-700 mb-8 max-w-2xl mx-auto text-lg md:text-xl"
+              className="text-gray-700 mb-6 sm:mb-8 max-w-2xl mx-auto text-base sm:text-lg md:text-xl px-4"
             >
               {t("home.hero.subtitle")}
             </motion.p>
@@ -117,11 +117,11 @@ export function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center"
+              className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4"
             >
-              <Link to="/news">
+              <Link to="/news" className="w-full sm:w-auto">
                 <motion.button
-                  className="px-8 py-3 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors flex items-center gap-2"
+                  className="w-full sm:w-auto px-6 sm:px-8 py-3 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors flex items-center justify-center gap-2"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -129,9 +129,9 @@ export function Home() {
                   <ArrowRight className="w-4 h-4" />
                 </motion.button>
               </Link>
-              <Link to="/membership">
+              <Link to="/membership" className="w-full sm:w-auto">
                 <motion.button
-                  className="px-8 py-3 bg-white text-[#2B5F9E] rounded-lg border-2 border-[#2B5F9E] hover:bg-[#2B5F9E] hover:text-white transition-colors"
+                  className="w-full sm:w-auto px-6 sm:px-8 py-3 bg-white text-[#2B5F9E] rounded-lg border-2 border-[#2B5F9E] hover:bg-[#2B5F9E] hover:text-white transition-colors"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -144,30 +144,30 @@ export function Home() {
 
         {/* Decorative Elements */}
         <motion.div
-          className="absolute top-10 left-10 w-20 h-20 rounded-full bg-[#6BA868]/20"
+          className="hidden sm:block absolute top-10 left-10 w-20 h-20 rounded-full bg-[#6BA868]/20"
           animate={{ y: [0, 20, 0] }}
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div
-          className="absolute bottom-10 right-10 w-32 h-32 rounded-full bg-[#EB8C3A]/20"
+          className="hidden sm:block absolute bottom-10 right-10 w-32 h-32 rounded-full bg-[#EB8C3A]/20"
           animate={{ y: [0, -30, 0] }}
           transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
         />
       </section>
 
       {/* About Section */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-12"
+          className="text-center mb-8 sm:mb-12"
         >
-          <h2 className="text-[#2B5F9E] mb-4 text-3xl">
+          <h2 className="text-[#2B5F9E] mb-3 sm:mb-4 text-2xl sm:text-3xl px-2">
             {t("home.about.title")}
           </h2>
-          <p className="text-gray-700 max-w-3xl mx-auto">
+          <p className="text-gray-700 max-w-3xl mx-auto px-4 text-sm sm:text-base">
             {t("home.about.desc")}
           </p>
         </motion.div>
@@ -178,7 +178,7 @@ export function Home() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="flex flex-wrap justify-center gap-8 md:gap-12 mb-12"
+          className="flex flex-wrap justify-center gap-6 sm:gap-8 md:gap-12 mb-8 sm:mb-12 px-2"
         >
           {services.map((service, index) => (
             <motion.div
@@ -187,18 +187,18 @@ export function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: index * 0.1 }}
-              className="flex flex-col items-center gap-2 group"
+              className="flex flex-col items-center gap-2 group w-20 sm:w-24"
             >
               <div
-                className="w-16 h-16 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
+                className="w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
                 style={{ backgroundColor: `${service.color}20` }}
               >
                 <service.icon
-                  className="w-8 h-8"
+                  className="w-7 h-7 sm:w-8 sm:h-8"
                   style={{ color: service.color }}
                 />
               </div>
-              <span className="text-sm text-gray-700 text-center max-w-[100px]">
+              <span className="text-xs sm:text-sm text-gray-700 text-center max-w-[100px]">
                 {service.title}
               </span>
             </motion.div>
@@ -210,11 +210,11 @@ export function Home() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center"
+          className="text-center px-4"
         >
           <Link to="/about">
             <motion.button
-              className="px-8 py-3 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors inline-flex items-center gap-2"
+              className="px-6 sm:px-8 py-3 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors inline-flex items-center gap-2"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -226,25 +226,25 @@ export function Home() {
       </section>
 
       {/* Weekly Activities */}
-      <section className="py-16">
+      <section className="py-10 sm:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Weekly Activity Card */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="bg-[#F5EFE6] rounded-2xl p-8 md:p-12 shadow-lg mb-16"
+            className="bg-[#F5EFE6] rounded-2xl p-6 sm:p-8 md:p-12 shadow-lg mb-10 sm:mb-16"
           >
-            <h2 className="text-[#2B5F9E] mb-6 text-center text-3xl">
+            <h2 className="text-[#2B5F9E] mb-4 sm:mb-6 text-center text-2xl sm:text-3xl px-2">
               {t("home.weekly.title")}
             </h2>
-            <p className="mb-2 text-gray-700 text-center">
+            <p className="mb-2 text-gray-700 text-center text-sm sm:text-base px-2">
               {t("home.weekly.time")}
             </p>
-            <p className="mb-6 text-gray-600 text-center">
+            <p className="mb-4 sm:mb-6 text-gray-600 text-center text-xs sm:text-sm px-2">
               {t("home.weekly.location")}
             </p>
-            <div className="flex flex-wrap justify-center gap-3 text-sm">
+            <div className="flex flex-wrap justify-center gap-2 sm:gap-3 text-xs sm:text-sm">
               {(language === "zh"
                 ? [
                     "太极",
@@ -273,7 +273,7 @@ export function Home() {
               ).map((activity, index) => (
                 <span
                   key={index}
-                  className="px-3 py-1 bg-white text-gray-700 rounded-full"
+                  className="px-2.5 sm:px-3 py-1 bg-white text-gray-700 rounded-full"
                 >
                   {activity}
                 </span>
@@ -286,12 +286,14 @@ export function Home() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-8"
+            className="text-center mb-6 sm:mb-8"
           >
-            <h3 className="text-[#2B5F9E] mb-3 text-2xl">
+            <h3 className="text-[#2B5F9E] mb-2 sm:mb-3 text-xl sm:text-2xl px-2">
               {t("home.activities.title")}
             </h3>
-            <p className="text-gray-700 mb-8">{t("home.activities.desc")}</p>
+            <p className="text-gray-700 mb-6 sm:mb-8 text-sm sm:text-base px-4">
+              {t("home.activities.desc")}
+            </p>
           </motion.div>
 
           {/* Activity Images Carousel */}
@@ -307,15 +309,15 @@ export function Home() {
                 alt={activityImages[currentImageIndex].caption}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
-                <p className="text-white text-center">
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 sm:p-6">
+                <p className="text-white text-center text-sm sm:text-base">
                   {activityImages[currentImageIndex].caption}
                 </p>
               </div>
             </div>
 
             {/* Image Indicators */}
-            <div className="flex justify-center gap-2 py-4">
+            <div className="flex justify-center gap-2 py-3 sm:py-4">
               {activityImages.map((_, index) => (
                 <button
                   key={index}

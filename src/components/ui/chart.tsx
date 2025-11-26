@@ -8,15 +8,6 @@ import { cn } from "./utils";
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const;
 
-type ChartPayloadItem = {
-  name?: string | number;
-  value?: number;
-  dataKey?: string | number;
-  color?: string;
-  payload?: unknown;
-  [key: string]: unknown;
-};
-
 export type ChartConfig = {
   [k in string]: {
     label?: React.ReactNode;
@@ -188,35 +179,21 @@ function ChartTooltipContent({
     >
       {!nestLabel ? tooltipLabel : null}
       <div className="grid gap-1.5">
-        {payload.map((item, index: number) => {
-          const payloadItem = item as ChartPayloadItem;
-          const key = `${nameKey || payloadItem?.name || payloadItem?.dataKey || "value"}`;
-          const itemConfig = getPayloadConfigFromPayload(
-            config,
-            payloadItem,
-            key
-          );
-          const payloadFill = (payloadItem?.payload as { fill?: string })?.fill;
-          const indicatorColor = color || payloadFill || payloadItem?.color;
+        {payload.map((item, index) => {
+          const key = `${nameKey || item.name || item.dataKey || "value"}`;
+          const itemConfig = getPayloadConfigFromPayload(config, item, key);
+          const indicatorColor = color || item.payload.fill || item.color;
 
           return (
             <div
-              key={String(payloadItem?.dataKey || index)}
+              key={item.dataKey}
               className={cn(
                 "[&>svg]:text-muted-foreground flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5",
                 indicator === "dot" && "items-center"
               )}
             >
-              {formatter &&
-              payloadItem?.value !== undefined &&
-              payloadItem?.name ? (
-                formatter(
-                  payloadItem.value,
-                  String(payloadItem.name),
-                  payloadItem,
-                  index,
-                  [payloadItem] as ChartPayloadItem[]
-                )
+              {formatter && item?.value !== undefined && item.name ? (
+                formatter(item.value, item.name, item, index, item.payload)
               ) : (
                 <>
                   {itemConfig?.icon ? (
@@ -252,12 +229,12 @@ function ChartTooltipContent({
                     <div className="grid gap-1.5">
                       {nestLabel ? tooltipLabel : null}
                       <span className="text-muted-foreground">
-                        {itemConfig?.label || String(payloadItem?.name || "")}
+                        {itemConfig?.label || item.name}
                       </span>
                     </div>
-                    {payloadItem?.value && (
+                    {item.value && (
                       <span className="text-foreground font-mono font-medium tabular-nums">
-                        {payloadItem.value.toLocaleString()}
+                        {item.value.toLocaleString()}
                       </span>
                     )}
                   </div>
@@ -299,17 +276,12 @@ function ChartLegendContent({
       )}
     >
       {payload.map((item) => {
-        const payloadItem = item as ChartPayloadItem;
-        const key = `${nameKey || payloadItem?.dataKey || "value"}`;
-        const itemConfig = getPayloadConfigFromPayload(
-          config,
-          payloadItem,
-          key
-        );
+        const key = `${nameKey || item.dataKey || "value"}`;
+        const itemConfig = getPayloadConfigFromPayload(config, item, key);
 
         return (
           <div
-            key={String(payloadItem?.value || key)}
+            key={item.value}
             className={cn(
               "[&>svg]:text-muted-foreground flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3"
             )}
@@ -320,7 +292,7 @@ function ChartLegendContent({
               <div
                 className="h-2 w-2 shrink-0 rounded-[2px]"
                 style={{
-                  backgroundColor: payloadItem?.color,
+                  backgroundColor: item.color,
                 }}
               />
             )}
