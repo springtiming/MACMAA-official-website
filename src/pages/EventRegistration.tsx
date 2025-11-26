@@ -1,34 +1,36 @@
-import { useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useLanguage } from '../contexts/LanguageContext';
-import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, CreditCard, Building, Wallet, Check } from 'lucide-react';
-import { mockEvents } from '../data/mockData';
+import { useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import { useLanguage } from "../contexts/LanguageContext";
+import { motion, AnimatePresence } from "motion/react";
+import { ArrowLeft, CreditCard, Building, Wallet, Check } from "lucide-react";
+import { mockEvents } from "../data/mockData";
 
-type PaymentMethod = 'online' | 'onsite' | 'transfer' | null;
+type PaymentMethod = "online" | "onsite" | "transfer" | null;
 
 export function EventRegistration() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const { language, t } = useLanguage();
   const event = mockEvents.find((e) => e.id === Number(id));
 
-  const [step, setStep] = useState<'form' | 'payment' | 'success'>('form');
+  const [step, setStep] = useState<"form" | "payment" | "success">("form");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(null);
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    participants: '1',
-    notes: '',
+    name: "",
+    email: "",
+    phone: "",
+    participants: "1",
+    notes: "",
   });
 
   if (!event) {
     return (
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-12 text-center">
         <p className="text-gray-600">Event not found</p>
-        <Link to="/events" className="text-[#2B5F9E] hover:underline mt-4 inline-block">
-          {t('events.back')}
+        <Link
+          to="/events"
+          className="text-[#2B5F9E] hover:underline mt-4 inline-block"
+        >
+          {t("events.back")}
         </Link>
       </div>
     );
@@ -36,37 +38,37 @@ export function EventRegistration() {
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setStep('payment');
+    setStep("payment");
   };
 
   const handlePaymentConfirm = () => {
     // Simulate API call
     setTimeout(() => {
-      setStep('success');
+      setStep("success");
     }, 500);
   };
 
   const paymentOptions = [
     {
-      id: 'online' as PaymentMethod,
+      id: "online" as PaymentMethod,
       icon: CreditCard,
-      title: t('register.payment.online'),
-      desc: language === 'zh' ? '信用卡/借记卡' : 'Credit/Debit Card',
-      color: '#2B5F9E',
+      title: t("register.payment.online"),
+      desc: language === "zh" ? "信用卡/借记卡" : "Credit/Debit Card",
+      color: "#2B5F9E",
     },
     {
-      id: 'onsite' as PaymentMethod,
+      id: "onsite" as PaymentMethod,
       icon: Wallet,
-      title: t('register.payment.onsite'),
-      desc: language === 'zh' ? '活动现场支付' : 'Pay at event',
-      color: '#6BA868',
+      title: t("register.payment.onsite"),
+      desc: language === "zh" ? "活动现场支付" : "Pay at event",
+      color: "#6BA868",
     },
     {
-      id: 'transfer' as PaymentMethod,
+      id: "transfer" as PaymentMethod,
       icon: Building,
-      title: t('register.payment.transfer'),
-      desc: language === 'zh' ? '转账至协会账户' : 'Bank transfer',
-      color: '#EB8C3A',
+      title: t("register.payment.transfer"),
+      desc: language === "zh" ? "转账至协会账户" : "Bank transfer",
+      color: "#EB8C3A",
     },
   ];
 
@@ -79,18 +81,18 @@ export function EventRegistration() {
         {/* Progress Steps */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
-            {['form', 'payment', 'success'].map((s, index) => (
+            {["form", "payment", "success"].map((s, index) => (
               <div key={s} className="flex items-center flex-1">
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center ${
                     step === s
-                      ? 'bg-[#2B5F9E] text-white'
-                      : index < ['form', 'payment', 'success'].indexOf(step)
-                      ? 'bg-[#6BA868] text-white'
-                      : 'bg-gray-200 text-gray-600'
+                      ? "bg-[#2B5F9E] text-white"
+                      : index < ["form", "payment", "success"].indexOf(step)
+                        ? "bg-[#6BA868] text-white"
+                        : "bg-gray-200 text-gray-600"
                   }`}
                 >
-                  {index < ['form', 'payment', 'success'].indexOf(step) ? (
+                  {index < ["form", "payment", "success"].indexOf(step) ? (
                     <Check className="w-5 h-5" />
                   ) : (
                     index + 1
@@ -99,9 +101,9 @@ export function EventRegistration() {
                 {index < 2 && (
                   <div
                     className={`flex-1 h-1 mx-2 ${
-                      index < ['form', 'payment', 'success'].indexOf(step)
-                        ? 'bg-[#6BA868]'
-                        : 'bg-gray-200'
+                      index < ["form", "payment", "success"].indexOf(step)
+                        ? "bg-[#6BA868]"
+                        : "bg-gray-200"
                     }`}
                   />
                 )}
@@ -112,7 +114,7 @@ export function EventRegistration() {
 
         <AnimatePresence mode="wait">
           {/* Step 1: Registration Form */}
-          {step === 'form' && (
+          {step === "form" && (
             <motion.div
               key="form"
               initial={{ opacity: 0, x: -20 }}
@@ -124,17 +126,17 @@ export function EventRegistration() {
                 className="inline-flex items-center gap-2 text-[#2B5F9E] hover:underline mb-6"
               >
                 <ArrowLeft className="w-4 h-4" />
-                {t('common.back')}
+                {t("common.back")}
               </Link>
 
               <div className="bg-white rounded-2xl shadow-lg p-8">
-                <h2 className="text-[#2B5F9E] mb-2">{t('register.title')}</h2>
+                <h2 className="text-[#2B5F9E] mb-2">{t("register.title")}</h2>
                 <p className="text-gray-600 mb-6">{event.title[language]}</p>
 
                 <form onSubmit={handleFormSubmit} className="space-y-6">
                   <div>
                     <label className="block text-gray-700 mb-2">
-                      {t('register.form.name')} *
+                      {t("register.form.name")} *
                     </label>
                     <input
                       type="text"
@@ -149,7 +151,7 @@ export function EventRegistration() {
 
                   <div>
                     <label className="block text-gray-700 mb-2">
-                      {t('register.form.email')} *
+                      {t("register.form.email")} *
                     </label>
                     <input
                       type="email"
@@ -164,7 +166,7 @@ export function EventRegistration() {
 
                   <div>
                     <label className="block text-gray-700 mb-2">
-                      {t('register.form.phone')} *
+                      {t("register.form.phone")} *
                     </label>
                     <input
                       type="tel"
@@ -179,12 +181,15 @@ export function EventRegistration() {
 
                   <div>
                     <label className="block text-gray-700 mb-2">
-                      {t('register.form.participants')} *
+                      {t("register.form.participants")} *
                     </label>
                     <select
                       value={formData.participants}
                       onChange={(e) =>
-                        setFormData({ ...formData, participants: e.target.value })
+                        setFormData({
+                          ...formData,
+                          participants: e.target.value,
+                        })
                       }
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
                     >
@@ -198,7 +203,7 @@ export function EventRegistration() {
 
                   <div>
                     <label className="block text-gray-700 mb-2">
-                      {t('register.form.notes')}
+                      {t("register.form.notes")}
                     </label>
                     <textarea
                       value={formData.notes}
@@ -216,7 +221,7 @@ export function EventRegistration() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    {t('register.next')}
+                    {t("register.next")}
                   </motion.button>
                 </form>
               </div>
@@ -224,7 +229,7 @@ export function EventRegistration() {
           )}
 
           {/* Step 2: Payment Selection */}
-          {step === 'payment' && (
+          {step === "payment" && (
             <motion.div
               key="payment"
               initial={{ opacity: 0, x: -20 }}
@@ -232,19 +237,21 @@ export function EventRegistration() {
               exit={{ opacity: 0, x: 20 }}
             >
               <button
-                onClick={() => setStep('form')}
+                onClick={() => setStep("form")}
                 className="inline-flex items-center gap-2 text-[#2B5F9E] hover:underline mb-6"
               >
                 <ArrowLeft className="w-4 h-4" />
-                {t('common.back')}
+                {t("common.back")}
               </button>
 
               <div className="bg-white rounded-2xl shadow-lg p-8">
-                <h2 className="text-[#2B5F9E] mb-2">{t('register.payment.title')}</h2>
+                <h2 className="text-[#2B5F9E] mb-2">
+                  {t("register.payment.title")}
+                </h2>
                 <p className="text-gray-600 mb-6">
-                  {language === 'zh'
-                    ? `活动费用：${event.fee === 0 ? '免费' : `$${event.fee} CAD`}`
-                    : `Event fee: ${event.fee === 0 ? 'Free' : `$${event.fee} CAD`}`}
+                  {language === "zh"
+                    ? `活动费用：${event.fee === 0 ? "免费" : `$${event.fee} AUD`}`
+                    : `Event fee: ${event.fee === 0 ? "Free" : `$${event.fee} AUD`}`}
                 </p>
 
                 {event.fee > 0 ? (
@@ -255,8 +262,8 @@ export function EventRegistration() {
                         onClick={() => setPaymentMethod(option.id)}
                         className={`p-6 rounded-xl border-2 transition-all ${
                           paymentMethod === option.id
-                            ? 'border-[#2B5F9E] bg-[#F5EFE6]'
-                            : 'border-gray-200 hover:border-[#2B5F9E]/50'
+                            ? "border-[#2B5F9E] bg-[#F5EFE6]"
+                            : "border-gray-200 hover:border-[#2B5F9E]/50"
                         }`}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
@@ -265,7 +272,10 @@ export function EventRegistration() {
                           className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center"
                           style={{ backgroundColor: `${option.color}20` }}
                         >
-                          <option.icon className="w-6 h-6" style={{ color: option.color }} />
+                          <option.icon
+                            className="w-6 h-6"
+                            style={{ color: option.color }}
+                          />
                         </div>
                         <h3 className="mb-1">{option.title}</h3>
                         <p className="text-sm text-gray-600">{option.desc}</p>
@@ -279,26 +289,30 @@ export function EventRegistration() {
                   disabled={event.fee > 0 && !paymentMethod}
                   className={`w-full px-6 py-3 rounded-lg transition-colors ${
                     event.fee > 0 && !paymentMethod
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : 'bg-[#2B5F9E] text-white hover:bg-[#234a7e]'
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-[#2B5F9E] text-white hover:bg-[#234a7e]"
                   }`}
-                  whileHover={event.fee === 0 || paymentMethod ? { scale: 1.02 } : {}}
-                  whileTap={event.fee === 0 || paymentMethod ? { scale: 0.98 } : {}}
+                  whileHover={
+                    event.fee === 0 || paymentMethod ? { scale: 1.02 } : {}
+                  }
+                  whileTap={
+                    event.fee === 0 || paymentMethod ? { scale: 0.98 } : {}
+                  }
                 >
-                  {t('register.payment.confirm')}
+                  {t("register.payment.confirm")}
                 </motion.button>
 
                 <p className="text-sm text-gray-500 mt-4 text-center">
-                  {language === 'zh'
-                    ? '* 实际系统将集成Stripe或PayPal支付网关'
-                    : '* Production system will integrate Stripe or PayPal gateway'}
+                  {language === "zh"
+                    ? "* 实际系统将集成Stripe或PayPal支付网关"
+                    : "* Production system will integrate Stripe or PayPal gateway"}
                 </p>
               </div>
             </motion.div>
           )}
 
           {/* Step 3: Success */}
-          {step === 'success' && (
+          {step === "success" && (
             <motion.div
               key="success"
               initial={{ opacity: 0, scale: 0.9 }}
@@ -309,25 +323,36 @@ export function EventRegistration() {
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  transition={{ delay: 0.2, type: 'spring' }}
+                  transition={{ delay: 0.2, type: "spring" }}
                   className="w-20 h-20 bg-[#6BA868] rounded-full flex items-center justify-center mx-auto mb-6"
                 >
                   <Check className="w-10 h-10 text-white" />
                 </motion.div>
 
-                <h2 className="text-[#2B5F9E] mb-4">{t('register.success.title')}</h2>
+                <h2 className="text-[#2B5F9E] mb-4">
+                  {t("register.success.title")}
+                </h2>
                 <p className="text-gray-700 mb-8 max-w-md mx-auto">
-                  {t('register.success.message')}
+                  {t("register.success.message")}
                 </p>
 
                 <div className="bg-[#F5EFE6] rounded-xl p-6 mb-6">
                   <h3 className="text-[#2B5F9E] mb-3">
-                    {language === 'zh' ? '报名信息' : 'Registration Details'}
+                    {language === "zh" ? "报名信息" : "Registration Details"}
                   </h3>
                   <div className="text-left space-y-2 text-gray-700">
-                    <p><strong>{t('register.form.name')}:</strong> {formData.name}</p>
-                    <p><strong>{t('register.form.email')}:</strong> {formData.email}</p>
-                    <p><strong>{t('events.title')}:</strong> {event.title[language]}</p>
+                    <p>
+                      <strong>{t("register.form.name")}:</strong>{" "}
+                      {formData.name}
+                    </p>
+                    <p>
+                      <strong>{t("register.form.email")}:</strong>{" "}
+                      {formData.email}
+                    </p>
+                    <p>
+                      <strong>{t("events.title")}:</strong>{" "}
+                      {event.title[language]}
+                    </p>
                   </div>
                 </div>
 
@@ -337,7 +362,7 @@ export function EventRegistration() {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    {t('register.success.back')}
+                    {t("register.success.back")}
                   </motion.button>
                 </Link>
               </div>

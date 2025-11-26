@@ -1,6 +1,13 @@
-import { useLanguage } from '../contexts/LanguageContext';
-import { Mail, Phone, MapPin, Facebook, Twitter, Instagram } from 'lucide-react';
-import logo from 'figma:asset/94ebc97f0b39e2d897b246155bbfe246bad602f0.png';
+import { useLanguage } from "../contexts/LanguageContext";
+import {
+  Mail,
+  Phone,
+  MapPin,
+  Facebook,
+  Twitter,
+  Instagram,
+} from "lucide-react";
+import logo from "figma:asset/486cb6c21a188aae71ad06b3d541eb54ff86e307.png";
 
 export function Footer() {
   const { t } = useLanguage();
@@ -12,36 +19,38 @@ export function Footer() {
           {/* Logo & Description */}
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <img src={logo} alt="VMCA Logo" className="h-12 w-12 bg-white rounded-full p-1" />
-              <span>VMCA</span>
+              <img
+                src={logo}
+                alt="MACMAA Logo"
+                className="h-12 w-12 bg-white rounded-full p-1"
+              />
+              <span>MACMAA</span>
             </div>
-            <p className="text-blue-100 text-sm">
-              {t('home.hero.subtitle')}
-            </p>
+            <p className="text-blue-100 text-sm">{t("home.hero.subtitle")}</p>
           </div>
 
           {/* Contact Info */}
           <div>
-            <h3 className="mb-4">{t('footer.contact')}</h3>
+            <h3 className="mb-4">{t("footer.contact")}</h3>
             <div className="space-y-3 text-sm text-blue-100">
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4" />
                 <span>info@vmca.org</span>
               </div>
               <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4" />
-                <span>+1 (250) 123-4567</span>
+                <MapPin className="w-4 h-4" />
+                <span>293-297 Manningham Rd, Templestowe Lower VIC 3107</span>
               </div>
               <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4" />
-                <span>Melbourne, VIC, Australia</span>
+                <Phone className="w-4 h-4" />
+                <span>0451 727 631</span>
               </div>
             </div>
           </div>
 
           {/* Social Media */}
           <div>
-            <h3 className="mb-4">{t('footer.follow')}</h3>
+            <h3 className="mb-4">{t("footer.follow")}</h3>
             <div className="flex gap-4">
               <a
                 href="#"
@@ -66,7 +75,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-white/20 mt-8 pt-8 text-center text-sm text-blue-100">
-          <p>{t('footer.rights')}</p>
+          <p>{t("footer.rights")}</p>
         </div>
       </div>
     </footer>

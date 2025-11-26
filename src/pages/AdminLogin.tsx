@@ -1,33 +1,36 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useLanguage } from '../contexts/LanguageContext';
-import { motion } from 'motion/react';
-import { Lock, User } from 'lucide-react';
-import logo from 'figma:asset/94ebc97f0b39e2d897b246155bbfe246bad602f0.png';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useLanguage } from "../contexts/LanguageContext";
+import { motion } from "motion/react";
+import { Lock, User } from "lucide-react";
+import logo from "figma:asset/486cb6c21a188aae71ad06b3d541eb54ff86e307.png";
 
 export function AdminLogin() {
   const navigate = useNavigate();
   const { language, t } = useLanguage();
   const [credentials, setCredentials] = useState({
-    username: '',
-    password: '',
+    username: "",
+    password: "",
   });
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     // Mock authentication
-    if (credentials.username === 'admin' && credentials.password === 'demo123') {
+    if (
+      credentials.username === "admin" &&
+      credentials.password === "demo123"
+    ) {
       // Store auth token (mock)
-      sessionStorage.setItem('adminAuth', 'true');
-      navigate('/admin/dashboard');
+      sessionStorage.setItem("adminAuth", "true");
+      navigate("/admin/dashboard");
     } else {
       setError(
-        language === 'zh'
-          ? '用户名或密码错误。提示：用户名 admin，密码 demo123'
-          : 'Invalid credentials. Hint: username admin, password demo123'
+        language === "zh"
+          ? "用户名或密码错误。提示：用户名 admin，密码 demo123"
+          : "Invalid credentials. Hint: username admin, password demo123"
       );
     }
   };
@@ -44,13 +47,13 @@ export function AdminLogin() {
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ type: 'spring', delay: 0.2 }}
+            transition={{ type: "spring", delay: 0.2 }}
             className="flex justify-center mb-4"
           >
-            <img src={logo} alt="VMCA Logo" className="h-20 w-20" />
+            <img src={logo} alt="MACMAA Logo" className="h-20 w-20" />
           </motion.div>
-          <h1 className="text-[#2B5F9E] mb-2">{t('admin.login.title')}</h1>
-          <p className="text-gray-600">VMCA Management System</p>
+          <h1 className="text-[#2B5F9E] mb-2">{t("admin.login.title")}</h1>
+          <p className="text-gray-600">MACMAA Management System</p>
         </div>
 
         {/* Login Form */}
@@ -63,7 +66,7 @@ export function AdminLogin() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-gray-700 mb-2">
-                {t('admin.login.username')}
+                {t("admin.login.username")}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -84,7 +87,7 @@ export function AdminLogin() {
 
             <div>
               <label className="block text-gray-700 mb-2">
-                {t('admin.login.password')}
+                {t("admin.login.password")}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -119,20 +122,22 @@ export function AdminLogin() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              {t('admin.login.submit')}
+              {t("admin.login.submit")}
             </motion.button>
           </form>
 
           <div className="mt-6 p-4 bg-[#F5EFE6] rounded-lg text-sm text-gray-700">
             <p className="mb-2">
-              <strong>{language === 'zh' ? '演示账号：' : 'Demo Account:'}</strong>
+              <strong>
+                {language === "zh" ? "演示账号：" : "Demo Account:"}
+              </strong>
             </p>
-            <p className="mb-1">{t('admin.login.username')}: admin</p>
-            <p>{t('admin.login.password')}: demo123</p>
+            <p className="mb-1">{t("admin.login.username")}: admin</p>
+            <p>{t("admin.login.password")}: demo123</p>
           </div>
 
           <p className="text-xs text-gray-500 mt-4 text-center">
-            {t('common.note')}
+            {t("common.note")}
           </p>
         </motion.div>
       </motion.div>

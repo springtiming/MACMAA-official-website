@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { useLanguage } from '../contexts/LanguageContext';
-import { motion } from 'motion/react';
-import { Menu, X, Globe } from 'lucide-react';
-import logo from 'figma:asset/94ebc97f0b39e2d897b246155bbfe246bad602f0.png';
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { useLanguage } from "../contexts/LanguageContext";
+import { motion } from "motion/react";
+import { Menu, X, Globe } from "lucide-react";
+import logo from "figma:asset/486cb6c21a188aae71ad06b3d541eb54ff86e307.png";
 
 export function Header() {
   const { language, setLanguage, t } = useLanguage();
@@ -11,11 +11,12 @@ export function Header() {
   const location = useLocation();
 
   const navItems = [
-    { path: '/', label: t('nav.home') },
-    { path: '/news', label: t('nav.news') },
-    { path: '/events', label: t('nav.events') },
-    { path: '/membership', label: t('nav.membership') },
-    { path: '/admin', label: t('nav.admin') },
+    { path: "/", label: t("nav.home") },
+    { path: "/about", label: t("nav.about") },
+    { path: "/news", label: t("nav.news") },
+    { path: "/events", label: t("nav.events") },
+    { path: "/membership", label: t("nav.membership") },
+    { path: "/admin", label: t("nav.admin") },
   ];
 
   const isActive = (path: string) => {
@@ -28,25 +29,21 @@ export function Header() {
         <div className="flex h-20 items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3">
-            <img src={logo} alt="VMCA Logo" className="h-14 w-14" />
+            <img src={logo} alt="MACMAA Logo" className="h-14 w-14" />
             <span className="hidden sm:block text-[#2B5F9E]">
-              {language === 'zh' ? 'VMCA' : 'VMCA'}
+              {language === "zh" ? "MACMAA" : "MACMAA"}
             </span>
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
             {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className="relative"
-              >
+              <Link key={item.path} to={item.path} className="relative">
                 <motion.span
                   className={`transition-colors ${
                     isActive(item.path)
-                      ? 'text-[#2B5F9E]'
-                      : 'text-gray-700 hover:text-[#2B5F9E]'
+                      ? "text-[#2B5F9E]"
+                      : "text-gray-700 hover:text-[#2B5F9E]"
                   }`}
                   whileHover={{ y: -2 }}
                   transition={{ duration: 0.2 }}
@@ -67,13 +64,13 @@ export function Header() {
           <div className="flex items-center gap-4">
             {/* Language Switcher */}
             <motion.button
-              onClick={() => setLanguage(language === 'zh' ? 'en' : 'zh')}
+              onClick={() => setLanguage(language === "zh" ? "en" : "zh")}
               className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#F5EFE6] text-[#2B5F9E] hover:bg-[#E8DCC8] transition-colors"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <Globe className="w-4 h-4" />
-              <span>{language === 'zh' ? 'EN' : '中文'}</span>
+              <span>{language === "zh" ? "EN" : "中文"}</span>
             </motion.button>
 
             {/* Mobile Menu Button */}
@@ -81,7 +78,11 @@ export function Header() {
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden p-2 text-gray-700"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
             </button>
           </div>
         </div>
@@ -90,7 +91,7 @@ export function Header() {
         {mobileMenuOpen && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
+            animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             className="md:hidden py-4 border-t"
           >
@@ -101,8 +102,8 @@ export function Header() {
                 onClick={() => setMobileMenuOpen(false)}
                 className={`block py-3 px-4 ${
                   isActive(item.path)
-                    ? 'bg-[#F5EFE6] text-[#2B5F9E]'
-                    : 'text-gray-700 hover:bg-gray-50'
+                    ? "bg-[#F5EFE6] text-[#2B5F9E]"
+                    : "text-gray-700 hover:bg-gray-50"
                 }`}
               >
                 {item.label}

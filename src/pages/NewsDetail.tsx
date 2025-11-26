@@ -1,9 +1,9 @@
-import { useParams, Link } from 'react-router-dom';
-import { useLanguage } from '../contexts/LanguageContext';
-import { motion } from 'motion/react';
-import { Calendar, ArrowLeft, Share2 } from 'lucide-react';
-import { mockNews } from '../data/mockData';
-import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { useParams, Link } from "react-router-dom";
+import { useLanguage } from "../contexts/LanguageContext";
+import { motion } from "motion/react";
+import { Calendar, ArrowLeft, Share2 } from "lucide-react";
+import { mockNews } from "../data/mockData";
+import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 
 export function NewsDetail() {
   const { id } = useParams();
@@ -14,8 +14,11 @@ export function NewsDetail() {
     return (
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-12 text-center">
         <p className="text-gray-600">News not found</p>
-        <Link to="/news" className="text-[#2B5F9E] hover:underline mt-4 inline-block">
-          {t('news.back')}
+        <Link
+          to="/news"
+          className="text-[#2B5F9E] hover:underline mt-4 inline-block"
+        >
+          {t("news.back")}
         </Link>
       </div>
     );
@@ -33,7 +36,7 @@ export function NewsDetail() {
           className="inline-flex items-center gap-2 text-[#2B5F9E] hover:underline mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
-          {t('news.back')}
+          {t("news.back")}
         </Link>
 
         {/* Featured Image */}
@@ -59,7 +62,7 @@ export function NewsDetail() {
               className="flex items-center gap-2 text-[#2B5F9E] hover:underline"
             >
               <Share2 className="w-4 h-4" />
-              {t('news.share')}
+              {t("news.share")}
             </motion.button>
           </div>
         </div>
@@ -73,11 +76,11 @@ export function NewsDetail() {
 
         {/* Related News or CTA */}
         <div className="mt-12 p-6 bg-[#F5EFE6] rounded-2xl">
-          <h3 className="text-[#2B5F9E] mb-4">{t('nav.events')}</h3>
+          <h3 className="text-[#2B5F9E] mb-4">{t("nav.events")}</h3>
           <p className="text-gray-700 mb-4">
-            {language === 'zh'
-              ? '查看我们即将举办的精彩活动'
-              : 'Check out our upcoming exciting events'}
+            {language === "zh"
+              ? "查看我们即将举办的精彩活动"
+              : "Check out our upcoming exciting events"}
           </p>
           <Link to="/events">
             <motion.button
@@ -85,7 +88,7 @@ export function NewsDetail() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              {t('nav.events')}
+              {t("nav.events")}
             </motion.button>
           </Link>
         </div>

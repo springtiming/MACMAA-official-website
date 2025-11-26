@@ -1,9 +1,9 @@
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useLanguage } from '../contexts/LanguageContext';
-import { motion } from 'motion/react';
-import { Calendar, MapPin, Users, DollarSign, ArrowLeft } from 'lucide-react';
-import { mockEvents } from '../data/mockData';
-import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { useLanguage } from "../contexts/LanguageContext";
+import { motion } from "motion/react";
+import { Calendar, MapPin, Users, DollarSign, ArrowLeft } from "lucide-react";
+import { mockEvents } from "../data/mockData";
+import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 
 export function EventDetail() {
   const { id } = useParams();
@@ -15,8 +15,11 @@ export function EventDetail() {
     return (
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-12 text-center">
         <p className="text-gray-600">Event not found</p>
-        <Link to="/events" className="text-[#2B5F9E] hover:underline mt-4 inline-block">
-          {t('events.back')}
+        <Link
+          to="/events"
+          className="text-[#2B5F9E] hover:underline mt-4 inline-block"
+        >
+          {t("events.back")}
         </Link>
       </div>
     );
@@ -24,12 +27,12 @@ export function EventDetail() {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString(language === 'zh' ? 'zh-CN' : 'en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return date.toLocaleDateString(language === "zh" ? "zh-CN" : "en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -48,7 +51,7 @@ export function EventDetail() {
           className="inline-flex items-center gap-2 text-[#2B5F9E] hover:underline mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
-          {t('events.back')}
+          {t("events.back")}
         </Link>
 
         {/* Event Image */}
@@ -70,7 +73,7 @@ export function EventDetail() {
                 animate={{ scale: 1 }}
                 className="px-3 py-1 bg-[#EB8C3A] text-white text-sm rounded-full whitespace-nowrap"
               >
-                {language === 'zh' ? '名额紧张' : 'Limited Spots'}
+                {language === "zh" ? "名额紧张" : "Limited Spots"}
               </motion.span>
             )}
           </div>
@@ -83,7 +86,7 @@ export function EventDetail() {
               <Calendar className="w-6 h-6 text-[#2B5F9E]" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">{t('events.date')}</p>
+              <p className="text-sm text-gray-600">{t("events.date")}</p>
               <p className="text-gray-900">{formatDate(event.date)}</p>
             </div>
           </div>
@@ -93,7 +96,7 @@ export function EventDetail() {
               <MapPin className="w-6 h-6 text-[#2B5F9E]" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">{t('events.location')}</p>
+              <p className="text-sm text-gray-600">{t("events.location")}</p>
               <p className="text-gray-900">{event.location[language]}</p>
             </div>
           </div>
@@ -103,9 +106,9 @@ export function EventDetail() {
               <DollarSign className="w-6 h-6 text-[#2B5F9E]" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">{t('events.fee')}</p>
+              <p className="text-sm text-gray-600">{t("events.fee")}</p>
               <p className="text-gray-900">
-                {event.fee === 0 ? t('common.free') : `$${event.fee} CAD`}
+                {event.fee === 0 ? t("common.free") : `$${event.fee} AUD`}
               </p>
             </div>
           </div>
@@ -115,10 +118,10 @@ export function EventDetail() {
               <Users className="w-6 h-6 text-[#2B5F9E]" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">{t('events.capacity')}</p>
+              <p className="text-sm text-gray-600">{t("events.capacity")}</p>
               <p className="text-gray-900">
-                {event.registered}/{event.capacity}{' '}
-                {language === 'zh' ? '已报名' : 'registered'}
+                {event.registered}/{event.capacity}{" "}
+                {language === "zh" ? "已报名" : "registered"}
               </p>
             </div>
           </div>
@@ -126,7 +129,7 @@ export function EventDetail() {
 
         {/* Event Description */}
         <div className="mb-8">
-          <h2 className="text-[#2B5F9E] mb-4">{t('events.details')}</h2>
+          <h2 className="text-[#2B5F9E] mb-4">{t("events.details")}</h2>
           <p className="text-gray-700 whitespace-pre-line">
             {event.description[language]}
           </p>
@@ -135,10 +138,10 @@ export function EventDetail() {
         {/* Registration CTA */}
         <div className="bg-white border-2 border-[#2B5F9E] rounded-2xl p-8 text-center">
           <h3 className="text-[#2B5F9E] mb-4">
-            {language === 'zh' ? '准备好加入我们了吗？' : 'Ready to Join Us?'}
+            {language === "zh" ? "准备好加入我们了吗？" : "Ready to Join Us?"}
           </h3>
           <p className="text-gray-600 mb-6">
-            {language === 'zh'
+            {language === "zh"
               ? `还有 ${spotsLeft} 个名额，请尽快报名！`
               : `${spotsLeft} spots remaining, register soon!`}
           </p>
@@ -148,28 +151,28 @@ export function EventDetail() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            {t('events.register')}
+            {t("events.register")}
           </motion.button>
         </div>
 
         {/* API Integration Note */}
         <div className="mt-6 p-4 bg-gray-50 rounded-xl text-sm text-gray-600">
-          <p>{t('common.note')}</p>
+          <p>{t("common.note")}</p>
           <ul className="mt-2 ml-4 list-disc space-y-1">
             <li>
-              {language === 'zh'
-                ? '活动数据将通过REST API从后台CMS获取'
-                : 'Event data will be fetched via REST API from backend CMS'}
+              {language === "zh"
+                ? "活动数据将通过REST API从后台CMS获取"
+                : "Event data will be fetched via REST API from backend CMS"}
             </li>
             <li>
-              {language === 'zh'
-                ? '报名信息将提交至数据库并触发确认邮件'
-                : 'Registration info will be submitted to database and trigger confirmation emails'}
+              {language === "zh"
+                ? "报名信息将提交至数据库并触发确认邮件"
+                : "Registration info will be submitted to database and trigger confirmation emails"}
             </li>
             <li>
-              {language === 'zh'
-                ? '支付集成将使用Stripe或PayPal网关'
-                : 'Payment integration will use Stripe or PayPal gateway'}
+              {language === "zh"
+                ? "支付集成将使用Stripe或PayPal网关"
+                : "Payment integration will use Stripe or PayPal gateway"}
             </li>
           </ul>
         </div>

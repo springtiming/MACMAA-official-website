@@ -22,6 +22,7 @@ This is an interactive website prototype for the Victoria Multicultural Communit
 ## 核心功能模块 / Core Features
 
 ### 1. 多语言切换 / Language Switching
+
 - 自动检测浏览器语言（中文/英文）
 - 右上角语言切换按钮
 - 所有页面内容实时切换
@@ -32,15 +33,18 @@ This is an interactive website prototype for the Victoria Multicultural Communit
 ---
 
 ### 2. 首页 / Home Page
+
 **路径**: `/`
 
 **功能**:
+
 - Hero 区域：协会介绍 + CTA 按钮
 - 服务展示：文化活动、教育培训、社区支持
 - 会员招募 CTA 区域
 - 装饰性动画元素
 
 **技术亮点**:
+
 - Motion 动画：淡入、上滑、悬停效果
 - 渐变背景与装饰性元素动画
 - 响应式网格布局
@@ -50,24 +54,29 @@ This is an interactive website prototype for the Victoria Multicultural Communit
 ### 3. 新闻动态 / News
 
 #### 3.1 新闻列表 / News List
+
 **路径**: `/news`
 
 **功能**:
+
 - 卡片式新闻列表
 - 显示标题、摘要、日期、封面图
 - 悬停卡片上升动画
 - 阅读更多按钮
 
 #### 3.2 新闻详情 / News Detail
+
 **路径**: `/news/:id`
 
 **功能**:
+
 - 完整新闻内容展示
 - 返回列表按钮
 - 分享按钮（占位）
 - 相关推荐区域
 
 **API 对接说明**:
+
 ```
 GET /api/news - 获取新闻列表
 GET /api/news/:id - 获取新闻详情
@@ -79,33 +88,40 @@ GET /api/news/:id - 获取新闻详情
 ### 4. 活动中心 / Events
 
 #### 4.1 活动列表 / Event List
+
 **路径**: `/events`
 
 **功能**:
+
 - 双列活动卡片展示
 - 显示时间、地点、费用、名额
 - "即将举行"标签
 - 立即报名按钮
 
 #### 4.2 活动详情 / Event Detail
+
 **路径**: `/events/:id`
 
 **功能**:
+
 - 活动详细信息
 - 时间、地点、费用、名额信息卡片
 - 名额紧张提示（剩余≤10）
 - 报名 CTA 按钮
 
 #### 4.3 活动报名流程 / Event Registration
+
 **路径**: `/events/:id/register`
 
 **功能**:
+
 - **步骤 1**: 填写报名表单（姓名、邮箱、电话、人数、备注）
 - **步骤 2**: 选择支付方式（在线支付/现场支付/银行转账）
 - **步骤 3**: 提交成功页面
 - 进度条指示器
 
 **支付集成说明**:
+
 ```
 实际系统将集成：
 - Stripe / PayPal 支付网关
@@ -121,6 +137,7 @@ GET /api/news/:id - 获取新闻详情
 **路径**: `/membership`
 
 **功能**:
+
 - 会员权益展示（优先报名、费用优惠、社区网络）
 - 会员申请表单
   - 基本信息：姓名、邮箱、电话、地址
@@ -130,6 +147,7 @@ GET /api/news/:id - 获取新闻详情
 - 提交成功页面
 
 **后台处理流程**:
+
 ```
 1. 表单提交至后台 API
 2. 数据存入待审核列表
@@ -143,21 +161,26 @@ GET /api/news/:id - 获取新闻详情
 ### 6. 后台管理 / Admin Panel
 
 #### 6.1 管理员登录 / Admin Login
+
 **路径**: `/admin`
 
 **测试账号**:
+
 - 用户名: `admin`
 - 密码: `demo123`
 
 **功能**:
+
 - 登录表单
 - 错误提示
 - Session 认证（sessionStorage）
 
 #### 6.2 管理仪表盘 / Admin Dashboard
+
 **路径**: `/admin/dashboard`
 
 **功能**:
+
 - 数据统计卡片：
   - 活动总数
   - 新闻总数
@@ -172,6 +195,7 @@ GET /api/news/:id - 获取新闻详情
 - 退出登录
 
 **系统集成说明**:
+
 ```
 后台功能将包括：
 - 富文本编辑器（TinyMCE / Quill）
@@ -186,6 +210,7 @@ GET /api/news/:id - 获取新闻详情
 ## 设计规范 / Design Guidelines
 
 ### 色彩系统 / Color Palette
+
 - **主色**: #2B5F9E (藏青蓝)
 - **辅色 1**: #6BA868 (浅绿)
 - **辅色 2**: #EB8C3A (暖橙)
@@ -193,6 +218,7 @@ GET /api/news/:id - 获取新闻详情
 - **强调背景**: #E8DCC8
 
 ### 动画规范 / Animation Guidelines
+
 - **按钮 Hover**: scale(1.02-1.05)
 - **卡片 Hover**: 上移 -4px 到 -8px
 - **页面入场**: fadeIn + slideUp
@@ -200,6 +226,7 @@ GET /api/news/:id - 获取新闻详情
 - **缓动函数**: easeInOut
 
 ### 响应式断点 / Breakpoints
+
 - Mobile: < 768px
 - Tablet: 768px - 1024px
 - Desktop: > 1024px
@@ -237,12 +264,14 @@ GET /api/news/:id - 获取新闻详情
 ## 用户体验路径 / User Journey
 
 ### 路径 1：浏览新闻
+
 1. 访问首页 → 点击"最新动态"
 2. 浏览新闻列表
 3. 点击感兴趣的新闻卡片
 4. 阅读详情 → 返回列表
 
 ### 路径 2：活动报名
+
 1. 访问"活动中心"
 2. 浏览活动列表
 3. 点击活动查看详情
@@ -252,6 +281,7 @@ GET /api/news/:id - 获取新闻详情
 7. 查看报名成功页面
 
 ### 路径 3：会员申请
+
 1. 首页点击"加入我们"
 2. 查看会员权益
 3. 填写申请表单
@@ -259,6 +289,7 @@ GET /api/news/:id - 获取新闻详情
 5. 查看成功提示
 
 ### 路径 4：后台管理
+
 1. 访问 `/admin`
 2. 使用测试账号登录
 3. 查看数据统计
@@ -273,6 +304,7 @@ GET /api/news/:id - 获取新闻详情
 ### 前端 API 需求
 
 #### 1. 新闻模块
+
 ```typescript
 GET    /api/news          // 获取新闻列表
 GET    /api/news/:id      // 获取新闻详情
@@ -282,6 +314,7 @@ DELETE /api/news/:id      // 删除新闻（管理员）
 ```
 
 #### 2. 活动模块
+
 ```typescript
 GET    /api/events        // 获取活动列表
 GET    /api/events/:id    // 获取活动详情
@@ -291,12 +324,14 @@ DELETE /api/events/:id    // 删除活动（管理员）
 ```
 
 #### 3. 报名模块
+
 ```typescript
 POST   /api/registrations           // 提交活动报名
 GET    /api/registrations/:eventId  // 获取某活动的报名列表（管理员）
 ```
 
 #### 4. 会员模块
+
 ```typescript
 POST   /api/members               // 提交会员申请
 GET    /api/members               // 获取会员列表（管理员）
@@ -305,10 +340,11 @@ PUT    /api/members/:id/reject    // 审核拒绝会员（管理员）
 ```
 
 #### 5. 认证模块
+
 ```typescript
-POST   /api/auth/login    // 管理员登录
-POST   /api/auth/logout   // 管理员登出
-GET    /api/auth/verify   // 验证 Token
+POST / api / auth / login; // 管理员登录
+POST / api / auth / logout; // 管理员登出
+GET / api / auth / verify; // 验证 Token
 ```
 
 ---
@@ -326,11 +362,13 @@ GET    /api/auth/verify   // 验证 Token
 ## 支付集成方案 / Payment Integration
 
 ### 推荐方案
+
 - **Stripe**: 适合国际支付，支持信用卡、借记卡
 - **PayPal**: 用户认知度高，支持多种支付方式
 - **银行转账**: 备选方案，需人工确认
 
 ### 集成流程
+
 1. 用户选择支付方式
 2. 前端调用支付网关 API
 3. 重定向到支付页面/弹出支付窗口
@@ -384,6 +422,7 @@ GET    /api/auth/verify   // 验证 Token
 ## 下一步开发计划 / Next Steps
 
 ### 优先级 1（MVP）
+
 - [ ] 搭建后端 API（Node.js / Django）
 - [ ] 连接数据库（PostgreSQL / MongoDB）
 - [ ] 实现用户认证系统
@@ -391,6 +430,7 @@ GET    /api/auth/verify   // 验证 Token
 - [ ] 部署测试环境
 
 ### 优先级 2（增强功能）
+
 - [ ] 集成支付网关
 - [ ] 实现富文本编辑器
 - [ ] 添加图片上传功能
@@ -398,6 +438,7 @@ GET    /api/auth/verify   // 验证 Token
 - [ ] 添加数据导出功能
 
 ### 优先级 3（优化）
+
 - [ ] 性能优化
 - [ ] SEO 优化
 - [ ] 多端测试（iOS / Android）

@@ -58,7 +58,7 @@ function PaginationLink({
           variant: isActive ? "outline" : "ghost",
           size,
         }),
-        className,
+        className
       )}
       {...props}
     />
@@ -67,6 +67,7 @@ function PaginationLink({
 
 function PaginationPrevious({
   className,
+  size: _,
   ...props
 }: React.ComponentProps<typeof PaginationLink>) {
   return (
@@ -84,6 +85,7 @@ function PaginationPrevious({
 
 function PaginationNext({
   className,
+  size: _,
   ...props
 }: React.ComponentProps<typeof PaginationLink>) {
   return (

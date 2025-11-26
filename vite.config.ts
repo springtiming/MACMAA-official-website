@@ -1,9 +1,12 @@
 
-  import { defineConfig } from 'vite';
-  import react from '@vitejs/plugin-react-swc';
-  import path from 'path';
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react-swc';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-  export default defineConfig({
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+export default defineConfig({
     plugins: [react()],
     resolve: {
       extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
@@ -17,7 +20,9 @@
         'next-themes@0.4.6': 'next-themes',
         'lucide-react@0.487.0': 'lucide-react',
         'input-otp@1.4.2': 'input-otp',
-        'figma:asset/94ebc97f0b39e2d897b246155bbfe246bad602f0.png': path.resolve(__dirname, './src/assets/94ebc97f0b39e2d897b246155bbfe246bad602f0.png'),
+        'figma:asset/4e1018159bf5b416cdd05a50c6634f65d81400fe.png': path.resolve(__dirname, './src/assets/4e1018159bf5b416cdd05a50c6634f65d81400fe.png'),
+        'figma:asset/486cb6c21a188aae71ad06b3d541eb54ff86e307.png': path.resolve(__dirname, './src/assets/486cb6c21a188aae71ad06b3d541eb54ff86e307.png'),
+        'figma:asset/2aee091727a5d832328a3b5cf9e2dcdf4f43542d.png': path.resolve(__dirname, './src/assets/2aee091727a5d832328a3b5cf9e2dcdf4f43542d.png'),
         'embla-carousel-react@8.6.0': 'embla-carousel-react',
         'cmdk@1.1.1': 'cmdk',
         'class-variance-authority@0.7.1': 'class-variance-authority',

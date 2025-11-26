@@ -1,21 +1,21 @@
-import { Link } from 'react-router-dom';
-import { useLanguage } from '../contexts/LanguageContext';
-import { motion } from 'motion/react';
-import { Calendar, MapPin, Users, DollarSign } from 'lucide-react';
-import { mockEvents } from '../data/mockData';
-import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { Link } from "react-router-dom";
+import { useLanguage } from "../contexts/LanguageContext";
+import { motion } from "motion/react";
+import { Calendar, MapPin, Users, DollarSign } from "lucide-react";
+import { mockEvents } from "../data/mockData";
+import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 
 export function EventList() {
   const { language, t } = useLanguage();
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString(language === 'zh' ? 'zh-CN' : 'en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return date.toLocaleDateString(language === "zh" ? "zh-CN" : "en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -26,8 +26,8 @@ export function EventList() {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >
-        <h1 className="text-[#2B5F9E] mb-4">{t('events.title')}</h1>
-        <p className="text-gray-600">{t('common.note')}</p>
+        <h1 className="text-[#2B5F9E] mb-4">{t("events.title")}</h1>
+        <p className="text-gray-600">{t("common.note")}</p>
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -53,7 +53,7 @@ export function EventList() {
               <div className="md:w-3/5 p-6 flex flex-col">
                 <div className="mb-2">
                   <span className="inline-block px-3 py-1 bg-[#6BA868] text-white text-sm rounded-full">
-                    {t('events.upcoming')}
+                    {t("events.upcoming")}
                   </span>
                 </div>
                 <h3 className="text-[#2B5F9E] mb-3">{event.title[language]}</h3>
@@ -73,16 +73,14 @@ export function EventList() {
                   <div className="flex items-center gap-2">
                     <DollarSign className="w-4 h-4 text-[#EB8C3A]" />
                     <span>
-                      {event.fee === 0
-                        ? t('common.free')
-                        : `$${event.fee} CAD`}
+                      {event.fee === 0 ? t("common.free") : `$${event.fee} AUD`}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Users className="w-4 h-4 text-[#EB8C3A]" />
                     <span>
-                      {event.registered}/{event.capacity}{' '}
-                      {language === 'zh' ? '已报名' : 'registered'}
+                      {event.registered}/{event.capacity}{" "}
+                      {language === "zh" ? "已报名" : "registered"}
                     </span>
                   </div>
                 </div>
@@ -93,7 +91,7 @@ export function EventList() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    {t('events.register')}
+                    {t("events.register")}
                   </motion.button>
                 </Link>
               </div>

@@ -1,9 +1,9 @@
-import { Link } from 'react-router-dom';
-import { useLanguage } from '../contexts/LanguageContext';
-import { motion } from 'motion/react';
-import { Calendar, ArrowRight } from 'lucide-react';
-import { mockNews } from '../data/mockData';
-import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { Link } from "react-router-dom";
+import { useLanguage } from "../contexts/LanguageContext";
+import { motion } from "motion/react";
+import { Calendar, ArrowRight } from "lucide-react";
+import { mockNews } from "../data/mockData";
+import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 
 export function NewsList() {
   const { language, t } = useLanguage();
@@ -15,8 +15,8 @@ export function NewsList() {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >
-        <h1 className="text-[#2B5F9E] mb-4">{t('news.title')}</h1>
-        <p className="text-gray-600">{t('common.note')}</p>
+        <h1 className="text-[#2B5F9E] mb-4">{t("news.title")}</h1>
+        <p className="text-gray-600">{t("common.note")}</p>
       </motion.div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -49,7 +49,7 @@ export function NewsList() {
                   {news.summary[language]}
                 </p>
                 <div className="flex items-center gap-2 text-[#2B5F9E]">
-                  <span>{t('news.readMore')}</span>
+                  <span>{t("news.readMore")}</span>
                   <ArrowRight className="w-4 h-4" />
                 </div>
               </div>
