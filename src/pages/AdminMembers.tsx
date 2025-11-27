@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
@@ -17,6 +17,7 @@ import {
   Download,
 } from "lucide-react";
 import {
+  ConcurrencyError,
   deleteMember,
   fetchMembers,
   updateMemberStatus,
@@ -41,23 +42,22 @@ export function AdminMembers() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let active = true;
+  const loadMembers = useCallback(async () => {
     setLoading(true);
-    fetchMembers()
-      .then((data) => {
-        if (active) setMembers(data);
-      })
-      .catch(() => {
-        if (active) setError(t("common.error"));
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
+    try {
+      const data = await fetchMembers();
+      setMembers(data);
+      setError(null);
+    } catch {
+      setError(t("common.error"));
+    } finally {
+      setLoading(false);
+    }
   }, [t]);
+
+  useEffect(() => {
+    loadMembers();
+  }, [loadMembers]);
 
   const filteredMembers = useMemo(() => {
     const term = searchTerm.toLowerCase();
@@ -88,12 +88,20 @@ export function AdminMembers() {
       } else {
         const nextStatus =
           type === "approve" ? "approved" : type === "reject" || type === "revoke" ? "rejected" : "pending";
-        const updated = await updateMemberStatus(member.id, nextStatus as MemberRecord["status"]);
+        const updated = await updateMemberStatus(member.id, nextStatus as MemberRecord["status"], {
+          expectedStatus: member.status,
+          expectedUpdatedAt: member.updated_at,
+        });
         setMembers((prev) => prev.map((m) => (m.id === member.id ? updated : m)));
         if (selectedMember?.id === member.id) setSelectedMember(updated);
       }
-    } catch {
-      setError(t("common.error"));
+    } catch (err) {
+      if (err instanceof ConcurrencyError) {
+        setError(language === "zh" ? "该申请已被其他管理员更新，列表已刷新，请重试。" : "This application was updated by another admin. List refreshed, please try again.");
+        await loadMembers();
+      } else {
+        setError(t("common.error"));
+      }
     } finally {
       setConfirmDialog(null);
     }

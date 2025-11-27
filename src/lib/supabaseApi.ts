@@ -383,6 +383,13 @@ export interface MemberRecord {
   updated_at: string | null;
 }
 
+export class ConcurrencyError extends Error {
+  constructor(message = "Record was modified by another user") {
+    super(message);
+    this.name = "ConcurrencyError";
+  }
+}
+
 export async function fetchMembers() {
   const supabase = getSupabaseAdminClient();
   const { data, error } = await supabase
@@ -401,15 +408,27 @@ export async function fetchMembers() {
 export async function updateMemberStatus(
   id: string,
   status: "pending" | "approved" | "rejected",
+  options?: { expectedStatus?: MemberRecord["status"]; expectedUpdatedAt?: string | null },
 ) {
   const supabase = getSupabaseAdminClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("members")
     .update({ status, handled_by: authUidFallback() })
-    .eq("id", id)
-    .select()
-    .single();
+    .eq("id", id);
+
+  if (options?.expectedStatus) {
+    query = query.eq("status", options.expectedStatus);
+  }
+
+  if (options?.expectedUpdatedAt) {
+    query = query.eq("updated_at", options.expectedUpdatedAt);
+  }
+
+  const { data, error } = await query.select().single();
   if (error) {
+    if (error.code === "PGRST116" || error.message?.includes("0 rows")) {
+      throw new ConcurrencyError();
+    }
     logSupabaseError("updateMemberStatus", error);
     throw error;
   }

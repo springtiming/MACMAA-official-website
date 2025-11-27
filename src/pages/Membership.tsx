@@ -227,7 +227,7 @@ export function Membership() {
   };
 
   // Validate all fields on submit
-  const validateForm = (): boolean => {
+  const validateForm = (): FormErrors => {
     const newErrors: FormErrors = {};
     const allFields = [
       'chineseName',
@@ -241,28 +241,22 @@ export function Membership() {
       'emergencyRelation',
     ];
 
-    let hasError = false;
-
     allFields.forEach((field) => {
       const error = validateField(field, formData[field as keyof typeof formData]);
       if (error) {
         newErrors[field] = error;
-        hasError = true;
       }
     });
 
     // Check agreement checkboxes
     if (!formData.agree1) {
       newErrors.agree1 = 'agreeRequired1';
-      hasError = true;
     }
     if (!formData.agree2) {
       newErrors.agree2 = 'agreeRequired2';
-      hasError = true;
     }
     if (!formData.agree3) {
       newErrors.agree3 = 'agreeRequired3';
-      hasError = true;
     }
 
     setErrors(newErrors);
@@ -278,7 +272,7 @@ export function Membership() {
     allTouched.agree3 = true;
     setTouched(allTouched);
 
-    return !hasError;
+    return newErrors;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -286,9 +280,10 @@ export function Membership() {
     if (submitting) return;
     setSubmitError(null);
     
-    if (!validateForm()) {
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
       // Scroll to first error
-      const firstErrorField = Object.keys(errors)[0];
+      const firstErrorField = Object.keys(validationErrors)[0];
       if (firstErrorField) {
         const element = document.getElementById(firstErrorField);
         element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
