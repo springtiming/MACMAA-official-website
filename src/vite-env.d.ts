@@ -156,3 +156,12 @@ declare module "sonner@2.0.3" {
 declare module "vaul@1.1.2" {
   export * from "vaul";
 }
+
+declare module "react-quill@2.0.0-beta.2" {
+  import ReactQuill, { ReactQuillProps } from "react-quill";
+  export type { ReactQuillProps };
+  export * from "react-quill";
+  export default ReactQuill;
+}
+
+declare module "react-quill@2.0.0-beta.2/dist/quill.snow.css";

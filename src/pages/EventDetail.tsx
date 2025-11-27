@@ -65,17 +65,30 @@ export function EventDetail() {
 
         {/* Event Header */}
         <div className="mb-8">
-          <div className="flex items-start justify-between mb-4">
+          <div className="flex items-start justify-between mb-4 flex-wrap gap-2">
             <h1 className="text-[#2B5F9E]">{event.title[language]}</h1>
-            {isAlmostFull && (
-              <motion.span
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className="px-3 py-1 bg-[#EB8C3A] text-white text-sm rounded-full whitespace-nowrap"
+            <div className="flex items-center gap-2">
+              <span
+                className={`px-3 py-1 text-sm rounded-full whitespace-nowrap ${
+                  event.accessType === "members-only"
+                    ? "bg-[#EB8C3A] text-white"
+                    : "bg-[#7BA3C7] text-white"
+                }`}
               >
-                {language === "zh" ? "名额紧张" : "Limited Spots"}
-              </motion.span>
-            )}
+                {event.accessType === "members-only"
+                  ? t("events.memberOnly")
+                  : t("events.allWelcome")}
+              </span>
+              {isAlmostFull && (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="px-3 py-1 bg-[#EB8C3A] text-white text-sm rounded-full whitespace-nowrap"
+                >
+                  {language === "zh" ? "名额紧张" : "Limited Spots"}
+                </motion.span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -105,11 +118,24 @@ export function EventDetail() {
             <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
               <DollarSign className="w-6 h-6 text-[#2B5F9E]" />
             </div>
-            <div>
+            <div className="flex-1">
               <p className="text-sm text-gray-600">{t("events.fee")}</p>
-              <p className="text-gray-900">
-                {event.fee === 0 ? t("common.free") : `$${event.fee} AUD`}
-              </p>
+              <div className="text-gray-900">
+                {event.fee === 0 ? (
+                  t("common.free")
+                ) : event.memberFee < event.fee ? (
+                  <div className="flex flex-col">
+                    <span className="line-through text-gray-400 text-sm">
+                      ${event.fee} AUD
+                    </span>
+                    <span className="text-[#6BA868]">
+                      ${event.memberFee} AUD ({t("events.memberFee")})
+                    </span>
+                  </div>
+                ) : (
+                  `$${event.fee} AUD`
+                )}
+              </div>
             </div>
           </div>
 

@@ -12,6 +12,10 @@ import { EventRegistration } from "./pages/EventRegistration";
 import { Membership } from "./pages/Membership";
 import { AdminLogin } from "./pages/AdminLogin";
 import { AdminDashboard } from "./pages/AdminDashboard";
+import { AdminEvents } from "./pages/AdminEvents";
+import { AdminNews } from "./pages/AdminNews";
+import { AdminMembers } from "./pages/AdminMembers";
+import { AdminSettings } from "./pages/AdminSettings";
 
 export default function App() {
   return (
@@ -34,6 +38,10 @@ export default function App() {
               <Route path="/membership" element={<Membership />} />
               <Route path="/admin" element={<AdminLogin />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/events" element={<AdminEvents />} />
+              <Route path="/admin/news" element={<AdminNews />} />
+              <Route path="/admin/members" element={<AdminMembers />} />
+              <Route path="/admin/settings" element={<AdminSettings />} />
             </Routes>
           </main>
           <Footer />

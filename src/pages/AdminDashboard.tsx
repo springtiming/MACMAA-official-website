@@ -71,6 +71,7 @@ export function AdminDashboard() {
           ? "管理活动发布、报名统计、活动更新"
           : "Manage event publishing, registration stats, updates",
       color: "#2B5F9E",
+      path: "/admin/events",
     },
     {
       icon: Newspaper,
@@ -80,6 +81,7 @@ export function AdminDashboard() {
           ? "发布新闻、编辑内容、管理分类"
           : "Publish news, edit content, manage categories",
       color: "#6BA868",
+      path: "/admin/news",
     },
     {
       icon: Users,
@@ -89,6 +91,7 @@ export function AdminDashboard() {
           ? "审核会员申请、管理会员信息"
           : "Review membership applications, manage member info",
       color: "#EB8C3A",
+      path: "/admin/members",
     },
     {
       icon: Settings,
@@ -98,6 +101,7 @@ export function AdminDashboard() {
           ? "网站设置、账号管理、权限配置"
           : "Site settings, account management, permissions",
       color: "#8B5CF6",
+      path: "/admin/settings",
     },
   ];
 
@@ -216,6 +220,7 @@ export function AdminDashboard() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 + index * 0.1 }}
                   whileHover={{ scale: 1.02 }}
+                  onClick={() => section.path && navigate(section.path)}
                   className="bg-white rounded-xl p-6 shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
                 >
                   <div

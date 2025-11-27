@@ -54,12 +54,25 @@ export function EventList() {
                   />
                 </div>
               </div>
-              <div className="md:w-3/5 p-4 sm:p-6 flex flex-col">
-                <div className="mb-2">
+              <div className="md:w-3/5 p-4 sm:p-6 flex flex-col relative">
+                {/* Tags */}
+                <div className="mb-2 flex items-center gap-2 flex-wrap">
                   <span className="inline-block px-2.5 sm:px-3 py-1 bg-[#6BA868] text-white text-xs sm:text-sm rounded-full">
                     {t("events.upcoming")}
                   </span>
+                  <span
+                    className={`inline-block px-2.5 sm:px-3 py-1 text-xs sm:text-sm rounded-full ${
+                      event.accessType === "members-only"
+                        ? "bg-[#EB8C3A] text-white"
+                        : "bg-[#7BA3C7] text-white"
+                    }`}
+                  >
+                    {event.accessType === "members-only"
+                      ? t("events.memberOnly")
+                      : t("events.allWelcome")}
+                  </span>
                 </div>
+
                 <h3 className="text-[#2B5F9E] mb-2 sm:mb-3 text-lg sm:text-xl">
                   {event.title[language]}
                 </h3>
@@ -79,7 +92,20 @@ export function EventList() {
                   <div className="flex items-center gap-2">
                     <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#EB8C3A] flex-shrink-0" />
                     <span>
-                      {event.fee === 0 ? t("common.free") : `$${event.fee} AUD`}
+                      {event.fee === 0 ? (
+                        t("common.free")
+                      ) : event.memberFee < event.fee ? (
+                        <>
+                          <span className="line-through text-gray-400">
+                            ${event.fee}
+                          </span>
+                          <span className="ml-2 text-[#6BA868]">
+                            ${event.memberFee} {t("events.memberFee")}
+                          </span>
+                        </>
+                      ) : (
+                        `$${event.fee} AUD`
+                      )}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">

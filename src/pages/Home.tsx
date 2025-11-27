@@ -12,6 +12,10 @@ import {
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { useState, useEffect } from "react";
 import groupPhoto from "figma:asset/4e1018159bf5b416cdd05a50c6634f65d81400fe.png";
+import consulPhoto from "figma:asset/02ce48a06b4eb30c56fbf30084752dbc46f6e5e8.png";
+import performancePhoto from "figma:asset/8ba07f20524fc73fdf6468451fb157940959f60e.png";
+import gatheringPhoto from "figma:asset/c47e6fc792d8b9f97dd68ae29a97bfa32594f251.png";
+import calligraphyPhoto from "figma:asset/928ec88ac46c7ad8c5c157f2f73842edb6fb5c04.png";
 
 export function Home() {
   const { t, language } = useLanguage();
@@ -23,28 +27,26 @@ export function Home() {
       caption: language === "zh" ? "社区大合影" : "Community Group Photo",
     },
     {
-      url: "https://images.unsplash.com/photo-1761124739538-587cd3e3f72a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb21tdW5pdHklMjBjdWx0dXJhbCUyMGZlc3RpdmFsJTIwY2VsZWJyYXRpb258ZW58MXx8fHwxNzY0MDkzOTY1fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      caption: language === "zh" ? "文化节庆活动" : "Cultural Festival",
+      url: consulPhoto,
+      caption:
+        language === "zh"
+          ? "中国驻墨尔本总领馆房新文总领事出席端午节活动"
+          : "Consul General Fang Xinwen attended Dragon Boat Festival",
     },
     {
-      url: "https://images.unsplash.com/photo-1732023998275-95390af360ee?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzZW5pb3JzJTIwZGFuY2luZyUyMGdyb3VwJTIwYWN0aXZpdHl8ZW58MXx8fHwxNzY0MDkzOTY2fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      caption: language === "zh" ? "舞蹈活动" : "Dance Activities",
+      url: performancePhoto,
+      caption:
+        language === "zh" ? "文化节庆演出" : "Cultural Festival Performance",
     },
     {
-      url: "https://images.unsplash.com/photo-1758798469179-dea5d63257ba?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0YWklMjBjaGklMjBleGVyY2lzZSUyMGdyb3VwfGVufDF8fHx8MTc2NDA5Mzk2Nnww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      caption: language === "zh" ? "太极练习" : "Tai Chi Practice",
+      url: gatheringPhoto,
+      caption:
+        language === "zh" ? "社区节日聚会" : "Community Festival Gathering",
     },
     {
-      url: "https://images.unsplash.com/photo-1763731374100-24ee3f91a896?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb21tdW5pdHklMjBnYXRoZXJpbmclMjBldmVudHxlbnwxfHx8fDE3NjQwOTM5NjZ8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      caption: language === "zh" ? "社区聚会" : "Community Gathering",
-    },
-    {
-      url: "https://images.unsplash.com/photo-1583389409210-0234eee7cdce?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjaGluZXNlJTIwY2FsbGlncmFwaHklMjBjbGFzc3xlbnwxfHx8fDE3NjQwOTM5NjZ8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      caption: language === "zh" ? "书法课程" : "Calligraphy Class",
-    },
-    {
-      url: "https://images.unsplash.com/photo-1761057292517-74dfb48ede46?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtdWx0aWN1bHR1cmFsJTIwY29tbXVuaXR5JTIwY2VsZWJyYXRpb258ZW58MXx8fHwxNzY0MDkzOTY3fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      caption: language === "zh" ? "多元文化庆典" : "Multicultural Celebration",
+      url: calligraphyPhoto,
+      caption:
+        language === "zh" ? "书法文化活动" : "Calligraphy Cultural Activity",
     },
   ];
 

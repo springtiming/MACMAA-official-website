@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowLeft, CreditCard, Building, Wallet, Check } from "lucide-react";
+import { ArrowLeft, CreditCard, Building, Check } from "lucide-react";
 import { mockEvents } from "../data/mockData";
 
 type PaymentMethod = "online" | "onsite" | "transfer" | null;
@@ -53,15 +53,11 @@ export function EventRegistration() {
       id: "online" as PaymentMethod,
       icon: CreditCard,
       title: t("register.payment.online"),
-      desc: language === "zh" ? "信用卡/借记卡" : "Credit/Debit Card",
+      desc:
+        language === "zh"
+          ? "信用卡/借记卡（含手续费）"
+          : "Credit/Debit Card (incl. fee)",
       color: "#2B5F9E",
-    },
-    {
-      id: "onsite" as PaymentMethod,
-      icon: Wallet,
-      title: t("register.payment.onsite"),
-      desc: language === "zh" ? "活动现场支付" : "Pay at event",
-      color: "#6BA868",
     },
     {
       id: "transfer" as PaymentMethod,
@@ -255,7 +251,7 @@ export function EventRegistration() {
                 </p>
 
                 {event.fee > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     {paymentOptions.map((option) => (
                       <motion.button
                         key={option.id}

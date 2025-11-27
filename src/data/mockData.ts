@@ -16,9 +16,11 @@ export interface Event {
   date: string;
   location: { zh: string; en: string };
   fee: number;
+  memberFee: number; // Member-exclusive price
   capacity: number;
   registered: number;
   image: string;
+  accessType: "members-only" | "all-welcome"; // Event access type
 }
 
 export const mockNews: NewsItem[] = [
@@ -35,7 +37,7 @@ export const mockNews: NewsItem[] = [
     content: {
       zh: `2025年2月8日,澳洲万年市华人互助会(MACMAA)在Templestowe社区中心成功举办了蛇年春节联欢晚会。超过300名社区成员齐聚一堂,共庆新春佳节。
 
-晚会节目精彩纷呈,包括协��艺术团的传统舞蹈、太极表演、儿童合唱、书法展示以及现代歌舞等多个节目。社区志愿者们精心准备了丰富的传统美食,让参与者们品尝到家乡的味道。
+晚会节目精彩纷呈,包括协艺术团的传统舞蹈、太极表演、儿童合唱、书法展示以及现代歌舞等多个节目。社区志愿者们精心准备了丰富的传统美食,让参与者们品尝到家乡的味道。
 
 MACMAA会长陈雅女士在致辞中表示:"这是一个团结社区、传承文化的重要时刻。MACMAA成立两年多来,已经成为万年市华人社区的温暖家园。感谢所有参与者和志愿者的支持。"
 
@@ -140,9 +142,11 @@ export const mockEvents: Event[] = [
       en: "MACMAA Activity Center - 293-297 Manningham Rd, Templestowe Lower",
     },
     fee: 0,
+    memberFee: 0,
     capacity: 80,
     registered: 52,
     image: "tai chi senior activity",
+    accessType: "all-welcome",
   },
   {
     id: 2,
@@ -160,9 +164,11 @@ export const mockEvents: Event[] = [
       en: "MACMAA Activity Center - 293-297 Manningham Rd, Templestowe Lower",
     },
     fee: 10,
+    memberFee: 5,
     capacity: 100,
     registered: 68,
     image: "dragon boat festival traditional",
+    accessType: "all-welcome",
   },
   {
     id: 3,
@@ -180,9 +186,11 @@ export const mockEvents: Event[] = [
       en: "MACMAA Activity Center - 293-297 Manningham Rd, Templestowe Lower",
     },
     fee: 0,
+    memberFee: 0,
     capacity: 60,
     registered: 35,
     image: "health wellness senior",
+    accessType: "all-welcome",
   },
   {
     id: 4,
@@ -200,8 +208,32 @@ export const mockEvents: Event[] = [
       en: "MACMAA Activity Center - 293-297 Manningham Rd, Templestowe Lower",
     },
     fee: 15,
+    memberFee: 10,
     capacity: 25,
     registered: 18,
     image: "chinese calligraphy art",
+    accessType: "all-welcome",
+  },
+  {
+    id: 5,
+    title: {
+      zh: "会员专属茶艺体验工作坊",
+      en: "Members-Only Tea Ceremony Workshop",
+    },
+    description: {
+      zh: "专为MACMAA会员举办的中国茶艺体验活动。资深茶艺师将讲解茶文化历史、品茶技巧，并指导学员亲手泡茶。活动包含精选茶叶品鉴和茶点。会员免费参加，名额有限。",
+      en: "Exclusive Chinese tea ceremony workshop for MACMAA members. Experienced tea master will introduce tea culture history, tea tasting techniques, and guide participants to prepare tea. Includes premium tea tasting and tea snacks. Free for members, limited spots available.",
+    },
+    date: "2025-04-24T14:00:00",
+    location: {
+      zh: "MACMAA活动中心 - 293-297 Manningham Rd, Templestowe Lower",
+      en: "MACMAA Activity Center - 293-297 Manningham Rd, Templestowe Lower",
+    },
+    fee: 0,
+    memberFee: 0,
+    capacity: 20,
+    registered: 12,
+    image: "chinese tea ceremony",
+    accessType: "members-only",
   },
 ];
