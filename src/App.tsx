@@ -16,6 +16,7 @@ import { AdminEvents } from "./pages/AdminEvents";
 import { AdminNews } from "./pages/AdminNews";
 import { AdminMembers } from "./pages/AdminMembers";
 import { AdminSettings } from "./pages/AdminSettings";
+import { AdminAccounts } from "./pages/AdminAccounts";
 
 export default function App() {
   return (
@@ -41,6 +42,7 @@ export default function App() {
               <Route path="/admin/events" element={<AdminEvents />} />
               <Route path="/admin/news" element={<AdminNews />} />
               <Route path="/admin/members" element={<AdminMembers />} />
+              <Route path="/admin/accounts" element={<AdminAccounts />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
             </Routes>
           </main>

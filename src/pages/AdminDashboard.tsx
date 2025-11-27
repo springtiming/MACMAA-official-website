@@ -11,12 +11,17 @@ import {
   LogOut,
   TrendingUp,
   Clock,
+  Shield,
 } from "lucide-react";
 import { mockEvents, mockNews } from "../data/mockData";
 
 export function AdminDashboard() {
   const navigate = useNavigate();
   const { language, t } = useLanguage();
+
+  // Get current user role
+  const currentUserRole =
+    (sessionStorage.getItem("adminRole") as "owner" | "admin") || "admin";
 
   useEffect(() => {
     // Check authentication
@@ -94,12 +99,22 @@ export function AdminDashboard() {
       path: "/admin/members",
     },
     {
+      icon: Shield,
+      title: t("admin.accounts.title"),
+      description:
+        language === "zh"
+          ? "管理站长和管理员账户，配置权限"
+          : "Manage owner and admin accounts, configure permissions",
+      color: "#DC2626",
+      path: "/admin/accounts",
+    },
+    {
       icon: Settings,
       title: t("admin.nav.settings"),
       description:
         language === "zh"
-          ? "网站设置、账号管理、权限配置"
-          : "Site settings, account management, permissions",
+          ? "个人账号设置、密码修改、通知偏好"
+          : "Personal account settings, password, notifications",
       color: "#8B5CF6",
       path: "/admin/settings",
     },
@@ -213,35 +228,45 @@ export function AdminDashboard() {
               {language === "zh" ? "管理模块" : "Management Modules"}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {managementSections.map((section, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 + index * 0.1 }}
-                  whileHover={{ scale: 1.02 }}
-                  onClick={() => section.path && navigate(section.path)}
-                  className="bg-white rounded-xl p-6 shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
-                >
-                  <div
-                    className="w-12 h-12 rounded-full flex items-center justify-center mb-4"
-                    style={{ backgroundColor: `${section.color}20` }}
+              {managementSections
+                .filter((section) => {
+                  // Hide account management for admins, only show to owners
+                  if (section.path === "/admin/accounts") {
+                    return currentUserRole === "owner";
+                  }
+                  return true;
+                })
+                .map((section, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 + index * 0.1 }}
+                    whileHover={{ scale: 1.02 }}
+                    onClick={() => section.path && navigate(section.path)}
+                    className="bg-white rounded-xl p-6 shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
                   >
-                    <section.icon
-                      className="w-6 h-6"
+                    <div
+                      className="w-12 h-12 rounded-full flex items-center justify-center mb-4"
+                      style={{ backgroundColor: `${section.color}20` }}
+                    >
+                      <section.icon
+                        className="w-6 h-6"
+                        style={{ color: section.color }}
+                      />
+                    </div>
+                    <h3 className="text-gray-900 mb-2">{section.title}</h3>
+                    <p className="text-gray-600 text-sm">
+                      {section.description}
+                    </p>
+                    <div
+                      className="mt-4 text-sm"
                       style={{ color: section.color }}
-                    />
-                  </div>
-                  <h3 className="text-gray-900 mb-2">{section.title}</h3>
-                  <p className="text-gray-600 text-sm">{section.description}</p>
-                  <div
-                    className="mt-4 text-sm"
-                    style={{ color: section.color }}
-                  >
-                    {language === "zh" ? "进入管理 →" : "Manage →"}
-                  </div>
-                </motion.div>
-              ))}
+                    >
+                      {language === "zh" ? "进入管理 →" : "Manage →"}
+                    </div>
+                  </motion.div>
+                ))}
             </div>
           </div>
 

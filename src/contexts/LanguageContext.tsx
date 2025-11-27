@@ -57,7 +57,7 @@ const translations: Record<Language, Record<string, string>> = {
     "news.readMore": "阅读更多",
     "news.back": "返回列表",
     "news.date": "发布时间",
-    "news.share": "��享",
+    "news.share": "分享",
 
     // Events
     "events.title": "活动中心",
@@ -320,6 +320,50 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.settings.englishDesc": "使用英文发送邮件",
     "admin.settings.saveLanguage": "保存语言设置",
     "admin.settings.emailLanguageUpdated": "邮件语言已更新",
+
+    // Admin - Account Management
+    "admin.accounts.title": "账户管理",
+    "admin.accounts.createAccount": "创建新账户",
+    "admin.accounts.totalAccounts": "账户总数",
+    "admin.accounts.owners": "站长账户",
+    "admin.accounts.admins": "管理员账户",
+    "admin.accounts.searchPlaceholder": "搜索用户名或邮箱...",
+    "admin.accounts.viewOnlyNotice":
+      "您当前为管理员权限，仅可查看账户信息。只有站长可以创建、删除账户。",
+    "admin.accounts.noResults": "没有找到匹配的账户",
+    "admin.accounts.table.username": "用户名",
+    "admin.accounts.table.email": "邮箱",
+    "admin.accounts.table.role": "角色",
+    "admin.accounts.table.createdAt": "创建时间",
+    "admin.accounts.table.lastLogin": "最后登录",
+    "admin.accounts.table.actions": "操作",
+    "admin.accounts.role.owner": "站长",
+    "admin.accounts.role.admin": "管理员",
+    "admin.accounts.deleteDialog.title": "确认删除账户",
+    "admin.accounts.deleteDialog.description":
+      '您确定要删除账户 "{username}" 吗？此操作无法撤销。',
+    "admin.accounts.deleteDialog.confirm": "删除账户",
+    "admin.accounts.createDialog.title": "创建新账户",
+    "admin.accounts.createDialog.description": "填写以下信息创建新的管理员账户",
+    "admin.accounts.createDialog.create": "创建账户",
+    "admin.accounts.form.username": "用户名",
+    "admin.accounts.form.usernamePlaceholder": "请输入用户名",
+    "admin.accounts.form.email": "电子邮箱",
+    "admin.accounts.form.emailPlaceholder": "请输入邮箱地址",
+    "admin.accounts.form.password": "初始密码",
+    "admin.accounts.form.passwordPlaceholder": "请设置初始密码",
+    "admin.accounts.form.passwordHelp":
+      "密码要求：至少8个字符，包含大小写字母和数字",
+    "admin.accounts.form.role": "账户角色",
+    "admin.accounts.permissionInfo.title": "权限说明",
+    "admin.accounts.permissionInfo.owner1":
+      "站长：拥有所有管理权限，可以创建和删除管理员账户，不可被其他账户删除",
+    "admin.accounts.permissionInfo.owner2":
+      "站长：可以管理活动、新闻、会员审核，以及账户管理",
+    "admin.accounts.permissionInfo.admin1":
+      "管理员：可以管理活动、新闻、会员审核，但无法访问账户管理",
+    "admin.accounts.permissionInfo.admin2":
+      "管理员：只有站长可以创建和删除管理员账户",
 
     // Common
     "common.submit": "提交",
@@ -664,6 +708,51 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.settings.englishDesc": "Send emails in English",
     "admin.settings.saveLanguage": "Save Language Settings",
     "admin.settings.emailLanguageUpdated": "Email language updated",
+
+    // Admin - Account Management
+    "admin.accounts.title": "Account Management",
+    "admin.accounts.createAccount": "Create New Account",
+    "admin.accounts.totalAccounts": "Total Accounts",
+    "admin.accounts.owners": "Owner Accounts",
+    "admin.accounts.admins": "Admin Accounts",
+    "admin.accounts.searchPlaceholder": "Search by username or email...",
+    "admin.accounts.viewOnlyNotice":
+      "You currently have admin permissions, only able to view account information. Only owners can create and delete accounts.",
+    "admin.accounts.noResults": "No matching accounts found",
+    "admin.accounts.table.username": "Username",
+    "admin.accounts.table.email": "Email",
+    "admin.accounts.table.role": "Role",
+    "admin.accounts.table.createdAt": "Created At",
+    "admin.accounts.table.lastLogin": "Last Login",
+    "admin.accounts.table.actions": "Actions",
+    "admin.accounts.role.owner": "Owner",
+    "admin.accounts.role.admin": "Admin",
+    "admin.accounts.deleteDialog.title": "Confirm Account Deletion",
+    "admin.accounts.deleteDialog.description":
+      'Are you sure you want to delete the account "{username}"? This action cannot be undone.',
+    "admin.accounts.deleteDialog.confirm": "Delete Account",
+    "admin.accounts.createDialog.title": "Create New Account",
+    "admin.accounts.createDialog.description":
+      "Fill in the following information to create a new admin account",
+    "admin.accounts.createDialog.create": "Create Account",
+    "admin.accounts.form.username": "Username",
+    "admin.accounts.form.usernamePlaceholder": "Enter a username",
+    "admin.accounts.form.email": "Email Address",
+    "admin.accounts.form.emailPlaceholder": "Enter an email address",
+    "admin.accounts.form.password": "Initial Password",
+    "admin.accounts.form.passwordPlaceholder": "Set an initial password",
+    "admin.accounts.form.passwordHelp":
+      "Password Requirements: At least 8 characters, including uppercase and lowercase letters and numbers",
+    "admin.accounts.form.role": "Account Role",
+    "admin.accounts.permissionInfo.title": "Permission Information",
+    "admin.accounts.permissionInfo.owner1":
+      "Owner: Has all management permissions, can create and delete admin accounts, cannot be deleted by other accounts",
+    "admin.accounts.permissionInfo.owner2":
+      "Owner: Can manage events, news, member reviews, and account management",
+    "admin.accounts.permissionInfo.admin1":
+      "Admin: Can manage events, news, member reviews, but cannot access account management",
+    "admin.accounts.permissionInfo.admin2":
+      "Admin: Only owners can create and delete admin accounts",
 
     // Common
     "common.submit": "Submit",

@@ -18,19 +18,30 @@ export function AdminLogin() {
     e.preventDefault();
     setError("");
 
-    // Mock authentication
-    if (
-      credentials.username === "admin" &&
-      credentials.password === "demo123"
-    ) {
-      // Store auth token (mock)
+    // Mock authentication - support multiple test accounts
+    const validAccounts = [
+      { username: "owner_admin", password: "Owner@123", role: "owner" },
+      { username: "zhang_admin", password: "Admin@123", role: "admin" },
+      { username: "admin", password: "demo123", role: "admin" }, // Legacy account
+    ];
+
+    const account = validAccounts.find(
+      (acc) =>
+        acc.username === credentials.username &&
+        acc.password === credentials.password
+    );
+
+    if (account) {
+      // Store auth token and role (mock)
       sessionStorage.setItem("adminAuth", "true");
+      sessionStorage.setItem("adminRole", account.role);
+      sessionStorage.setItem("adminUsername", account.username);
       navigate("/admin/dashboard");
     } else {
       setError(
         language === "zh"
-          ? "用户名或密码错误。提示：用户名 admin，密码 demo123"
-          : "Invalid credentials. Hint: username admin, password demo123"
+          ? "用户名或密码错误。测试账户请参考下方提示。"
+          : "Invalid credentials. Please refer to test accounts below."
       );
     }
   };
@@ -127,13 +138,37 @@ export function AdminLogin() {
           </form>
 
           <div className="mt-6 p-4 bg-[#F5EFE6] rounded-lg text-sm text-gray-700">
-            <p className="mb-2">
+            <p className="mb-3">
               <strong>
-                {language === "zh" ? "演示账号：" : "Demo Account:"}
+                {language === "zh" ? "测试账户：" : "Test Accounts:"}
               </strong>
             </p>
-            <p className="mb-1">{t("admin.login.username")}: admin</p>
-            <p>{t("admin.login.password")}: demo123</p>
+            <div className="space-y-3">
+              <div className="border-b border-[#EB8C3A]/30 pb-2">
+                <p className="text-[#EB8C3A] mb-1">
+                  👑 {language === "zh" ? "站长账户" : "Owner Account"}
+                </p>
+                <p className="ml-4 text-xs">
+                  {t("admin.login.username")}: <strong>owner_admin</strong>
+                </p>
+                <p className="ml-4 text-xs">
+                  {t("admin.login.password")}: <strong>Owner@123</strong>
+                </p>
+              </div>
+              <div>
+                <p className="text-[#6BA868] mb-1">
+                  👤 {language === "zh" ? "管理员账户" : "Admin Account"}
+                </p>
+                <p className="ml-4 text-xs">
+                  {t("admin.login.username")}: <strong>zhang_admin</strong>{" "}
+                  {language === "zh" ? "或" : "or"} <strong>admin</strong>
+                </p>
+                <p className="ml-4 text-xs">
+                  {t("admin.login.password")}: <strong>Admin@123</strong>{" "}
+                  {language === "zh" ? "或" : "or"} <strong>demo123</strong>
+                </p>
+              </div>
+            </div>
           </div>
 
           <p className="text-xs text-gray-500 mt-4 text-center">

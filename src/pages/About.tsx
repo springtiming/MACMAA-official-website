@@ -1,73 +1,11 @@
 import { useLanguage } from "../contexts/LanguageContext";
 import { motion } from "motion/react";
-import {
-  Heart,
-  Users,
-  Calendar,
-  BookOpen,
-  Award,
-  Target,
-  Sparkles,
-  Check,
-  MapPin,
-  Phone,
-  Mail,
-  Video,
-  Play,
-} from "lucide-react";
+import { Target, Sparkles, Check, Video, Play } from "lucide-react";
 import businessCard from "figma:asset/2aee091727a5d832328a3b5cf9e2dcdf4f43542d.png";
 import wechatQRCode from "figma:asset/9c9d7d0442d12b5d716010d1dbb6304d01dcc148.png";
 
 export function About() {
   const { language, t } = useLanguage();
-
-  const achievements = [
-    {
-      icon: Award,
-      title:
-        language === "zh"
-          ? "Manningham市府认可"
-          : "Manningham Council Recognition",
-      color: "#2B5F9E",
-    },
-    {
-      icon: Users,
-      title:
-        language === "zh"
-          ? "多元文化部门支持"
-          : "Multicultural Department Support",
-      color: "#6BA868",
-    },
-    {
-      icon: Sparkles,
-      title:
-        language === "zh"
-          ? "中国驻墨尔本总领馆认可"
-          : "Chinese Consulate Recognition",
-      color: "#EB8C3A",
-    },
-  ];
-
-  const impactStats = [
-    {
-      icon: Heart,
-      value: language === "zh" ? "500+" : "500+",
-      label: language === "zh" ? "服务家庭" : "Families Supported",
-      accent: "#EB8C3A",
-    },
-    {
-      icon: Calendar,
-      value: language === "zh" ? "30+" : "30+",
-      label: language === "zh" ? "年度活动" : "Annual Events",
-      accent: "#2B5F9E",
-    },
-    {
-      icon: BookOpen,
-      value: language === "zh" ? "12" : "12",
-      label: language === "zh" ? "常态课程" : "Ongoing Programs",
-      accent: "#6BA868",
-    },
-  ];
 
   const services = [
     language === "zh"
@@ -93,27 +31,6 @@ export function About() {
       : "Information assistance and community connections for new migrants",
   ];
 
-  const contactInfo = [
-    {
-      icon: MapPin,
-      label: language === "zh" ? "地址" : "Address",
-      value:
-        language === "zh"
-          ? "293-297 Manningham Rd, Templestowe Lower VIC 3107"
-          : "293-297 Manningham Rd, Templestowe Lower VIC 3107",
-    },
-    {
-      icon: Phone,
-      label: language === "zh" ? "联系电话" : "Phone",
-      value: "+61 412 345 678",
-    },
-    {
-      icon: Mail,
-      label: language === "zh" ? "电子邮箱" : "Email",
-      value: "contact@macmaa.org",
-    },
-  ];
-
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       {/* Header */}
@@ -128,33 +45,6 @@ export function About() {
         <p className="text-gray-700 max-w-2xl mx-auto text-sm sm:text-base px-4">
           {t("home.about.desc")}
         </p>
-      </motion.div>
-
-      {/* Impact Stats */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-10 sm:mb-14"
-      >
-        {impactStats.map((item, index) => (
-          <div
-            key={`${item.label}-${index}`}
-            className="bg-white rounded-2xl shadow-md p-5 sm:p-6 flex items-center gap-4 border border-gray-100"
-          >
-            <div
-              className="w-14 h-14 rounded-2xl flex items-center justify-center text-white"
-              style={{ backgroundColor: item.accent }}
-            >
-              <item.icon className="w-7 h-7" />
-            </div>
-            <div>
-              <p className="text-3xl font-semibold text-gray-900">
-                {item.value}
-              </p>
-              <p className="text-gray-600 text-sm">{item.label}</p>
-            </div>
-          </div>
-        ))}
       </motion.div>
 
       {/* Main Content - Single Unified Card */}
@@ -197,32 +87,6 @@ export function About() {
                     : "We strive to become a warm, strong, and influential community organization where every member can find belonging, support, dignity, and growth opportunities, serving as a bridge connecting culture and community."}
                 </p>
               </div>
-            </div>
-          </div>
-
-          {/* Recognitions */}
-          <div className="mb-10 sm:mb-16 pb-10 sm:pb-16 border-b border-gray-300">
-            <h3 className="text-[#2B5F9E] mb-6 text-center text-xl sm:text-2xl">
-              {language === "zh" ? "机构认可" : "Community Recognitions"}
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-              {achievements.map((item, index) => (
-                <div
-                  key={`${item.title}-${index}`}
-                  className="bg-white rounded-xl shadow-sm p-4 text-center border border-gray-100"
-                >
-                  <div
-                    className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center"
-                    style={{ backgroundColor: `${item.color}15` }}
-                  >
-                    <item.icon
-                      className="w-6 h-6"
-                      style={{ color: item.color }}
-                    />
-                  </div>
-                  <p className="text-gray-700 text-sm">{item.title}</p>
-                </div>
-              ))}
             </div>
           </div>
 
@@ -357,20 +221,7 @@ export function About() {
                 alt="Ya Chen Business Card"
                 className="w-full h-auto rounded-lg shadow-xl"
               />
-              <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {contactInfo.map((item) => (
-                  <div
-                    key={item.label}
-                    className="bg-white rounded-xl shadow-sm p-4 border border-gray-100 flex items-start gap-3"
-                  >
-                    <item.icon className="w-5 h-5 text-[#2B5F9E] mt-0.5" />
-                    <div>
-                      <p className="text-xs text-gray-500">{item.label}</p>
-                      <p className="text-sm text-gray-700">{item.value}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+
               {/* WeChat QR Code */}
               <div className="mt-8 sm:mt-10 text-center">
                 <h3 className="text-[#2B5F9E] mb-4 text-lg sm:text-xl">

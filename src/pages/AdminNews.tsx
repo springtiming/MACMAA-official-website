@@ -307,7 +307,7 @@ function NewsFormModal({
     ],
   };
 
-  const formats = [
+  const formats: NonNullable<ReactQuillProps["formats"]> = [
     "header",
     "bold",
     "italic",
