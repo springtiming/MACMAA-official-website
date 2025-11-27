@@ -1,8 +1,9 @@
 import { useLanguage } from "../contexts/LanguageContext";
 import { motion } from "motion/react";
-import { Target, Sparkles, Check, Video, Play } from "lucide-react";
+import { Target, Sparkles, Check } from "lucide-react";
 import businessCard from "figma:asset/2aee091727a5d832328a3b5cf9e2dcdf4f43542d.png";
 import wechatQRCode from "figma:asset/9c9d7d0442d12b5d716010d1dbb6304d01dcc148.png";
+import introVideo from "@/assets/6ef3d9c1c4c26200efb53bac0919ede0.mp4";
 
 export function About() {
   const { language, t } = useLanguage();
@@ -128,61 +129,30 @@ export function About() {
               </p>
             </div>
 
-            {/* Video Placeholder */}
+          {/* Video Section */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               className="mt-8 sm:mt-10"
             >
-              <h3 className="text-[#2B5F9E] mb-4 sm:mb-6 text-center text-xl sm:text-2xl">
-                {language === "zh" ? "协会介绍视频" : "Introduction Video"}
-              </h3>
+            <h3 className="text-[#2B5F9E] mb-4 sm:mb-6 text-center text-xl sm:text-2xl">
+              {language === "zh" ? "协会介绍视频" : "Introduction Video"}
+            </h3>
 
-              <div className="relative aspect-video bg-gradient-to-br from-[#2B5F9E]/10 to-[#6BA868]/10 rounded-xl overflow-hidden border-2 border-dashed border-[#2B5F9E]/30 flex items-center justify-center">
-                {/* Placeholder Content */}
-                <div className="text-center px-4">
-                  <motion.div
-                    initial={{ scale: 0.8 }}
-                    animate={{ scale: 1 }}
-                    transition={{
-                      duration: 0.5,
-                      repeat: Infinity,
-                      repeatType: "reverse",
-                    }}
-                    className="w-16 h-16 sm:w-20 sm:h-20 bg-white/90 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"
-                  >
-                    <Play className="w-8 h-8 sm:w-10 sm:h-10 text-[#2B5F9E] ml-1" />
-                  </motion.div>
-
-                  <div className="bg-white/90 backdrop-blur-sm rounded-lg px-4 sm:px-6 py-3 sm:py-4 inline-block">
-                    <div className="flex items-center gap-2 sm:gap-3 mb-2">
-                      <Video className="w-5 h-5 sm:w-6 sm:h-6 text-[#2B5F9E]" />
-                      <p className="text-[#2B5F9E] text-sm sm:text-base">
-                        {language === "zh" ? "视频占位符" : "Video Placeholder"}
-                      </p>
-                    </div>
-                    <p className="text-gray-600 text-xs sm:text-sm">
-                      {language === "zh"
-                        ? "此处将展示MACMAA协会介绍视频"
-                        : "MACMAA introduction video will be displayed here"}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Decorative Background Pattern */}
-                <div className="absolute inset-0 opacity-5">
-                  <div className="absolute top-4 left-4 w-12 h-12 sm:w-16 sm:h-16 border-4 border-[#2B5F9E] rounded-full"></div>
-                  <div className="absolute bottom-4 right-4 w-8 h-8 sm:w-12 sm:h-12 border-4 border-[#6BA868] rounded-full"></div>
-                  <div className="absolute top-1/2 left-1/4 w-6 h-6 sm:w-8 sm:h-8 border-4 border-[#EB8C3A] rounded-full"></div>
-                </div>
-              </div>
-
-              <p className="text-gray-500 text-xs sm:text-sm text-center mt-3 sm:mt-4">
+            <div className="relative aspect-video bg-black rounded-xl overflow-hidden shadow-xl">
+              <video
+                className="w-full h-full object-cover"
+                src={introVideo}
+                controls
+                controlsList="nodownload"
+              >
                 {language === "zh"
-                  ? "💡 提示：视频文件将在后续上传后自动显示"
-                  : "💡 Note: Video will be displayed automatically after upload"}
-              </p>
+                  ? "您的浏览器不支持视频播放，请尝试更新浏览器。"
+                  : "Your browser does not support the video tag. Please update your browser."}
+              </video>
+            </div>
+
             </motion.div>
           </div>
 

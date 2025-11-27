@@ -1,16 +1,26 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import { motion, AnimatePresence } from "motion/react";
 import { ArrowLeft, CreditCard, Building, Check } from "lucide-react";
-import { mockEvents } from "../data/mockData";
+import {
+  createEventRegistration,
+  fetchEventById,
+  type EventRecord,
+} from "../lib/supabaseApi";
+import { pickLocalized } from "../lib/supabaseHelpers";
 
-type PaymentMethod = "online" | "onsite" | "transfer" | null;
+type PaymentMethod = "card" | "transfer" | null;
 
 export function EventRegistration() {
   const { id } = useParams();
   const { language, t } = useLanguage();
-  const event = mockEvents.find((e) => e.id === Number(id));
+  const [event, setEvent] = useState<EventRecord | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [registrationId, setRegistrationId] = useState<string | null>(null);
 
   const [step, setStep] = useState<"form" | "payment" | "success">("form");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(null);
@@ -22,10 +32,38 @@ export function EventRegistration() {
     notes: "",
   });
 
+  useEffect(() => {
+    if (!id) return;
+    let active = true;
+    setLoading(true);
+    fetchEventById(id)
+      .then((data) => {
+        if (active) setEvent(data);
+      })
+      .catch(() => {
+        if (active) setError(t("common.error"));
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [id, t]);
+
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-12 text-center">
+        <p className="text-gray-600">{t("common.loading")}</p>
+      </div>
+    );
+  }
+
   if (!event) {
     return (
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-12 text-center">
-        <p className="text-gray-600">Event not found</p>
+        <p className="text-gray-600">{error || "Event not found"}</p>
         <Link
           to="/events"
           className="text-[#2B5F9E] hover:underline mt-4 inline-block"
@@ -41,16 +79,43 @@ export function EventRegistration() {
     setStep("payment");
   };
 
-  const handlePaymentConfirm = () => {
-    // Simulate API call
-    setTimeout(() => {
+  const handlePaymentConfirm = async () => {
+    if (event.fee > 0 && !paymentMethod) {
+      setSubmitError(
+        language === "zh" ? "请选择支付方式" : "Please choose a payment method",
+      );
+      return;
+    }
+
+    setSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const tickets = parseInt(formData.participants, 10) || 1;
+      const result = await createEventRegistration({
+        event_id: event.id,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        tickets,
+        payment_method: paymentMethod,
+      });
+      setRegistrationId(result.id);
       setStep("success");
-    }, 500);
+    } catch (err) {
+      setSubmitError(
+        language === "zh"
+          ? "提交报名失败，请稍后再试"
+          : "Failed to submit registration. Please try again.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const paymentOptions = [
     {
-      id: "online" as PaymentMethod,
+      id: "card" as PaymentMethod,
       icon: CreditCard,
       title: t("register.payment.online"),
       desc:
@@ -127,7 +192,9 @@ export function EventRegistration() {
 
               <div className="bg-white rounded-2xl shadow-lg p-8">
                 <h2 className="text-[#2B5F9E] mb-2">{t("register.title")}</h2>
-                <p className="text-gray-600 mb-6">{event.title[language]}</p>
+                <p className="text-gray-600 mb-6">
+                  {pickLocalized(event.title_zh, event.title_en, language)}
+                </p>
 
                 <form onSubmit={handleFormSubmit} className="space-y-6">
                   <div>
@@ -250,11 +317,11 @@ export function EventRegistration() {
                     : `Event fee: ${event.fee === 0 ? "Free" : `$${event.fee} AUD`}`}
                 </p>
 
-                {event.fee > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    {paymentOptions.map((option) => (
-                      <motion.button
-                        key={option.id}
+                    {event.fee > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        {paymentOptions.map((option) => (
+                          <motion.button
+                            key={option.id}
                         onClick={() => setPaymentMethod(option.id)}
                         className={`p-6 rounded-xl border-2 transition-all ${
                           paymentMethod === option.id
@@ -282,7 +349,7 @@ export function EventRegistration() {
 
                 <motion.button
                   onClick={handlePaymentConfirm}
-                  disabled={event.fee > 0 && !paymentMethod}
+                  disabled={(event.fee > 0 && !paymentMethod) || submitting}
                   className={`w-full px-6 py-3 rounded-lg transition-colors ${
                     event.fee > 0 && !paymentMethod
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
@@ -295,8 +362,16 @@ export function EventRegistration() {
                     event.fee === 0 || paymentMethod ? { scale: 0.98 } : {}
                   }
                 >
-                  {t("register.payment.confirm")}
+                  {submitting
+                    ? t("common.loading")
+                    : t("register.payment.confirm")}
                 </motion.button>
+
+                {submitError && (
+                  <p className="text-red-600 text-sm mt-3" role="alert">
+                    {submitError}
+                  </p>
+                )}
 
                 <p className="text-sm text-gray-500 mt-4 text-center">
                   {language === "zh"
@@ -347,8 +422,13 @@ export function EventRegistration() {
                     </p>
                     <p>
                       <strong>{t("events.title")}:</strong>{" "}
-                      {event.title[language]}
+                      {pickLocalized(event.title_zh, event.title_en, language)}
                     </p>
+                    {registrationId && (
+                      <p>
+                        <strong>ID:</strong> {registrationId}
+                      </p>
+                    )}
                   </div>
                 </div>
 

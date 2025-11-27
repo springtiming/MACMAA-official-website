@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
@@ -20,97 +20,158 @@ import ReactQuill from "react-quill@2.0.0-beta.2";
 import type { ReactQuillProps } from "react-quill@2.0.0-beta.2";
 import "react-quill@2.0.0-beta.2/dist/quill.snow.css";
 import { ImageUploadModal } from "../components/ImageUploadModal";
-
-interface News {
-  id: string;
-  title: { zh: string; en: string };
-  summary: { zh: string; en: string };
-  content: { zh: string; en: string };
-  date: string;
-  image: string;
-}
-
-// Mock data
-const mockNews: News[] = [
-  {
-    id: "1",
-    title: {
-      zh: "MACMAA 2025年度新春团拜会圆满落幕",
-      en: "MACMAA 2025 Chinese New Year Celebration Successfully Concluded",
-    },
-    summary: {
-      zh: "2025年1月25日，澳洲万年市华人互助会在社区中心成功举办了年度新春团拜会，近百位社区成员共聚一堂。",
-      en: "On January 25, 2025, MACMAA successfully hosted the annual Chinese New Year celebration at the community center with nearly 100 attendees.",
-    },
-    content: {
-      zh: "<p>活动现场气氛热烈，会员们表演了太极、舞蹈、歌曲等精彩节目。</p><p><strong>活动亮点：</strong></p><ul><li>太极拳表演</li><li>传统舞蹈</li><li>卡拉OK歌唱</li><li>美食分享</li></ul><p>美食分享环节更是让大家品尝到了来自各地的传统美食，共同庆祝新春佳节。</p>",
-      en: "<p>The event featured Tai Chi, dance performances, and singing.</p><p><strong>Highlights:</strong></p><ul><li>Tai Chi performance</li><li>Traditional dances</li><li>Karaoke singing</li><li>Food sharing</li></ul><p>The food sharing session allowed everyone to enjoy traditional dishes from various regions.</p>",
-    },
-    date: "2025-01-26",
-    image: "chinese,new,year,celebration",
-  },
-  {
-    id: "2",
-    title: {
-      zh: "健康讲座：老年人慢性病防治",
-      en: "Health Seminar: Chronic Disease Prevention for Seniors",
-    },
-    summary: {
-      zh: "本月健康讲座邀请了专业医生讲解老年慢性病的预防与管理，吸引了50多位会员参加。",
-      en: "This month's health seminar invited professional doctors to discuss chronic disease prevention and management, attracting over 50 members.",
-    },
-    content: {
-      zh: "<p>讲座内容包括高血压、糖尿病、心脏病等常见慢性病的预防措施、日常管理方法，以及饮食和运动建议。</p><p><strong>主要内容：</strong></p><ol><li>慢性病的早期识别</li><li>日常管理技巧</li><li>饮食调理方法</li><li>适合老年人的运动</li></ol><p>参加者纷纷表示受益匪浅。</p>",
-      en: "<p>The seminar covered prevention measures, daily management methods, and diet and exercise recommendations for common chronic diseases such as hypertension, diabetes, and heart disease.</p><p><strong>Main Topics:</strong></p><ol><li>Early identification of chronic diseases</li><li>Daily management techniques</li><li>Dietary adjustments</li><li>Suitable exercises for seniors</li></ol><p>Participants found the seminar very beneficial.</p>",
-    },
-    date: "2025-02-12",
-    image: "health,seminar,seniors",
-  },
-];
+import {
+  fetchAdminNewsPosts,
+  fetchMyDrafts,
+  publishNewsFromDraft,
+  saveNewsDraft,
+  deleteArticle,
+  deleteDraft,
+  type NewsPostRecord,
+  type ArticleVersionRecord,
+} from "../lib/supabaseApi";
+import { pickLocalized } from "../lib/supabaseHelpers";
 
 export function AdminNews() {
   const { language, t } = useLanguage();
   const navigate = useNavigate();
-  const [newsList, setNewsList] = useState<News[]>(mockNews);
+  const [newsList, setNewsList] = useState<NewsPostRecord[]>([]);
+  const [draftList, setDraftList] = useState<ArticleVersionRecord[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [editingNews, setEditingNews] = useState<News | null>(null);
+  const [editingArticle, setEditingArticle] = useState<NewsPostRecord | null>(null);
+  const [editingDraft, setEditingDraft] = useState<ArticleVersionRecord | null>(null);
+  const [draftVersionId, setDraftVersionId] = useState<string | null>(null);
   const [showImageUploadModal, setShowImageUploadModal] = useState(false);
   const [uploadedImage, setUploadedImage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    Promise.all([fetchAdminNewsPosts(), fetchMyDrafts()])
+      .then(([articles, drafts]) => {
+        if (active) {
+          setNewsList(articles);
+          setDraftList(drafts);
+        }
+      })
+      .catch(() => {
+        if (active) setError(t("common.error"));
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [t]);
 
   // Filter news
-  const filteredNews = newsList.filter(
-    (news) =>
-      news.title.zh.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      news.title.en.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      news.summary.zh.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      news.summary.en.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredNews = newsList.filter((news) => {
+    const zhTitle = news.title_zh?.toLowerCase() ?? "";
+    const enTitle = news.title_en?.toLowerCase() ?? "";
+    const zhSummary = news.summary_zh?.toLowerCase() ?? "";
+    const enSummary = news.summary_en?.toLowerCase() ?? "";
+    const term = searchTerm.toLowerCase();
+    return (
+      zhTitle.includes(term) ||
+      enTitle.includes(term) ||
+      zhSummary.includes(term) ||
+      enSummary.includes(term)
+    );
+  });
 
   const handleAdd = () => {
-    setEditingNews(null);
+    setEditingArticle(null);
+    setEditingDraft(null);
+    setDraftVersionId(null);
     setShowForm(true);
   };
-
-  const handleEdit = (news: News) => {
-    setEditingNews(news);
-    setShowForm(true);
-  };
-
-  const handleDelete = (id: string) => {
-    if (confirm(t("admin.news.deleteConfirm"))) {
-      setNewsList(newsList.filter((n) => n.id !== id));
+  const handleDelete = async (id: string) => {
+    if (!confirm(t("admin.news.deleteConfirm"))) return;
+    try {
+      await deleteArticle(id);
+      setNewsList((prev) => prev.filter((n) => n.id !== id));
+      const drafts = await fetchMyDrafts();
+      setDraftList(drafts);
+      setSuccess(language === "zh" ? "已删除" : "Deleted");
+    } catch {
+      setError(t("common.error"));
     }
   };
 
-  const handleSave = (news: News) => {
-    if (editingNews) {
-      setNewsList(newsList.map((n) => (n.id === news.id ? news : n)));
-    } else {
-      setNewsList([...newsList, { ...news, id: Date.now().toString() }]);
+  const handleEdit = (news: NewsPostRecord) => {
+    setEditingArticle(news);
+    setEditingDraft(null);
+    setDraftVersionId(null);
+    setShowForm(true);
+  };
+
+  const handleEditDraft = (draft: ArticleVersionRecord) => {
+    setEditingDraft(draft);
+    setEditingArticle(null);
+    setDraftVersionId(draft.id);
+    setShowForm(true);
+  };
+
+  const handleSave = async (news: NewsFormState) => {
+    try {
+      const draft = await saveNewsDraft({
+        id: news.id || editingArticle?.id || editingDraft?.article_id,
+        title_zh: news.title.zh,
+        title_en: news.title.en,
+        summary_zh: news.summary.zh,
+        summary_en: news.summary.en,
+        content_zh: news.content.zh,
+        content_en: news.content.en,
+        cover_source: news.image || null,
+      });
+      setDraftVersionId(draft.id);
+      setSuccess(language === "zh" ? "草稿已保存" : "Draft saved");
+      const drafts = await fetchMyDrafts();
+      setDraftList(drafts);
+    } catch {
+      setError(t("common.error"));
     }
-    setShowForm(false);
-    setEditingNews(null);
+  };
+  const handlePublish = async (news: NewsFormState) => {
+    try {
+      let versionId = draftVersionId;
+      if (!versionId) {
+        const draft = await saveNewsDraft({
+          id: news.id || editingArticle?.id || editingDraft?.article_id,
+          title_zh: news.title.zh,
+          title_en: news.title.en,
+          summary_zh: news.summary.zh,
+          summary_en: news.summary.en,
+          content_zh: news.content.zh,
+          content_en: news.content.en,
+          cover_source: news.image || null,
+        });
+        versionId = draft.id;
+      }
+
+      const result = await publishNewsFromDraft(versionId);
+      setNewsList((prev) => {
+        const exists = prev.some((n) => n.id === result.article.id);
+        if (exists) {
+          return prev.map((n) => (n.id === result.article.id ? result.article : n));
+        }
+        return [result.article, ...prev];
+      });
+      setShowForm(false);
+      setEditingArticle(null);
+      setDraftVersionId(null);
+      setEditingDraft(null);
+      setSuccess(language === "zh" ? "发布成功" : "Published");
+      const drafts = await fetchMyDrafts();
+      setDraftList(drafts);
+    } catch {
+      setError(t("common.error"));
+    }
   };
 
   const handleImageUpload = () => {
@@ -183,7 +244,69 @@ export function AdminNews() {
         </motion.div>
 
         {/* News List */}
+        {loading && (
+          <p className="text-gray-600 mb-3">{t("common.loading")}</p>
+        )}
+        {error && (
+          <p className="text-red-600 mb-3" role="alert">
+            {error}
+          </p>
+        )}
+        {success && (
+          <p className="text-green-700 mb-3" role="status">
+            {success}
+          </p>
+        )}
         <div className="space-y-4">
+        {draftList.length > 0 && (
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <h3 className="text-[#2B5F9E] mb-3">
+              {language === "zh" ? "我的草稿" : "My Drafts"}
+            </h3>
+            <div className="space-y-3">
+              {draftList.map((draft) => (
+                <div
+                  key={draft.id}
+                  className="flex items-center gap-3 border border-gray-200 rounded-lg p-3"
+                >
+                  <div className="flex-1">
+                    <p className="text-[#2B5F9E] font-medium">
+                      {pickLocalized(draft.title_zh, draft.title_en, language)}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {language === "zh" ? "草稿版本" : "Draft version"} #{draft.version_number}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleEditDraft(draft)}
+                      className="p-2 text-[#2B5F9E] hover:text-[#1f4a7a] transition-colors"
+                      title={language === "zh" ? "继续编辑" : "Edit draft"}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={async () => {
+                        if (!confirm(language === "zh" ? "确认删除草稿？" : "Delete draft?")) return;
+                        try {
+                          await deleteDraft(draft.id);
+                          setDraftList((prev) => prev.filter((d) => d.id !== draft.id));
+                          setSuccess(language === "zh" ? "草稿已删除" : "Draft deleted");
+                        } catch {
+                          setError(t("common.error"));
+                        }
+                      }}
+                      className="p-2 text-[#2B5F9E] hover:text-red-600 transition-colors"
+                      title={language === "zh" ? "删除草稿" : "Delete draft"}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
           {filteredNews.map((news, index) => (
             <motion.div
               key={news.id}
@@ -195,10 +318,29 @@ export function AdminNews() {
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1">
                   <h3 className="text-[#2B5F9E] text-lg sm:text-xl mb-2">
-                    {news.title[language]}
+                    {pickLocalized(news.title_zh, news.title_en, language)}
                   </h3>
-                  <p className="text-gray-600 mb-3">{news.summary[language]}</p>
-                  <div className="text-sm text-gray-500">{news.date}</div>
+                  <p className="text-gray-600 mb-3">
+                    {pickLocalized(news.summary_zh, news.summary_en, language)}
+                  </p>
+                  <div className="text-sm text-gray-500 flex items-center gap-2">
+                    <span>{news.published_at?.slice(0, 10) || ""}</span>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs ${
+                        news.published
+                          ? "bg-green-100 text-green-700"
+                          : "bg-yellow-100 text-yellow-700"
+                      }`}
+                    >
+                      {news.published
+                        ? language === "zh"
+                          ? "已发布"
+                          : "Published"
+                        : language === "zh"
+                          ? "草稿中"
+                          : "Unpublished"}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex md:flex-col gap-2">
                   <button
@@ -212,7 +354,7 @@ export function AdminNews() {
                   </button>
                   <button
                     onClick={() => handleDelete(news.id)}
-                    className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex-1 md:flex-initial"
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex-1 md:flex-initial"
                   >
                     <Trash2 className="w-4 h-4" />
                     <span className="hidden sm:inline">
@@ -234,11 +376,14 @@ export function AdminNews() {
         {/* News Form Modal */}
         {showForm && (
           <NewsFormModal
-            news={editingNews}
+            news={editingArticle}
+            draft={editingDraft}
             onSave={handleSave}
+            onPublish={handlePublish}
             onClose={() => {
               setShowForm(false);
-              setEditingNews(null);
+              setEditingArticle(null);
+              setEditingDraft(null);
             }}
             handleImageUpload={handleImageUpload}
             uploadedImage={uploadedImage}
@@ -258,36 +403,73 @@ export function AdminNews() {
 }
 
 // News Form Modal Component
+type NewsFormState = {
+  id: string;
+  title: { zh: string; en: string };
+  summary: { zh: string; en: string };
+  content: { zh: string; en: string };
+  date: string;
+  image: string;
+};
+
 function NewsFormModal({
   news,
+  draft,
   onSave,
+  onPublish,
   onClose,
   handleImageUpload,
   uploadedImage,
 }: {
-  news: News | null;
-  onSave: (news: News) => void;
+  news: NewsPostRecord | null;
+  draft: ArticleVersionRecord | null;
+  onSave: (news: NewsFormState) => void;
+  onPublish: (news: NewsFormState) => void;
   onClose: () => void;
   handleImageUpload: () => void;
   uploadedImage: string;
 }) {
   const { language, t } = useLanguage();
   const [imageSource, setImageSource] = useState<"unsplash" | "upload">(
-    "unsplash"
+    news?.cover_source?.startsWith("http") || news?.cover_source?.startsWith("/")
+      ? "upload"
+      : "unsplash"
   );
   const [fullscreenEditor, setFullscreenEditor] = useState<"zh" | "en" | null>(
     null
   );
-  const [formData, setFormData] = useState<News>(
-    news || {
+  const [formData, setFormData] = useState<NewsFormState>(() => {
+    if (draft) {
+      return {
+        id: draft.article_id ?? "",
+        title: { zh: draft.title_zh ?? "", en: draft.title_en ?? "" },
+        summary: { zh: draft.summary_zh ?? "", en: draft.summary_en ?? "" },
+        content: { zh: draft.content_zh ?? "", en: draft.content_en ?? "" },
+        date: new Date().toISOString().split("T")[0],
+        image: draft.cover_source ?? "",
+      };
+    }
+    if (news) {
+      return {
+        id: news.id,
+        title: { zh: news.title_zh ?? "", en: news.title_en ?? "" },
+        summary: { zh: news.summary_zh ?? "", en: news.summary_en ?? "" },
+        content: { zh: news.content_zh ?? "", en: news.content_en ?? "" },
+        date: news.published_at
+          ? news.published_at.slice(0, 10)
+          : new Date().toISOString().split("T")[0],
+        image: news.cover_source ?? "",
+      };
+    }
+    return {
       id: "",
       title: { zh: "", en: "" },
       summary: { zh: "", en: "" },
       content: { zh: "", en: "" },
       date: new Date().toISOString().split("T")[0],
       image: "",
-    }
-  );
+    };
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -328,12 +510,15 @@ function NewsFormModal({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto"
-      onClick={onClose}
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
     >
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
+        onMouseDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
         className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full my-8 max-h-[90vh] overflow-hidden flex flex-col"
       >
@@ -370,6 +555,7 @@ function NewsFormModal({
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
               />
             </div>
+
 
             {/* Image Section - Unsplash or Upload */}
             <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
@@ -622,16 +808,24 @@ function NewsFormModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-center"
             >
-              {t("admin.news.cancel")}
+              {language === "zh" ? "取消" : "Cancel"}
             </button>
             <button
               type="submit"
               className="flex-1 px-6 py-3 bg-[#6BA868] text-white rounded-lg hover:bg-[#5a9157] transition-colors flex items-center justify-center gap-2"
             >
               <Save className="w-5 h-5" />
-              {t("admin.news.save")}
+              {language === "zh" ? "保存为草稿" : "Save draft"}
+            </button>
+            <button
+              type="button"
+              onClick={() => onPublish(formData)}
+              className="flex-1 px-6 py-3 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors flex items-center justify-center gap-2"
+            >
+              <Save className="w-5 h-5" />
+              {language === "zh" ? "发布" : "Publish"}
             </button>
           </div>
         </form>
@@ -698,12 +892,15 @@ function FullscreenEditorModal({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 bg-black/90 flex flex-col z-[60]"
-      onClick={onClose}
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
     >
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
+        onMouseDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
         className="flex-1 flex flex-col m-4"
       >
@@ -723,7 +920,7 @@ function FullscreenEditorModal({
                 className="flex items-center gap-2 px-4 py-2 bg-[#6BA868] hover:bg-[#5a9157] rounded-lg transition-colors"
               >
                 <Save className="w-5 h-5" />
-                <span className="hidden sm:inline">{t("admin.news.save")}</span>
+                <span className="hidden sm:inline">{t("admin.news.form.saveDraft")}</span>
               </button>
               <button
                 onClick={onClose}

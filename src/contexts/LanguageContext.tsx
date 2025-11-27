@@ -233,6 +233,7 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.news.form.fullscreenEdit": "全屏编辑",
     "admin.news.form.exitFullscreen": "退出全屏",
     "admin.news.form.fullscreenTitle": "全屏编辑 - ",
+    "admin.news.form.saveDraft": "保存成草稿",
     "admin.news.form.save": "保存新闻",
     "admin.news.deleteConfirm": "确定要删除这条新闻吗？",
 
@@ -371,8 +372,6 @@ const translations: Record<Language, Record<string, string>> = {
     "common.back": "返回",
     "common.loading": "加载中...",
     "common.free": "免费",
-    "common.note":
-      "注：本原型使用模拟数据，实际系统将对接API、邮件服务和支付网关。",
 
     // Footer
     "footer.contact": "联系我们",
@@ -613,6 +612,7 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.news.form.fullscreenEdit": "Fullscreen Edit",
     "admin.news.form.exitFullscreen": "Exit Fullscreen",
     "admin.news.form.fullscreenTitle": "Fullscreen Edit - ",
+    "admin.news.form.saveDraft": "Save as draft",
     "admin.news.form.save": "Save News",
     "admin.news.deleteConfirm":
       "Are you sure you want to delete this news item?",
@@ -760,8 +760,6 @@ const translations: Record<Language, Record<string, string>> = {
     "common.back": "Back",
     "common.loading": "Loading...",
     "common.free": "Free",
-    "common.note":
-      "Note: This prototype uses mock data. The production system will integrate with APIs, email services, and payment gateways.",
 
     // Footer
     "footer.contact": "Contact Us",

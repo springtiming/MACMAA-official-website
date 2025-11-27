@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import { motion } from "motion/react";
@@ -13,11 +13,15 @@ import {
   Clock,
   Shield,
 } from "lucide-react";
-import { mockEvents, mockNews } from "../data/mockData";
+import { fetchEvents, fetchNewsPosts } from "../lib/supabaseApi";
 
 export function AdminDashboard() {
   const navigate = useNavigate();
   const { language, t } = useLanguage();
+  const [newsCount, setNewsCount] = useState(0);
+  const [eventsCount, setEventsCount] = useState(0);
+  const [statsError, setStatsError] = useState<string | null>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
 
   // Get current user role
   const currentUserRole =
@@ -31,6 +35,30 @@ export function AdminDashboard() {
     }
   }, [navigate]);
 
+  useEffect(() => {
+    let active = true;
+    setStatsLoading(true);
+    Promise.all([
+      fetchEvents({ includeMembersOnly: true }),
+      fetchNewsPosts({ publishedOnly: false }),
+    ])
+      .then(([events, news]) => {
+        if (!active) return;
+        setEventsCount(events.length);
+        setNewsCount(news.length);
+      })
+      .catch(() => {
+        if (active) setStatsError(t("common.error"));
+      })
+      .finally(() => {
+        if (active) setStatsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [t]);
+
   const handleLogout = () => {
     sessionStorage.removeItem("adminAuth");
     navigate("/admin");
@@ -40,28 +68,28 @@ export function AdminDashboard() {
     {
       icon: Calendar,
       label: t("admin.dashboard.stats.events"),
-      value: mockEvents.length,
+      value: statsLoading ? "…" : eventsCount,
       color: "#2B5F9E",
       trend: "+2",
     },
     {
       icon: Newspaper,
       label: t("admin.dashboard.stats.news"),
-      value: mockNews.length,
+      value: statsLoading ? "…" : newsCount,
       color: "#6BA868",
       trend: "+1",
     },
     {
       icon: Users,
       label: t("admin.dashboard.stats.members"),
-      value: 5,
+      value: "—",
       color: "#EB8C3A",
       trend: "+5",
     },
     {
       icon: UserCheck,
       label: t("admin.dashboard.stats.registrations"),
-      value: 12,
+      value: "—",
       color: "#8B5CF6",
       trend: "+3",
     },
@@ -185,6 +213,11 @@ export function AdminDashboard() {
               ? "这是管理仪表盘的原型界面，展示核心管理功能模块"
               : "This is the prototype admin dashboard showcasing core management modules"}
           </p>
+          {statsError && (
+            <p className="text-red-600 text-sm mt-2" role="alert">
+              {statsError}
+            </p>
+          )}
         </motion.div>
 
         {/* Stats Grid */}
@@ -314,43 +347,6 @@ export function AdminDashboard() {
           </div>
         </div>
 
-        {/* Integration Notes */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1 }}
-          className="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-6"
-        >
-          <h3 className="text-[#2B5F9E] mb-3">
-            {language === "zh" ? "系统集成说明" : "System Integration Notes"}
-          </h3>
-          <ul className="space-y-2 text-sm text-gray-700">
-            <li>
-              •{" "}
-              {language === "zh"
-                ? "后台将使用React + Node.js/Django构建，支持RESTful API"
-                : "Backend will be built with React + Node.js/Django supporting RESTful API"}
-            </li>
-            <li>
-              •{" "}
-              {language === "zh"
-                ? "内容管理将集成富文本编辑器（如TinyMCE或Quill）"
-                : "Content management will integrate rich text editor (TinyMCE or Quill)"}
-            </li>
-            <li>
-              •{" "}
-              {language === "zh"
-                ? "用户角色权限系统：超级管理员、内容编辑、活动协调员"
-                : "User role permissions: Super Admin, Content Editor, Event Coordinator"}
-            </li>
-            <li>
-              •{" "}
-              {language === "zh"
-                ? "数据导出功能：CSV/Excel格式的报名数据和统计报表"
-                : "Data export: Registration data and statistics in CSV/Excel format"}
-            </li>
-          </ul>
-        </motion.div>
       </div>
     </div>
   );

@@ -171,9 +171,6 @@ export function AdminLogin() {
             </div>
           </div>
 
-          <p className="text-xs text-gray-500 mt-4 text-center">
-            {t("common.note")}
-          </p>
         </motion.div>
       </motion.div>
     </div>
