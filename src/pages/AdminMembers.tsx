@@ -23,6 +23,10 @@ import {
   updateMemberStatus,
   type MemberRecord,
 } from "../lib/supabaseApi";
+import {
+  ProcessingOverlay,
+  type ProcessingState,
+} from "../components/ProcessingOverlay";
 
 type MemberFilter = "all" | "pending" | "approved" | "rejected";
 const FILTER_OPTIONS: MemberFilter[] = [
@@ -48,6 +52,11 @@ export function AdminMembers() {
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [processingState, setProcessingState] = useState<ProcessingState>("idle");
+  const [processingMessage, setProcessingMessage] = useState({
+    title: "",
+    message: "",
+  });
 
   const loadMembers = useCallback(async () => {
     setLoading(true);
@@ -85,9 +94,112 @@ export function AdminMembers() {
     member: MemberRecord
   ) => setConfirmDialog({ type, member });
 
+  const getProcessingMessages = (
+    type: "approve" | "reject" | "revoke" | "delete" | "reopen",
+    member: MemberRecord
+  ) => {
+    const name = member.chinese_name || member.english_name;
+    const zh = {
+      approve: {
+        processingTitle: "正在审核通过...",
+        processingMessage: `正在处理 ${name} 的会员申请`,
+        successTitle: "审核成功",
+        successMessage: `${name} 已成为正式会员`,
+        errorTitle: "审核失败",
+        errorMessage: "操作失败，请重试",
+      },
+      reject: {
+        processingTitle: "正在拒绝申请...",
+        processingMessage: `正在处理 ${name} 的申请`,
+        successTitle: "已拒绝申请",
+        successMessage: `已拒绝 ${name} 的会员申请`,
+        errorTitle: "操作失败",
+        errorMessage: "操作失败，请重试",
+      },
+      revoke: {
+        processingTitle: "正在撤销会员资格...",
+        processingMessage: `正在撤销 ${name} 的会员资格`,
+        successTitle: "已撤销会员资格",
+        successMessage: `已撤销 ${name} 的会员资格`,
+        errorTitle: "操作失败",
+        errorMessage: "操作失败，请重试",
+      },
+      reopen: {
+        processingTitle: "正在重新开启申请...",
+        processingMessage: `正在重新开启 ${name} 的申请`,
+        successTitle: "已重新开启",
+        successMessage: `${name} 的申请已重新开启`,
+        errorTitle: "操作失败",
+        errorMessage: "操作失败，请重试",
+      },
+      delete: {
+        processingTitle: "正在删除记录...",
+        processingMessage: `正在删除 ${name} 的记录`,
+        successTitle: "删除成功",
+        successMessage: `已删除 ${name} 的记录`,
+        errorTitle: "删除失败",
+        errorMessage: "操作失败，请重试",
+      },
+    };
+
+    const en = {
+      approve: {
+        processingTitle: "Approving...",
+        processingMessage: `Processing application for ${name}`,
+        successTitle: "Approved successfully",
+        successMessage: `${name} is now an official member`,
+        errorTitle: "Approval failed",
+        errorMessage: "Operation failed, please try again",
+      },
+      reject: {
+        processingTitle: "Rejecting...",
+        processingMessage: `Processing application for ${name}`,
+        successTitle: "Application rejected",
+        successMessage: `Application for ${name} has been rejected`,
+        errorTitle: "Operation failed",
+        errorMessage: "Operation failed, please try again",
+      },
+      revoke: {
+        processingTitle: "Revoking membership...",
+        processingMessage: `Revoking membership for ${name}`,
+        successTitle: "Membership revoked",
+        successMessage: `Membership for ${name} has been revoked`,
+        errorTitle: "Operation failed",
+        errorMessage: "Operation failed, please try again",
+      },
+      reopen: {
+        processingTitle: "Reopening application...",
+        processingMessage: `Reopening application for ${name}`,
+        successTitle: "Application reopened",
+        successMessage: `Application for ${name} has been reopened`,
+        errorTitle: "Operation failed",
+        errorMessage: "Operation failed, please try again",
+      },
+      delete: {
+        processingTitle: "Deleting record...",
+        processingMessage: `Deleting record for ${name}`,
+        successTitle: "Deleted successfully",
+        successMessage: `Record for ${name} has been deleted`,
+        errorTitle: "Deletion failed",
+        errorMessage: "Operation failed, please try again",
+      },
+    };
+
+    return language === "zh" ? zh[type] : en[type];
+  };
+
   const handleConfirm = async () => {
     if (!confirmDialog) return;
     const { type, member } = confirmDialog;
+    setConfirmDialog(null);
+
+    const messages = getProcessingMessages(type, member);
+    setProcessingState("processing");
+    setProcessingMessage({
+      title: messages.processingTitle,
+      message: messages.processingMessage,
+    });
+
     try {
       if (type === "delete") {
         await deleteMember(member.id);
@@ -113,6 +225,12 @@ export function AdminMembers() {
         );
         if (selectedMember?.id === member.id) setSelectedMember(updated);
       }
+
+      setProcessingState("success");
+      setProcessingMessage({
+        title: messages.successTitle,
+        message: messages.successMessage,
+      });
     } catch (err) {
       if (err instanceof ConcurrencyError) {
         setError(
@@ -124,8 +242,11 @@ export function AdminMembers() {
       } else {
         setError(t("common.error"));
       }
-    } finally {
-      setConfirmDialog(null);
+      setProcessingState("error");
+      setProcessingMessage({
+        title: messages.errorTitle,
+        message: messages.errorMessage,
+      });
     }
   };
 
@@ -190,6 +311,12 @@ export function AdminMembers() {
 
   return (
     <div className="min-h-screen bg-[#F5EFE6] px-4 sm:px-6 lg:px-8 py-8">
+      <ProcessingOverlay
+        state={processingState}
+        title={processingMessage.title}
+        message={processingMessage.message}
+        onComplete={() => setProcessingState("idle")}
+      />
       <div className="max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
