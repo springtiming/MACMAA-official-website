@@ -535,13 +535,29 @@ export function AdminMembers() {
                 exit={{ scale: 0.9, opacity: 0 }}
                 transition={{ duration: 0.2, ease: [0.34, 1.56, 0.64, 1] }}
                 onClick={(e) => e.stopPropagation()}
-                className="bg-white rounded-[28px] shadow-2xl max-w-md w-full p-8"
+                className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8"
               >
                 {/* Icon */}
                 <div className="flex justify-center mb-6">
-                  <div className="w-20 h-20 rounded-full flex items-center justify-center bg-amber-50">
-                    <AlertTriangle className="w-10 h-10 text-amber-500" />
-                  </div>
+                  {(() => {
+                    const isDestructive =
+                      confirmDialog.type === "delete" ||
+                      confirmDialog.type === "revoke" ||
+                      confirmDialog.type === "reject";
+                    return (
+                      <div
+                        className={`w-20 h-20 rounded-full flex items-center justify-center ${
+                          isDestructive ? "bg-red-50" : "bg-blue-50"
+                        }`}
+                      >
+                        <AlertTriangle
+                          className={`w-10 h-10 ${
+                            isDestructive ? "text-red-500" : "text-amber-500"
+                          }`}
+                        />
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Title */}
@@ -558,7 +574,7 @@ export function AdminMembers() {
                 <div className="flex gap-3">
                   <motion.button
                     onClick={() => setConfirmDialog(null)}
-                    className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors"
+                    className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -566,7 +582,7 @@ export function AdminMembers() {
                   </motion.button>
                   <motion.button
                     onClick={handleConfirm}
-                    className={`flex-1 px-6 py-3 rounded-full transition-colors ${
+                    className={`flex-1 px-6 py-3 rounded-xl transition-colors ${
                       confirmDialog.type === "delete" ||
                       confirmDialog.type === "revoke" ||
                       confirmDialog.type === "reject"

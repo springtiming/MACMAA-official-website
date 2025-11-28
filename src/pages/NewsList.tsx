@@ -3,22 +3,18 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { motion } from "motion/react";
 import { Calendar, ArrowRight } from "lucide-react";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
-import { NewsSkeleton } from "../components/NewsSkeleton";
 import { useState, useEffect } from "react";
 import { fetchNewsPosts, type NewsPostRecord } from "../lib/supabaseApi";
 
 export function NewsList() {
   const { language, t } = useLanguage();
-  const [isLoading, setIsLoading] = useState(true);
   const [newsList, setNewsList] = useState<NewsPostRecord[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const MIN_SKELETON_DURATION = 800;
 
   useEffect(() => {
     let active = true;
-    setIsLoading(true);
+    setError(null);
     const loadNews = async () => {
-      const start = Date.now();
       try {
         const data = await fetchNewsPosts({ publishedOnly: true });
         if (!active) return;
@@ -26,15 +22,6 @@ export function NewsList() {
         setError(null);
       } catch {
         if (active) setError(t("common.error"));
-      } finally {
-        const elapsed = Date.now() - start;
-        const remaining = MIN_SKELETON_DURATION - elapsed;
-        if (remaining > 0) {
-          await new Promise((resolve) => setTimeout(resolve, remaining));
-        }
-        if (active) {
-          setIsLoading(false);
-        }
       }
     };
     loadNews();
@@ -53,9 +40,7 @@ export function NewsList() {
         <h1 className="text-[#2B5F9E] mb-3 sm:mb-4 text-3xl sm:text-4xl px-2">{t('news.title')}</h1>
       </motion.div>
 
-      {isLoading ? (
-        <NewsSkeleton count={6} />
-      ) : error ? (
+      {error ? (
         <p className="text-red-600 px-2">{error}</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">

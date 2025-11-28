@@ -58,14 +58,14 @@ export function ProcessingOverlay({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/45 backdrop-blur-[6px] flex items-center justify-center p-4 z-[100]"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-[100]"
       >
         <motion.div
-          initial={{ scale: 0.92, opacity: 0, y: 18 }}
+          initial={{ scale: 0.8, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.92, opacity: 0, y: 18 }}
-          transition={{ type: "spring", damping: 22, stiffness: 260 }}
-          className={`${config.bgClass} border border-white/70 shadow-[0_20px_80px_rgba(0,0,0,0.18)] rounded-[24px] w-[360px] max-w-[90vw] p-8`}
+          exit={{ scale: 0.8, opacity: 0, y: 20 }}
+          transition={{ type: "spring", damping: 25, stiffness: 300 }}
+          className={`${config.bgClass} border-2 rounded-2xl shadow-2xl max-w-sm w-full p-8`}
         >
           {/* 图标 */}
           <motion.div
@@ -133,7 +133,7 @@ export function ProcessingOverlay({
               initial={{ opacity: 0, scaleX: 0 }}
               animate={{ opacity: 1, scaleX: 1 }}
               transition={{ delay: 0.4, duration: 0.5 }}
-              className="mt-7 h-2 bg-blue-200/70 rounded-full overflow-hidden w-56 mx-auto"
+              className="mt-6 h-1.5 bg-blue-200 rounded-full overflow-hidden"
             >
               <motion.div
                 className="h-full bg-[#2B5F9E] rounded-full"
@@ -145,7 +145,7 @@ export function ProcessingOverlay({
                   repeat: Infinity,
                   ease: "easeInOut",
                 }}
-                style={{ width: "55%" }}
+                style={{ width: "50%" }}
               />
             </motion.div>
           )}

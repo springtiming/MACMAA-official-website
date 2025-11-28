@@ -197,24 +197,6 @@ html {
   overflow: hidden;
 }
 
-/* Skeleton shimmer animation */
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-.animate-shimmer {
-  animation: shimmer 2s infinite;
-}
-
-.bg-shimmer {
-  background-size: 200% 100%;
-}
-
 /* Rich Text Editor (Quill) Styles */
 .ql-toolbar.ql-snow {
   border: none !important;

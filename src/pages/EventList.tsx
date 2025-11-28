@@ -3,16 +3,13 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { motion } from "motion/react";
 import { Calendar, MapPin, Users, DollarSign } from "lucide-react";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
-import { EventSkeleton } from "../components/EventSkeleton";
 import { useState, useEffect } from "react";
 import { fetchEvents, type EventRecord } from "../lib/supabaseApi";
 
 export function EventList() {
   const { language, t } = useLanguage();
-  const [isLoading, setIsLoading] = useState(true);
   const [events, setEvents] = useState<EventRecord[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const MIN_SKELETON_DURATION = 800;
 
   const formatDate = (dateString: string, start?: string | null) => {
     const date = new Date(dateString);
@@ -38,9 +35,8 @@ export function EventList() {
 
   useEffect(() => {
     let active = true;
-    setIsLoading(true);
+    setError(null);
     const loadEvents = async () => {
-      const start = Date.now();
       try {
         const data = await fetchEvents({
           includeMembersOnly: false,
@@ -51,15 +47,6 @@ export function EventList() {
         setError(null);
       } catch {
         if (active) setError(t("common.error"));
-      } finally {
-        const elapsed = Date.now() - start;
-        const remaining = MIN_SKELETON_DURATION - elapsed;
-        if (remaining > 0) {
-          await new Promise((resolve) => setTimeout(resolve, remaining));
-        }
-        if (active) {
-          setIsLoading(false);
-        }
       }
     };
     loadEvents();
@@ -78,9 +65,7 @@ export function EventList() {
         <h1 className="text-[#2B5F9E] mb-3 sm:mb-4 text-3xl sm:text-4xl px-2">{t('events.title')}</h1>
       </motion.div>
 
-      {isLoading ? (
-        <EventSkeleton count={4} />
-      ) : error ? (
+      {error ? (
         <p className="text-red-600 px-2">{error}</p>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
