@@ -1,34 +1,59 @@
-import { Link } from 'react-router-dom';
-import { useLanguage } from '../contexts/LanguageContext';
-import { motion } from 'motion/react';
-import { Calendar, MapPin, Users, DollarSign, Tag } from 'lucide-react';
-import { mockEvents } from '../data/mockData';
-import { ImageWithFallback } from '../components/figma/ImageWithFallback';
-import { EventSkeleton } from '../components/EventSkeleton';
-import { useState, useEffect } from 'react';
+import { Link } from "react-router-dom";
+import { useLanguage } from "../contexts/LanguageContext";
+import { motion } from "motion/react";
+import { Calendar, MapPin, Users, DollarSign } from "lucide-react";
+import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import { EventSkeleton } from "../components/EventSkeleton";
+import { useState, useEffect } from "react";
+import { fetchEvents, type EventRecord } from "../lib/supabaseApi";
 
 export function EventList() {
   const { language, t } = useLanguage();
   const [isLoading, setIsLoading] = useState(true);
+  const [events, setEvents] = useState<EventRecord[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string, start?: string | null) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString(language === 'zh' ? 'zh-CN' : 'en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    const datePart = date.toLocaleDateString(
+      language === "zh" ? "zh-CN" : "en-US",
+      {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      },
+    );
+    const timePart = start
+      ? new Date(`${dateString}T${start}`).toLocaleTimeString(
+          language === "zh" ? "zh-CN" : "en-US",
+          {
+            hour: "2-digit",
+            minute: "2-digit",
+          },
+        )
+      : null;
+    return timePart ? `${datePart} ${timePart}` : datePart;
   };
 
-  // Simulate data loading
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 800); // 800ms loading time
-    return () => clearTimeout(timer);
-  }, []);
+    let active = true;
+    setIsLoading(true);
+    fetchEvents({ includeMembersOnly: false, fromDate: new Date().toISOString().slice(0, 10) })
+      .then((data) => {
+        if (!active) return;
+        setEvents(data);
+        setError(null);
+      })
+      .catch(() => {
+        if (active) setError(t("common.error"));
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [t]);
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -38,14 +63,15 @@ export function EventList() {
         className="mb-6 sm:mb-8"
       >
         <h1 className="text-[#2B5F9E] mb-3 sm:mb-4 text-3xl sm:text-4xl px-2">{t('events.title')}</h1>
-        <p className="text-gray-600 text-sm sm:text-base px-2">{t('common.note')}</p>
       </motion.div>
 
       {isLoading ? (
         <EventSkeleton count={4} />
+      ) : error ? (
+        <p className="text-red-600 px-2">{error}</p>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-          {mockEvents.map((event, index) => (
+          {events.map((event, index) => (
             <motion.div
               key={event.id}
               initial={{ opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
@@ -58,8 +84,13 @@ export function EventList() {
               <div className="md:w-2/5">
                 <div className="aspect-square bg-gray-200 overflow-hidden h-full">
                   <ImageWithFallback
-                    src={`https://source.unsplash.com/600x600/?${event.image}`}
-                    alt={event.title[language]}
+                    src={
+                      event.image_url ||
+                      (event.image_keyword
+                        ? `https://source.unsplash.com/600x600/?${event.image_keyword}`
+                        : `https://source.unsplash.com/600x600/?${encodeURIComponent(event.title_en)}`)
+                    }
+                    alt={language === "zh" ? event.title_zh : event.title_en}
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                   />
                 </div>
@@ -71,40 +102,42 @@ export function EventList() {
                     {t('events.upcoming')}
                   </span>
                   <span className={`inline-block px-2.5 sm:px-3 py-1 text-xs sm:text-sm rounded-full ${
-                    event.accessType === 'members-only' 
+                    event.access_type === 'members-only' 
                       ? 'bg-[#EB8C3A] text-white' 
                       : 'bg-[#7BA3C7] text-white'
                   }`}>
-                    {event.accessType === 'members-only' ? t('events.memberOnly') : t('events.allWelcome')}
+                    {event.access_type === 'members-only' ? t('events.memberOnly') : t('events.allWelcome')}
                   </span>
                 </div>
                 
-                <h3 className="text-[#2B5F9E] mb-2 sm:mb-3 text-lg sm:text-xl">{event.title[language]}</h3>
+                <h3 className="text-[#2B5F9E] mb-2 sm:mb-3 text-lg sm:text-xl">
+                  {language === "zh" ? event.title_zh : event.title_en}
+                </h3>
                 <p className="text-gray-600 mb-3 sm:mb-4 flex-1 line-clamp-2 text-sm sm:text-base">
-                  {event.description[language]}
+                  {(language === "zh" ? event.description_zh : event.description_en) ?? ""}
                 </p>
 
                 <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-700 mb-3 sm:mb-4">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#EB8C3A] flex-shrink-0" />
-                    <span>{formatDate(event.date)}</span>
+                    <span>{formatDate(event.event_date, event.start_time)}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#EB8C3A] flex-shrink-0" />
-                    <span>{event.location[language]}</span>
+                    <span>{event.location}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#EB8C3A] flex-shrink-0" />
                     <span>
                       {event.fee === 0 ? (
                         t('common.free')
-                      ) : event.memberFee < event.fee ? (
+                      ) : event.member_fee !== null && event.member_fee < event.fee ? (
                         <>
                           <span className="line-through text-gray-400">
                             ${event.fee}
                           </span>
                           <span className="ml-2 text-[#6BA868]">
-                            ${event.memberFee} {t('events.memberFee')}
+                            ${event.member_fee} {t('events.memberFee')}
                           </span>
                         </>
                       ) : (
@@ -115,8 +148,7 @@ export function EventList() {
                   <div className="flex items-center gap-2">
                     <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#EB8C3A] flex-shrink-0" />
                     <span>
-                      {event.registered}/{event.capacity}{' '}
-                      {language === 'zh' ? '已报名' : 'registered'}
+                      {event.capacity ? `${event.capacity}` : '—'} {language === 'zh' ? '名额' : 'capacity'}
                     </span>
                   </div>
                 </div>
