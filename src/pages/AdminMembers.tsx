@@ -566,20 +566,20 @@ export function AdminMembers() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
-              className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-[60]"
+              className="fixed inset-0 bg-black/45 backdrop-blur-[6px] flex items-center justify-center p-4 z-[60]"
               onClick={() => setConfirmDialog(null)}
             >
               <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
-                transition={{ duration: 0.2, ease: [0.34, 1.56, 0.64, 1] }}
+                initial={{ scale: 0.92, opacity: 0, y: 12 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.92, opacity: 0, y: 12 }}
+                transition={{ duration: 0.22, ease: [0.34, 1.56, 0.64, 1] }}
                 onClick={(e) => e.stopPropagation()}
-                className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8"
+                className="bg-white rounded-[28px] shadow-[0_20px_80px_rgba(0,0,0,0.18)] w-[380px] max-w-[90vw] p-8 border border-white/70"
               >
                 <div className="flex justify-center mb-6">
                   <div
-                    className={`w-20 h-20 rounded-full flex items-center justify-center ${
+                    className={`w-20 h-20 rounded-full flex items-center justify-center shadow-inner ${
                       confirmDialog.type === "delete" ||
                       confirmDialog.type === "revoke" ||
                       confirmDialog.type === "reject"
@@ -610,7 +610,7 @@ export function AdminMembers() {
                 <div className="flex gap-3">
                   <motion.button
                     onClick={() => setConfirmDialog(null)}
-                    className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors"
+                    className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors shadow-sm"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -618,7 +618,7 @@ export function AdminMembers() {
                   </motion.button>
                   <motion.button
                     onClick={handleConfirm}
-                    className={`flex-1 px-6 py-3 rounded-xl transition-colors ${
+                    className={`flex-1 px-6 py-3 rounded-xl transition-colors shadow-sm ${
                       confirmDialog.type === "delete" ||
                       confirmDialog.type === "revoke" ||
                       confirmDialog.type === "reject"
