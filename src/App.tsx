@@ -17,6 +17,7 @@ import { AdminNews } from "./pages/AdminNews";
 import { AdminMembers } from "./pages/AdminMembers";
 import { AdminSettings } from "./pages/AdminSettings";
 import { AdminAccounts } from "./pages/AdminAccounts";
+import "./styles/globals.css";
 
 export default function App() {
   return (

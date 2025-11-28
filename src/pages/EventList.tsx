@@ -12,6 +12,7 @@ export function EventList() {
   const [isLoading, setIsLoading] = useState(true);
   const [events, setEvents] = useState<EventRecord[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const MIN_SKELETON_DURATION = 800;
 
   const formatDate = (dateString: string, start?: string | null) => {
     const date = new Date(dateString);
@@ -38,18 +39,30 @@ export function EventList() {
   useEffect(() => {
     let active = true;
     setIsLoading(true);
-    fetchEvents({ includeMembersOnly: false, fromDate: new Date().toISOString().slice(0, 10) })
-      .then((data) => {
+    const loadEvents = async () => {
+      const start = Date.now();
+      try {
+        const data = await fetchEvents({
+          includeMembersOnly: false,
+          fromDate: new Date().toISOString().slice(0, 10),
+        });
         if (!active) return;
         setEvents(data);
         setError(null);
-      })
-      .catch(() => {
+      } catch {
         if (active) setError(t("common.error"));
-      })
-      .finally(() => {
-        if (active) setIsLoading(false);
-      });
+      } finally {
+        const elapsed = Date.now() - start;
+        const remaining = MIN_SKELETON_DURATION - elapsed;
+        if (remaining > 0) {
+          await new Promise((resolve) => setTimeout(resolve, remaining));
+        }
+        if (active) {
+          setIsLoading(false);
+        }
+      }
+    };
+    loadEvents();
     return () => {
       active = false;
     };

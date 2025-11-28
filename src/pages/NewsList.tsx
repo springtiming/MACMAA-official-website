@@ -12,22 +12,32 @@ export function NewsList() {
   const [isLoading, setIsLoading] = useState(true);
   const [newsList, setNewsList] = useState<NewsPostRecord[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const MIN_SKELETON_DURATION = 800;
 
   useEffect(() => {
     let active = true;
     setIsLoading(true);
-    fetchNewsPosts({ publishedOnly: true })
-      .then((data) => {
+    const loadNews = async () => {
+      const start = Date.now();
+      try {
+        const data = await fetchNewsPosts({ publishedOnly: true });
         if (!active) return;
         setNewsList(data);
         setError(null);
-      })
-      .catch(() => {
+      } catch {
         if (active) setError(t("common.error"));
-      })
-      .finally(() => {
-        if (active) setIsLoading(false);
-      });
+      } finally {
+        const elapsed = Date.now() - start;
+        const remaining = MIN_SKELETON_DURATION - elapsed;
+        if (remaining > 0) {
+          await new Promise((resolve) => setTimeout(resolve, remaining));
+        }
+        if (active) {
+          setIsLoading(false);
+        }
+      }
+    };
+    loadNews();
     return () => {
       active = false;
     };
