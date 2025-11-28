@@ -3,8 +3,6 @@
   import react from '@vitejs/plugin-react-swc';
   import path from 'path';
 
-  const devPort = process.env.PORT ? Number(process.env.PORT) : 3000;
-
   export default defineConfig({
     plugins: [react()],
     resolve: {
@@ -20,6 +18,7 @@
         'next-themes@0.4.6': 'next-themes',
         'lucide-react@0.487.0': 'lucide-react',
         'input-otp@1.4.2': 'input-otp',
+        'figma:asset/e64db2d9d10306a4e7b8be715dce92e0c0c49c49.png': path.resolve(__dirname, './src/assets/e64db2d9d10306a4e7b8be715dce92e0c0c49c49.png'),
         'figma:asset/c47e6fc792d8b9f97dd68ae29a97bfa32594f251.png': path.resolve(__dirname, './src/assets/c47e6fc792d8b9f97dd68ae29a97bfa32594f251.png'),
         'figma:asset/9c9d7d0442d12b5d716010d1dbb6304d01dcc148.png': path.resolve(__dirname, './src/assets/9c9d7d0442d12b5d716010d1dbb6304d01dcc148.png'),
         'figma:asset/928ec88ac46c7ad8c5c157f2f73842edb6fb5c04.png': path.resolve(__dirname, './src/assets/928ec88ac46c7ad8c5c157f2f73842edb6fb5c04.png'),
@@ -28,7 +27,6 @@
         'figma:asset/486cb6c21a188aae71ad06b3d541eb54ff86e307.png': path.resolve(__dirname, './src/assets/486cb6c21a188aae71ad06b3d541eb54ff86e307.png'),
         'figma:asset/2aee091727a5d832328a3b5cf9e2dcdf4f43542d.png': path.resolve(__dirname, './src/assets/2aee091727a5d832328a3b5cf9e2dcdf4f43542d.png'),
         'figma:asset/02ce48a06b4eb30c56fbf30084752dbc46f6e5e8.png': path.resolve(__dirname, './src/assets/02ce48a06b4eb30c56fbf30084752dbc46f6e5e8.png'),
-        'figma:asset/e64db2d9d10306a4e7b8be715dce92e0c0c49c49.png': path.resolve(__dirname, './src/assets/e64db2d9d10306a4e7b8be715dce92e0c0c49c49.png'),
         'embla-carousel-react@8.6.0': 'embla-carousel-react',
         'cmdk@1.1.1': 'cmdk',
         'class-variance-authority@0.7.1': 'class-variance-authority',
@@ -63,12 +61,10 @@
     },
     build: {
       target: 'esnext',
-      // Use Vite default output directory to match Vercel's expectation
-      outDir: 'dist',
+      outDir: 'build',
     },
     server: {
-      port: devPort,
+      port: 3000,
       open: true,
-      host: true,
     },
   });

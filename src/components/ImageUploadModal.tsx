@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { motion } from "motion/react";
-import { X, Upload } from "lucide-react";
-import { useLanguage } from "../contexts/LanguageContext";
-import { ImageCropper } from "./ImageCropper";
+import { useState } from 'react';
+import { motion } from 'motion/react';
+import { X, Upload } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
+import { ImageCropper } from './ImageCropper';
 
 interface ImageUploadModalProps {
   onClose: () => void;
@@ -10,17 +10,13 @@ interface ImageUploadModalProps {
   aspect?: number;
 }
 
-export function ImageUploadModal({
-  onClose,
-  onSuccess,
-  aspect = 16 / 9,
-}: ImageUploadModalProps) {
+export function ImageUploadModal({ onClose, onSuccess, aspect = 16 / 9 }: ImageUploadModalProps) {
   const { language } = useLanguage();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
   const handleFileSelect = (file: File) => {
-    if (file && file.type.startsWith("image/")) {
+    if (file && file.type.startsWith('image/')) {
       const reader = new FileReader();
       reader.onload = (e) => {
         setSelectedImage(e.target?.result as string);
@@ -89,7 +85,7 @@ export function ImageUploadModal({
         <div className="bg-gradient-to-r from-[#2B5F9E] to-[#6BA868] text-white p-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl sm:text-2xl">
-              {language === "zh" ? "上传图片" : "Upload Image"}
+              {language === 'zh' ? '上传图片' : 'Upload Image'}
             </h2>
             <button
               onClick={onClose}
@@ -108,23 +104,23 @@ export function ImageUploadModal({
             onDrop={handleDrop}
             className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
               isDragging
-                ? "border-[#2B5F9E] bg-blue-50"
-                : "border-gray-300 hover:border-[#2B5F9E]"
+                ? 'border-[#2B5F9E] bg-blue-50'
+                : 'border-gray-300 hover:border-[#2B5F9E]'
             }`}
           >
             <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
             <p className="text-gray-700 mb-2">
-              {language === "zh"
-                ? "拖放图片到这里，或点击选择文件"
-                : "Drag and drop an image here, or click to select"}
+              {language === 'zh' 
+                ? '拖放图片到这里，或点击选择文件' 
+                : 'Drag and drop an image here, or click to select'}
             </p>
             <p className="text-sm text-gray-500 mb-4">
-              {language === "zh"
-                ? "支持 JPG, PNG, GIF 格式"
-                : "Supports JPG, PNG, GIF formats"}
+              {language === 'zh'
+                ? '支持 JPG, PNG, GIF 格式'
+                : 'Supports JPG, PNG, GIF formats'}
             </p>
             <label className="inline-block px-6 py-3 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors cursor-pointer">
-              <span>{language === "zh" ? "选择文件" : "Select File"}</span>
+              <span>{language === 'zh' ? '选择文件' : 'Select File'}</span>
               <input
                 type="file"
                 accept="image/*"
@@ -141,7 +137,7 @@ export function ImageUploadModal({
             onClick={onClose}
             className="w-full px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
           >
-            {language === "zh" ? "取消" : "Cancel"}
+            {language === 'zh' ? '取消' : 'Cancel'}
           </button>
         </div>
       </motion.div>

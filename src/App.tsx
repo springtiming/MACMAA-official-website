@@ -1,22 +1,24 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { LanguageProvider } from "./contexts/LanguageContext";
-import { Header } from "./components/Header";
-import { Footer } from "./components/Footer";
-import { Home } from "./pages/Home";
-import { About } from "./pages/About";
-import { NewsList } from "./pages/NewsList";
-import { NewsDetail } from "./pages/NewsDetail";
-import { EventList } from "./pages/EventList";
-import { EventDetail } from "./pages/EventDetail";
-import { EventRegistration } from "./pages/EventRegistration";
-import { Membership } from "./pages/Membership";
-import { AdminLogin } from "./pages/AdminLogin";
-import { AdminDashboard } from "./pages/AdminDashboard";
-import { AdminEvents } from "./pages/AdminEvents";
-import { AdminNews } from "./pages/AdminNews";
-import { AdminMembers } from "./pages/AdminMembers";
-import { AdminSettings } from "./pages/AdminSettings";
-import { AdminAccounts } from "./pages/AdminAccounts";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { LanguageProvider } from './contexts/LanguageContext';
+import { Header } from './components/Header';
+import { Footer } from './components/Footer';
+import { Home } from './pages/Home';
+import './styles/globals.css';
+import { About } from './pages/About';
+import { Toaster } from './components/ui/sonner';
+import { NewsList } from './pages/NewsList';
+import { NewsDetail } from './pages/NewsDetail';
+import { EventList } from './pages/EventList';
+import { EventDetail } from './pages/EventDetail';
+import { EventRegistration } from './pages/EventRegistration';
+import { Membership } from './pages/Membership';
+import { AdminLogin } from './pages/AdminLogin';
+import { AdminDashboard } from './pages/AdminDashboard';
+import { AdminEvents } from './pages/AdminEvents';
+import { AdminNews } from './pages/AdminNews';
+import { AdminMembers } from './pages/AdminMembers';
+import { AdminSettings } from './pages/AdminSettings';
+import { AdminAccounts } from './pages/AdminAccounts';
 
 export default function App() {
   return (
@@ -24,6 +26,12 @@ export default function App() {
       <Router>
         <div className="flex flex-col min-h-screen">
           <Header />
+          <Toaster 
+            position="top-right" 
+            richColors 
+            closeButton
+            duration={3000}
+          />
           <main className="flex-1">
             <Routes>
               <Route path="/" element={<Home />} />
@@ -32,10 +40,7 @@ export default function App() {
               <Route path="/news/:id" element={<NewsDetail />} />
               <Route path="/events" element={<EventList />} />
               <Route path="/events/:id" element={<EventDetail />} />
-              <Route
-                path="/events/:id/register"
-                element={<EventRegistration />}
-              />
+              <Route path="/events/:id/register" element={<EventRegistration />} />
               <Route path="/membership" element={<Membership />} />
               <Route path="/admin" element={<AdminLogin />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />

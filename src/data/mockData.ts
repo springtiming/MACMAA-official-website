@@ -20,19 +20,19 @@ export interface Event {
   capacity: number;
   registered: number;
   image: string;
-  accessType: "members-only" | "all-welcome"; // Event access type
+  accessType: 'members-only' | 'all-welcome'; // Event access type
 }
 
 export const mockNews: NewsItem[] = [
   {
     id: 1,
     title: {
-      zh: "2025年MACMAA春节联欢晚会圆满成功",
-      en: "2025 MACMAA Chinese New Year Gala Successfully Concluded",
+      zh: '2025年MACMAA春节联欢晚会圆满成功',
+      en: '2025 MACMAA Chinese New Year Gala Successfully Concluded',
     },
     summary: {
-      zh: "澳洲万年市华人互助会在Templestowe社区中心举办春节晚会,社区成员欢聚一堂,共庆蛇年新春。",
-      en: "MACMAA hosted a successful Chinese New Year celebration at Templestowe Community Center, bringing together community members to celebrate the Year of the Snake.",
+      zh: '澳洲万年市华人互助会在Templestowe社区中心举办春节晚会,社区成员欢聚一堂,共庆蛇年新春。',
+      en: 'MACMAA hosted a successful Chinese New Year celebration at Templestowe Community Center, bringing together community members to celebrate the Year of the Snake.',
     },
     content: {
       zh: `2025年2月8日,澳洲万年市华人互助会(MACMAA)在Templestowe社区中心成功举办了蛇年春节联欢晚会。超过300名社区成员齐聚一堂,共庆新春佳节。
@@ -54,18 +54,18 @@ The event was strongly supported by Manningham Council, multicultural department
 
 **Note: This prototype uses mock data. The production system will publish and manage news content through a CMS backend.**`,
     },
-    date: "2025-02-08",
-    image: "chinese celebration community",
+    date: '2025-02-08',
+    image: 'chinese celebration community',
   },
   {
     id: 2,
     title: {
-      zh: "MACMAA居家养老服务讲座成功举办",
-      en: "MACMAA Aged Care Services Seminar Successfully Held",
+      zh: 'MACMAA居家养老服务讲座成功举办',
+      en: 'MACMAA Aged Care Services Seminar Successfully Held',
     },
     summary: {
-      zh: "协会邀请专业顾问为社区长者和家庭讲解澳洲居家养老服务体系和政府补助政策。",
-      en: "The association invited professional consultants to explain Australia's aged care service system and government subsidy policies to seniors and families.",
+      zh: '协会邀请专业顾问为社区长者和家庭讲解澳洲居家养老服务体系和政府补助政策。',
+      en: 'The association invited professional consultants to explain Australia\'s aged care service system and government subsidy policies to seniors and families.',
     },
     content: {
       zh: `2025年1月25日,MACMAA在协会活动中心举办了"居家养老服务与政府补助"专题讲座,吸引了近80名社区成员参加。
@@ -87,18 +87,18 @@ MACMAA is committed to providing various public welfare seminars to the communit
 
 **Note: The production system will provide online registration and event review features.**`,
     },
-    date: "2025-01-25",
-    image: "seniors health care",
+    date: '2025-01-25',
+    image: 'seniors health care',
   },
   {
     id: 3,
     title: {
-      zh: "MACMAA艺术团参加Manningham市多元文化节",
-      en: "MACMAA Arts Troupe Participates in Manningham Multicultural Festival",
+      zh: 'MACMAA艺术团参加Manningham市多元文化节',
+      en: 'MACMAA Arts Troupe Participates in Manningham Multicultural Festival',
     },
     summary: {
-      zh: "协会艺术团受邀参加Manningham市政府举办的多元文化节,展示中华文化魅力。",
-      en: "The association's arts troupe was invited to participate in the Manningham Council Multicultural Festival, showcasing the charm of Chinese culture.",
+      zh: '协会艺术团受邀参加Manningham市政府举办的多元文化节,展示中华文化魅力。',
+      en: 'The association\'s arts troupe was invited to participate in the Manningham Council Multicultural Festival, showcasing the charm of Chinese culture.',
     },
     content: {
       zh: `2025年3月10日,MACMAA艺术团受邀参加了Manningham市政府举办的年度多元文化节,在主舞台上呈现了精彩的中华文化表演。
@@ -120,8 +120,8 @@ This participation not only showcased the cultural vitality of the Chinese commu
 
 **Note: Event photos and videos will be shared through the members' area.**`,
     },
-    date: "2025-03-10",
-    image: "cultural performance festival",
+    date: '2025-03-10',
+    image: 'cultural performance festival',
   },
 ];
 
@@ -129,111 +129,111 @@ export const mockEvents: Event[] = [
   {
     id: 1,
     title: {
-      zh: "每周四社区活动日",
-      en: "Thursday Community Activity Day",
+      zh: '每周四社区活动日',
+      en: 'Thursday Community Activity Day',
     },
     description: {
-      zh: "MACMAA每周四定期活动日,包括太极、舞蹈、乒乓球、书法等课程。欢迎所有社区成员参加,活动免费对会员开放。现场还有茶点和社交时间。",
-      en: "MACMAA's regular Thursday activity day featuring Tai Chi, dance, table tennis, calligraphy, and more. All community members welcome. Free for members. Tea and social time included.",
+      zh: 'MACMAA每周四定期活动日,包括太极、舞蹈、乒乓球、书法等课程。欢迎所有社区成员参加,活动免费对会员开放。现场还有茶点和社交时间。',
+      en: 'MACMAA\'s regular Thursday activity day featuring Tai Chi, dance, table tennis, calligraphy, and more. All community members welcome. Free for members. Tea and social time included.',
     },
-    date: "2025-03-27T10:00:00",
+    date: '2025-03-27T10:00:00',
     location: {
-      zh: "MACMAA活动中心 - 293-297 Manningham Rd, Templestowe Lower",
-      en: "MACMAA Activity Center - 293-297 Manningham Rd, Templestowe Lower",
+      zh: 'MACMAA活动中心 - 293-297 Manningham Rd, Templestowe Lower',
+      en: 'MACMAA Activity Center - 293-297 Manningham Rd, Templestowe Lower',
     },
     fee: 0,
     memberFee: 0,
     capacity: 80,
     registered: 52,
-    image: "tai chi senior activity",
-    accessType: "all-welcome",
+    image: 'tai chi senior activity',
+    accessType: 'all-welcome',
   },
   {
     id: 2,
     title: {
-      zh: "端午节传统文化体验活动",
-      en: "Dragon Boat Festival Cultural Experience",
+      zh: '端午节传统文化体验活动',
+      en: 'Dragon Boat Festival Cultural Experience',
     },
     description: {
-      zh: "与家人一起参加端午节庆祝活动,包括包粽子教学、传统游戏、端午文化讲解。活动适合全家参与,现场将提供传统粽子品尝。",
-      en: "Join us for Dragon Boat Festival celebrations featuring zongzi making tutorial, traditional games, and cultural presentations. Family-friendly event with traditional zongzi tasting.",
+      zh: '与家人一起参加端午节庆祝活动,包括包粽子教学、传统游戏、端午文化讲解。活动适合全家参与,现场将提供传统粽子品尝。',
+      en: 'Join us for Dragon Boat Festival celebrations featuring zongzi making tutorial, traditional games, and cultural presentations. Family-friendly event with traditional zongzi tasting.',
     },
-    date: "2025-05-31T14:00:00",
+    date: '2025-05-31T14:00:00',
     location: {
-      zh: "MACMAA活动中心 - 293-297 Manningham Rd, Templestowe Lower",
-      en: "MACMAA Activity Center - 293-297 Manningham Rd, Templestowe Lower",
+      zh: 'MACMAA活动中心 - 293-297 Manningham Rd, Templestowe Lower',
+      en: 'MACMAA Activity Center - 293-297 Manningham Rd, Templestowe Lower',
     },
     fee: 10,
     memberFee: 5,
     capacity: 100,
     registered: 68,
-    image: "dragon boat festival traditional",
-    accessType: "all-welcome",
+    image: 'dragon boat festival traditional',
+    accessType: 'all-welcome',
   },
   {
     id: 3,
     title: {
-      zh: "健康养生专题讲座",
-      en: "Health and Wellness Seminar",
+      zh: '健康养生专题讲座',
+      en: 'Health and Wellness Seminar',
     },
     description: {
-      zh: "专业医疗顾问将分享澳洲医疗体系、常见健康问题预防、长者健康管理等实用知识。讲座包括问答环节和免费健康咨询。",
-      en: "Professional health consultants will share practical knowledge about the Australian healthcare system, common health issue prevention, and senior health management. Q&A session and free health consultation included.",
+      zh: '专业医疗顾问将分享澳洲医疗体系、常见健康问题预防、长者健康管理等实用知识。讲座包括问答环节和免费健康咨询。',
+      en: 'Professional health consultants will share practical knowledge about the Australian healthcare system, common health issue prevention, and senior health management. Q&A session and free health consultation included.',
     },
-    date: "2025-04-10T14:00:00",
+    date: '2025-04-10T14:00:00',
     location: {
-      zh: "MACMAA活动中心 - 293-297 Manningham Rd, Templestowe Lower",
-      en: "MACMAA Activity Center - 293-297 Manningham Rd, Templestowe Lower",
+      zh: 'MACMAA活动中心 - 293-297 Manningham Rd, Templestowe Lower',
+      en: 'MACMAA Activity Center - 293-297 Manningham Rd, Templestowe Lower',
     },
     fee: 0,
     memberFee: 0,
     capacity: 60,
     registered: 35,
-    image: "health wellness senior",
-    accessType: "all-welcome",
+    image: 'health wellness senior',
+    accessType: 'all-welcome',
   },
   {
     id: 4,
     title: {
-      zh: "书法与国画工作坊",
-      en: "Calligraphy and Chinese Painting Workshop",
+      zh: '书法与国画工作坊',
+      en: 'Calligraphy and Chinese Painting Workshop',
     },
     description: {
-      zh: "由专业书画老师教授中国传统书法和国画技巧。适合初学者和有基础的学员。所有笔墨纸砚等材料将由协会提供。",
-      en: "Professional instructors will teach traditional Chinese calligraphy and painting techniques. Suitable for beginners and experienced learners. All materials (brushes, ink, paper) will be provided by the association.",
+      zh: '由专业书画老师教授中国传统书法和国画技巧。适合初学者和有基础的学员。所有笔墨纸砚等材料将由协会提供。',
+      en: 'Professional instructors will teach traditional Chinese calligraphy and painting techniques. Suitable for beginners and experienced learners. All materials (brushes, ink, paper) will be provided by the association.',
     },
-    date: "2025-04-17T15:00:00",
+    date: '2025-04-17T15:00:00',
     location: {
-      zh: "MACMAA活动中心 - 293-297 Manningham Rd, Templestowe Lower",
-      en: "MACMAA Activity Center - 293-297 Manningham Rd, Templestowe Lower",
+      zh: 'MACMAA活动中心 - 293-297 Manningham Rd, Templestowe Lower',
+      en: 'MACMAA Activity Center - 293-297 Manningham Rd, Templestowe Lower',
     },
     fee: 15,
     memberFee: 10,
     capacity: 25,
     registered: 18,
-    image: "chinese calligraphy art",
-    accessType: "all-welcome",
+    image: 'chinese calligraphy art',
+    accessType: 'all-welcome',
   },
   {
     id: 5,
     title: {
-      zh: "会员专属茶艺体验工作坊",
-      en: "Members-Only Tea Ceremony Workshop",
+      zh: '会员专属茶艺体验工作坊',
+      en: 'Members-Only Tea Ceremony Workshop',
     },
     description: {
-      zh: "专为MACMAA会员举办的中国茶艺体验活动。资深茶艺师将讲解茶文化历史、品茶技巧，并指导学员亲手泡茶。活动包含精选茶叶品鉴和茶点。会员免费参加，名额有限。",
-      en: "Exclusive Chinese tea ceremony workshop for MACMAA members. Experienced tea master will introduce tea culture history, tea tasting techniques, and guide participants to prepare tea. Includes premium tea tasting and tea snacks. Free for members, limited spots available.",
+      zh: '专为MACMAA会员举办的中国茶艺体验活动。资深茶艺师将讲解茶文化历史、品茶技巧，并指导学员亲手泡茶。活动包含精选茶叶品鉴和茶点。会员免费参加，名额有限。',
+      en: 'Exclusive Chinese tea ceremony workshop for MACMAA members. Experienced tea master will introduce tea culture history, tea tasting techniques, and guide participants to prepare tea. Includes premium tea tasting and tea snacks. Free for members, limited spots available.',
     },
-    date: "2025-04-24T14:00:00",
+    date: '2025-04-24T14:00:00',
     location: {
-      zh: "MACMAA活动中心 - 293-297 Manningham Rd, Templestowe Lower",
-      en: "MACMAA Activity Center - 293-297 Manningham Rd, Templestowe Lower",
+      zh: 'MACMAA活动中心 - 293-297 Manningham Rd, Templestowe Lower',
+      en: 'MACMAA Activity Center - 293-297 Manningham Rd, Templestowe Lower',
     },
     fee: 0,
     memberFee: 0,
     capacity: 20,
     registered: 12,
-    image: "chinese tea ceremony",
-    accessType: "members-only",
+    image: 'chinese tea ceremony',
+    accessType: 'members-only',
   },
 ];

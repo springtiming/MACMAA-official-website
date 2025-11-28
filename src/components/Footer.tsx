@@ -43,7 +43,10 @@ export function Footer() {
               </div>
               <div className="flex items-start gap-2">
                 <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 mt-0.5" />
-                <span>293-297 Manningham Rd, Templestowe Lower VIC 3107</span>
+                <span>
+                  293-297 Manningham Rd, Templestowe Lower VIC
+                  3107
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />

@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useLanguage } from "../contexts/LanguageContext";
-import { motion } from "motion/react";
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../contexts/LanguageContext';
+import { motion } from 'motion/react';
 import {
   Calendar,
   Newspaper,
@@ -12,169 +12,131 @@ import {
   TrendingUp,
   Clock,
   Shield,
-} from "lucide-react";
-import { fetchEvents, fetchNewsPosts } from "../lib/supabaseApi";
+} from 'lucide-react';
+import { mockEvents, mockNews } from '../data/mockData';
 
 export function AdminDashboard() {
   const navigate = useNavigate();
   const { language, t } = useLanguage();
-  const [newsCount, setNewsCount] = useState(0);
-  const [eventsCount, setEventsCount] = useState(0);
-  const [statsError, setStatsError] = useState<string | null>(null);
-  const [statsLoading, setStatsLoading] = useState(false);
 
   // Get current user role
-  const currentUserRole =
-    (sessionStorage.getItem("adminRole") as "owner" | "admin") || "admin";
+  const currentUserRole = (sessionStorage.getItem('adminRole') as 'owner' | 'admin') || 'admin';
 
   useEffect(() => {
     // Check authentication
-    const isAuth = sessionStorage.getItem("adminAuth");
+    const isAuth = sessionStorage.getItem('adminAuth');
     if (!isAuth) {
-      navigate("/admin");
+      navigate('/admin');
     }
   }, [navigate]);
 
-  useEffect(() => {
-    let active = true;
-    setStatsLoading(true);
-    Promise.all([
-      fetchEvents({ includeMembersOnly: true }),
-      fetchNewsPosts({ publishedOnly: false }),
-    ])
-      .then(([events, news]) => {
-        if (!active) return;
-        setEventsCount(events.length);
-        setNewsCount(news.length);
-      })
-      .catch(() => {
-        if (active) setStatsError(t("common.error"));
-      })
-      .finally(() => {
-        if (active) setStatsLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [t]);
-
   const handleLogout = () => {
-    sessionStorage.removeItem("adminAuth");
-    navigate("/admin");
+    sessionStorage.removeItem('adminAuth');
+    navigate('/admin');
   };
 
   const stats = [
     {
       icon: Calendar,
-      label: t("admin.dashboard.stats.events"),
-      value: statsLoading ? "…" : eventsCount,
-      color: "#2B5F9E",
-      trend: "+2",
+      label: t('admin.dashboard.stats.events'),
+      value: mockEvents.length,
+      color: '#2B5F9E',
+      trend: '+2',
     },
     {
       icon: Newspaper,
-      label: t("admin.dashboard.stats.news"),
-      value: statsLoading ? "…" : newsCount,
-      color: "#6BA868",
-      trend: "+1",
+      label: t('admin.dashboard.stats.news'),
+      value: mockNews.length,
+      color: '#6BA868',
+      trend: '+1',
     },
     {
       icon: Users,
-      label: t("admin.dashboard.stats.members"),
-      value: "—",
-      color: "#EB8C3A",
-      trend: "+5",
+      label: t('admin.dashboard.stats.members'),
+      value: 5,
+      color: '#EB8C3A',
+      trend: '+5',
     },
     {
       icon: UserCheck,
-      label: t("admin.dashboard.stats.registrations"),
-      value: "—",
-      color: "#8B5CF6",
-      trend: "+3",
+      label: t('admin.dashboard.stats.registrations'),
+      value: 12,
+      color: '#8B5CF6',
+      trend: '+3',
     },
   ];
 
   const managementSections = [
     {
       icon: Calendar,
-      title: t("admin.nav.events"),
+      title: t('admin.nav.events'),
       description:
-        language === "zh"
-          ? "管理活动发布、报名统计、活动更新"
-          : "Manage event publishing, registration stats, updates",
-      color: "#2B5F9E",
-      path: "/admin/events",
+        language === 'zh'
+          ? '管理活动发布、报名统计、活动更新'
+          : 'Manage event publishing, registration stats, updates',
+      color: '#2B5F9E',
+      path: '/admin/events',
     },
     {
       icon: Newspaper,
-      title: t("admin.nav.news"),
+      title: t('admin.nav.news'),
       description:
-        language === "zh"
-          ? "发布新闻、编辑内容、管理分类"
-          : "Publish news, edit content, manage categories",
-      color: "#6BA868",
-      path: "/admin/news",
+        language === 'zh'
+          ? '发布新闻、编辑内容、管理分类'
+          : 'Publish news, edit content, manage categories',
+      color: '#6BA868',
+      path: '/admin/news',
     },
     {
       icon: Users,
-      title: t("admin.nav.members"),
+      title: t('admin.nav.members'),
       description:
-        language === "zh"
-          ? "审核会员申请、管理会员信息"
-          : "Review membership applications, manage member info",
-      color: "#EB8C3A",
-      path: "/admin/members",
+        language === 'zh'
+          ? '审核会员申请、管理会员信息'
+          : 'Review membership applications, manage member info',
+      color: '#EB8C3A',
+      path: '/admin/members',
     },
     {
       icon: Shield,
-      title: t("admin.accounts.title"),
+      title: t('admin.accounts.title'),
       description:
-        language === "zh"
-          ? "管理站长和管理员账户，配置权限"
-          : "Manage owner and admin accounts, configure permissions",
-      color: "#DC2626",
-      path: "/admin/accounts",
+        language === 'zh'
+          ? '管理站长和管理员账户，配置权限'
+          : 'Manage owner and admin accounts, configure permissions',
+      color: '#DC2626',
+      path: '/admin/accounts',
     },
     {
       icon: Settings,
-      title: t("admin.nav.settings"),
+      title: t('admin.nav.settings'),
       description:
-        language === "zh"
-          ? "个人账号设置、密码修改、通知偏好"
-          : "Personal account settings, password, notifications",
-      color: "#8B5CF6",
-      path: "/admin/settings",
+        language === 'zh'
+          ? '个人账号设置、密码修改、通知偏好'
+          : 'Personal account settings, password, notifications',
+      color: '#8B5CF6',
+      path: '/admin/settings',
     },
   ];
 
   const recentActivities = [
     {
-      type: "registration",
-      user: "John Smith",
-      action:
-        language === "zh"
-          ? '报名了"元宵节庆祝活动"'
-          : 'registered for "Lantern Festival"',
-      time: "2 hours ago",
+      type: 'registration',
+      user: 'John Smith',
+      action: language === 'zh' ? '报名了"元宵节庆祝活动"' : 'registered for "Lantern Festival"',
+      time: '2 hours ago',
     },
     {
-      type: "member",
-      user: "Wei Li",
-      action:
-        language === "zh"
-          ? "提交了会员申请"
-          : "submitted membership application",
-      time: "5 hours ago",
+      type: 'member',
+      user: 'Wei Li',
+      action: language === 'zh' ? '提交了会员申请' : 'submitted membership application',
+      time: '5 hours ago',
     },
     {
-      type: "news",
-      user: "Admin",
-      action:
-        language === "zh"
-          ? '发布了新闻"多元文化艺术展览"'
-          : 'published "Multicultural Art Exhibition"',
-      time: "1 day ago",
+      type: 'news',
+      user: 'Admin',
+      action: language === 'zh' ? '发布了新闻"多元文化艺术展览"' : 'published "Multicultural Art Exhibition"',
+      time: '1 day ago',
     },
   ];
 
@@ -184,7 +146,7 @@ export function AdminDashboard() {
       <div className="bg-white shadow-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-[#2B5F9E]">{t("admin.dashboard.title")}</h1>
+            <h1 className="text-[#2B5F9E]">{t('admin.dashboard.title')}</h1>
             <motion.button
               onClick={handleLogout}
               className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-[#2B5F9E] transition-colors"
@@ -192,7 +154,7 @@ export function AdminDashboard() {
               whileTap={{ scale: 0.95 }}
             >
               <LogOut className="w-4 h-4" />
-              {t("admin.logout")}
+              {t('admin.logout')}
             </motion.button>
           </div>
         </div>
@@ -205,19 +167,12 @@ export function AdminDashboard() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h2 className="text-gray-900 mb-2">
-            {t("admin.dashboard.welcome")}, Admin
-          </h2>
+          <h2 className="text-gray-900 mb-2">{t('admin.dashboard.welcome')}, Admin</h2>
           <p className="text-gray-600">
-            {language === "zh"
-              ? "这是管理仪表盘的原型界面，展示核心管理功能模块"
-              : "This is the prototype admin dashboard showcasing core management modules"}
+            {language === 'zh'
+              ? '这是管理仪表盘的原型界面，展示核心管理功能模块'
+              : 'This is the prototype admin dashboard showcasing core management modules'}
           </p>
-          {statsError && (
-            <p className="text-red-600 text-sm mt-2" role="alert">
-              {statsError}
-            </p>
-          )}
         </motion.div>
 
         {/* Stats Grid */}
@@ -236,10 +191,7 @@ export function AdminDashboard() {
                   className="w-12 h-12 rounded-full flex items-center justify-center"
                   style={{ backgroundColor: `${stat.color}20` }}
                 >
-                  <stat.icon
-                    className="w-6 h-6"
-                    style={{ color: stat.color }}
-                  />
+                  <stat.icon className="w-6 h-6" style={{ color: stat.color }} />
                 </div>
                 <div className="flex items-center gap-1 text-sm text-[#6BA868]">
                   <TrendingUp className="w-4 h-4" />
@@ -258,14 +210,14 @@ export function AdminDashboard() {
           {/* Management Sections */}
           <div className="lg:col-span-2">
             <h3 className="text-gray-900 mb-4">
-              {language === "zh" ? "管理模块" : "Management Modules"}
+              {language === 'zh' ? '管理模块' : 'Management Modules'}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {managementSections
                 .filter((section) => {
                   // Hide account management for admins, only show to owners
-                  if (section.path === "/admin/accounts") {
-                    return currentUserRole === "owner";
+                  if (section.path === '/admin/accounts') {
+                    return currentUserRole === 'owner';
                   }
                   return true;
                 })
@@ -283,20 +235,12 @@ export function AdminDashboard() {
                       className="w-12 h-12 rounded-full flex items-center justify-center mb-4"
                       style={{ backgroundColor: `${section.color}20` }}
                     >
-                      <section.icon
-                        className="w-6 h-6"
-                        style={{ color: section.color }}
-                      />
+                      <section.icon className="w-6 h-6" style={{ color: section.color }} />
                     </div>
                     <h3 className="text-gray-900 mb-2">{section.title}</h3>
-                    <p className="text-gray-600 text-sm">
-                      {section.description}
-                    </p>
-                    <div
-                      className="mt-4 text-sm"
-                      style={{ color: section.color }}
-                    >
-                      {language === "zh" ? "进入管理 →" : "Manage →"}
+                    <p className="text-gray-600 text-sm">{section.description}</p>
+                    <div className="mt-4 text-sm" style={{ color: section.color }}>
+                      {language === 'zh' ? '进入管理 →' : 'Manage →'}
                     </div>
                   </motion.div>
                 ))}
@@ -306,7 +250,7 @@ export function AdminDashboard() {
           {/* Recent Activity */}
           <div>
             <h3 className="text-gray-900 mb-4">
-              {language === "zh" ? "最近活动" : "Recent Activity"}
+              {language === 'zh' ? '最近活动' : 'Recent Activity'}
             </h3>
             <motion.div
               initial={{ opacity: 0, x: 20 }}
@@ -321,13 +265,13 @@ export function AdminDashboard() {
                     className="flex gap-3 pb-4 border-b last:border-b-0 last:pb-0"
                   >
                     <div className="w-10 h-10 bg-[#F5EFE6] rounded-full flex items-center justify-center flex-shrink-0">
-                      {activity.type === "registration" && (
+                      {activity.type === 'registration' && (
                         <Calendar className="w-5 h-5 text-[#2B5F9E]" />
                       )}
-                      {activity.type === "member" && (
+                      {activity.type === 'member' && (
                         <Users className="w-5 h-5 text-[#EB8C3A]" />
                       )}
-                      {activity.type === "news" && (
+                      {activity.type === 'news' && (
                         <Newspaper className="w-5 h-5 text-[#6BA868]" />
                       )}
                     </div>
@@ -346,6 +290,40 @@ export function AdminDashboard() {
             </motion.div>
           </div>
         </div>
+
+        {/* Integration Notes */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1 }}
+          className="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-6"
+        >
+          <h3 className="text-[#2B5F9E] mb-3">
+            {language === 'zh' ? '系统集成说明' : 'System Integration Notes'}
+          </h3>
+          <ul className="space-y-2 text-sm text-gray-700">
+            <li>
+              • {language === 'zh'
+                ? '后台将使用React + Node.js/Django构建，支持RESTful API'
+                : 'Backend will be built with React + Node.js/Django supporting RESTful API'}
+            </li>
+            <li>
+              • {language === 'zh'
+                ? '内容管理将集成富文本编辑器（如TinyMCE或Quill）'
+                : 'Content management will integrate rich text editor (TinyMCE or Quill)'}
+            </li>
+            <li>
+              • {language === 'zh'
+                ? '用户角色权限系统：超级管理员、内容编辑、活动协调员'
+                : 'User role permissions: Super Admin, Content Editor, Event Coordinator'}
+            </li>
+            <li>
+              • {language === 'zh'
+                ? '数据导出功能：CSV/Excel格式的报名数据和统计报表'
+                : 'Data export: Registration data and statistics in CSV/Excel format'}
+            </li>
+          </ul>
+        </motion.div>
       </div>
     </div>
   );

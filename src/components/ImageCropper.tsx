@@ -1,8 +1,8 @@
-import { useState, useCallback } from "react";
-import { motion } from "motion/react";
-import Cropper from "react-easy-crop";
-import { X, Check, RotateCw } from "lucide-react";
-import { useLanguage } from "../contexts/LanguageContext";
+import { useState, useCallback } from 'react';
+import { motion } from 'motion/react';
+import Cropper from 'react-easy-crop';
+import { X, Check, RotateCw } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface ImageCropperProps {
   image: string;
@@ -18,12 +18,7 @@ interface Area {
   height: number;
 }
 
-export function ImageCropper({
-  image,
-  onCropComplete,
-  onCancel,
-  aspect = 16 / 9,
-}: ImageCropperProps) {
+export function ImageCropper({ image, onCropComplete, onCancel, aspect = 16 / 9 }: ImageCropperProps) {
   const { language } = useLanguage();
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -31,7 +26,7 @@ export function ImageCropper({
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
   const onCropCompleteHandler = useCallback(
-    (_croppedArea: Area, croppedAreaPixels: Area) => {
+    (croppedArea: Area, croppedAreaPixels: Area) => {
       setCroppedAreaPixels(croppedAreaPixels);
     },
     []
@@ -41,11 +36,7 @@ export function ImageCropper({
     if (!croppedAreaPixels) return;
 
     try {
-      const croppedImage = await getCroppedImg(
-        image,
-        croppedAreaPixels,
-        rotation
-      );
+      const croppedImage = await getCroppedImg(image, croppedAreaPixels, rotation);
       onCropComplete(croppedImage);
     } catch (e) {
       console.error(e);
@@ -62,7 +53,7 @@ export function ImageCropper({
     >
       <div className="flex items-center justify-between p-4 bg-black/50 backdrop-blur-sm">
         <h2 className="text-white text-lg sm:text-xl">
-          {language === "zh" ? "剪裁图片" : "Crop Image"}
+          {language === 'zh' ? '剪裁图片' : 'Crop Image'}
         </h2>
         <button
           onClick={onCancel}
@@ -90,7 +81,7 @@ export function ImageCropper({
         {/* Zoom Control */}
         <div className="space-y-2">
           <label className="text-white text-sm">
-            {language === "zh" ? "缩放" : "Zoom"}
+            {language === 'zh' ? '缩放' : 'Zoom'}
           </label>
           <input
             type="range"
@@ -107,12 +98,12 @@ export function ImageCropper({
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <label className="text-white text-sm">
-              {language === "zh" ? "旋转" : "Rotation"}
+              {language === 'zh' ? '旋转' : 'Rotation'}
             </label>
             <button
               onClick={() => setRotation((r) => (r + 90) % 360)}
               className="p-2 text-white hover:bg-white/20 rounded-lg transition-colors"
-              title={language === "zh" ? "旋转90度" : "Rotate 90°"}
+              title={language === 'zh' ? '旋转90度' : 'Rotate 90°'}
             >
               <RotateCw className="w-5 h-5" />
             </button>
@@ -135,13 +126,13 @@ export function ImageCropper({
             className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-[#6BA868] text-white rounded-lg hover:bg-[#5a9157] transition-colors"
           >
             <Check className="w-5 h-5" />
-            {language === "zh" ? "确认" : "Confirm"}
+            {language === 'zh' ? '确认' : 'Confirm'}
           </button>
           <button
             onClick={onCancel}
             className="flex-1 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
           >
-            {language === "zh" ? "取消" : "Cancel"}
+            {language === 'zh' ? '取消' : 'Cancel'}
           </button>
         </div>
       </div>
@@ -150,17 +141,13 @@ export function ImageCropper({
 }
 
 // Helper function to create cropped image
-async function getCroppedImg(
-  imageSrc: string,
-  pixelCrop: Area,
-  rotation = 0
-): Promise<string> {
+async function getCroppedImg(imageSrc: string, pixelCrop: Area, rotation = 0): Promise<string> {
   const image = await createImage(imageSrc);
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
 
   if (!ctx) {
-    throw new Error("No 2d context");
+    throw new Error('No 2d context');
   }
 
   const maxSize = Math.max(image.width, image.height);
@@ -193,20 +180,20 @@ async function getCroppedImg(
   return new Promise((resolve) => {
     canvas.toBlob((blob) => {
       if (!blob) {
-        throw new Error("Canvas is empty");
+        throw new Error('Canvas is empty');
       }
       const fileUrl = URL.createObjectURL(blob);
       resolve(fileUrl);
-    }, "image/jpeg");
+    }, 'image/jpeg');
   });
 }
 
 function createImage(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const image = new Image();
-    image.addEventListener("load", () => resolve(image));
-    image.addEventListener("error", (error) => reject(error));
-    image.setAttribute("crossOrigin", "anonymous");
+    image.addEventListener('load', () => resolve(image));
+    image.addEventListener('error', (error) => reject(error));
+    image.setAttribute('crossOrigin', 'anonymous');
     image.src = url;
   });
 }

@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useLanguage } from "../contexts/LanguageContext";
-import { motion, AnimatePresence } from "motion/react";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../contexts/LanguageContext';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   ArrowLeft,
   Shield,
@@ -15,10 +15,10 @@ import {
   Lock,
   Eye,
   EyeOff,
-} from "lucide-react";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
+} from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,7 +28,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "../components/ui/alert-dialog";
+} from '../components/ui/alert-dialog';
 import {
   Dialog,
   DialogContent,
@@ -36,71 +36,70 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "../components/ui/dialog";
+} from '../components/ui/dialog';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../components/ui/select";
+} from '../components/ui/select';
 
 interface Account {
   id: string;
   username: string;
   email: string;
-  role: "owner" | "admin";
+  role: 'owner' | 'admin';
   createdAt: string;
   lastLogin: string;
 }
 
 export function AdminAccounts() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
-  const [searchQuery, setSearchQuery] = useState("");
+  const { language, t } = useLanguage();
+  const [searchQuery, setSearchQuery] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
   // Current user role (from sessionStorage)
-  const currentUserRole =
-    (sessionStorage.getItem("adminRole") as "owner" | "admin") || "admin";
+  const currentUserRole = (sessionStorage.getItem('adminRole') as 'owner' | 'admin') || 'admin';
 
   // Mock accounts data
   const [accounts, setAccounts] = useState<Account[]>([
     {
-      id: "1",
-      username: "owner_admin",
-      email: "owner@macmaa.org.au",
-      role: "owner",
-      createdAt: "2024-01-15",
-      lastLogin: "2025-11-27",
+      id: '1',
+      username: 'owner_admin',
+      email: 'owner@macmaa.org.au',
+      role: 'owner',
+      createdAt: '2024-01-15',
+      lastLogin: '2025-11-27',
     },
     {
-      id: "2",
-      username: "zhang_admin",
-      email: "zhang@macmaa.org.au",
-      role: "admin",
-      createdAt: "2024-06-20",
-      lastLogin: "2025-11-26",
+      id: '2',
+      username: 'zhang_admin',
+      email: 'zhang@macmaa.org.au',
+      role: 'admin',
+      createdAt: '2024-06-20',
+      lastLogin: '2025-11-26',
     },
     {
-      id: "3",
-      username: "li_admin",
-      email: "li@macmaa.org.au",
-      role: "admin",
-      createdAt: "2024-09-10",
-      lastLogin: "2025-11-25",
+      id: '3',
+      username: 'li_admin',
+      email: 'li@macmaa.org.au',
+      role: 'admin',
+      createdAt: '2024-09-10',
+      lastLogin: '2025-11-25',
     },
   ]);
 
   // Form state for creating new account
   const [newAccount, setNewAccount] = useState({
-    username: "",
-    email: "",
-    password: "",
-    role: "admin" as "admin" | "owner",
+    username: '',
+    email: '',
+    password: '',
+    role: 'admin' as 'admin' | 'owner',
   });
 
   const filteredAccounts = accounts.filter(
@@ -123,19 +122,19 @@ export function AdminAccounts() {
       username: newAccount.username,
       email: newAccount.email,
       role: newAccount.role,
-      createdAt: new Date().toISOString().split("T")[0],
-      lastLogin: "-",
+      createdAt: new Date().toISOString().split('T')[0],
+      lastLogin: '-',
     };
     setAccounts([...accounts, account]);
     setCreateDialogOpen(false);
-    setNewAccount({ username: "", email: "", password: "", role: "admin" });
+    setNewAccount({ username: '', email: '', password: '', role: 'admin' });
   };
 
   const canManageAccount = (account: Account) => {
     // Owner can manage all accounts except themselves
     // Admin cannot manage any accounts
-    if (currentUserRole !== "owner") return false;
-    if (account.role === "owner") return false; // Cannot delete owner accounts
+    if (currentUserRole !== 'owner') return false;
+    if (account.role === 'owner') return false; // Cannot delete owner accounts
     return true;
   };
 
@@ -148,21 +147,21 @@ export function AdminAccounts() {
             <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
-                onClick={() => navigate("/admin/dashboard")}
+                onClick={() => navigate('/admin/dashboard')}
                 className="gap-2"
               >
                 <ArrowLeft className="w-4 h-4" />
-                {t("common.back")}
+                {t('common.back')}
               </Button>
-              <h1 className="text-[#2B5F9E]">{t("admin.accounts.title")}</h1>
+              <h1 className="text-[#2B5F9E]">{t('admin.accounts.title')}</h1>
             </div>
-            {currentUserRole === "owner" && (
+            {currentUserRole === 'owner' && (
               <Button
                 onClick={() => setCreateDialogOpen(true)}
                 className="bg-[#2B5F9E] hover:bg-[#234a7e] gap-2"
               >
                 <Plus className="w-4 h-4" />
-                {t("admin.accounts.createAccount")}
+                {t('admin.accounts.createAccount')}
               </Button>
             )}
           </div>
@@ -171,7 +170,7 @@ export function AdminAccounts() {
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         {/* Permission Notice */}
-        {currentUserRole !== "owner" && (
+        {currentUserRole !== 'owner' && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -179,7 +178,9 @@ export function AdminAccounts() {
           >
             <div className="flex items-center gap-2 text-amber-800">
               <Lock className="w-5 h-5" />
-              <p className="text-sm">{t("admin.accounts.viewOnlyNotice")}</p>
+              <p className="text-sm">
+                {t('admin.accounts.viewOnlyNotice')}
+              </p>
             </div>
           </motion.div>
         )}
@@ -196,9 +197,7 @@ export function AdminAccounts() {
                 <Shield className="w-6 h-6 text-[#2B5F9E]" />
               </div>
               <div>
-                <p className="text-gray-600 text-sm">
-                  {t("admin.accounts.totalAccounts")}
-                </p>
+                <p className="text-gray-600 text-sm">{t('admin.accounts.totalAccounts')}</p>
                 <p className="text-3xl text-[#2B5F9E]">{accounts.length}</p>
               </div>
             </div>
@@ -215,11 +214,9 @@ export function AdminAccounts() {
                 <Crown className="w-6 h-6 text-[#EB8C3A]" />
               </div>
               <div>
-                <p className="text-gray-600 text-sm">
-                  {t("admin.accounts.owners")}
-                </p>
+                <p className="text-gray-600 text-sm">{t('admin.accounts.owners')}</p>
                 <p className="text-3xl text-[#EB8C3A]">
-                  {accounts.filter((a) => a.role === "owner").length}
+                  {accounts.filter((a) => a.role === 'owner').length}
                 </p>
               </div>
             </div>
@@ -236,11 +233,9 @@ export function AdminAccounts() {
                 <User className="w-6 h-6 text-[#6BA868]" />
               </div>
               <div>
-                <p className="text-gray-600 text-sm">
-                  {t("admin.accounts.admins")}
-                </p>
+                <p className="text-gray-600 text-sm">{t('admin.accounts.admins')}</p>
                 <p className="text-3xl text-[#6BA868]">
-                  {accounts.filter((a) => a.role === "admin").length}
+                  {accounts.filter((a) => a.role === 'admin').length}
                 </p>
               </div>
             </div>
@@ -253,7 +248,7 @@ export function AdminAccounts() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <Input
               type="text"
-              placeholder={t("admin.accounts.searchPlaceholder")}
+              placeholder={t('admin.accounts.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -272,22 +267,22 @@ export function AdminAccounts() {
               <thead className="bg-gray-50 border-b">
                 <tr>
                   <th className="px-6 py-4 text-left text-sm text-gray-600">
-                    {t("admin.accounts.table.username")}
+                    {t('admin.accounts.table.username')}
                   </th>
                   <th className="px-6 py-4 text-left text-sm text-gray-600">
-                    {t("admin.accounts.table.email")}
+                    {t('admin.accounts.table.email')}
                   </th>
                   <th className="px-6 py-4 text-left text-sm text-gray-600">
-                    {t("admin.accounts.table.role")}
+                    {t('admin.accounts.table.role')}
                   </th>
                   <th className="px-6 py-4 text-left text-sm text-gray-600">
-                    {t("admin.accounts.table.createdAt")}
+                    {t('admin.accounts.table.createdAt')}
                   </th>
                   <th className="px-6 py-4 text-left text-sm text-gray-600">
-                    {t("admin.accounts.table.lastLogin")}
+                    {t('admin.accounts.table.lastLogin')}
                   </th>
                   <th className="px-6 py-4 text-left text-sm text-gray-600">
-                    {t("admin.accounts.table.actions")}
+                    {t('admin.accounts.table.actions')}
                   </th>
                 </tr>
               </thead>
@@ -303,14 +298,12 @@ export function AdminAccounts() {
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          {account.role === "owner" ? (
+                          {account.role === 'owner' ? (
                             <Crown className="w-4 h-4 text-[#EB8C3A]" />
                           ) : (
                             <User className="w-4 h-4 text-[#6BA868]" />
                           )}
-                          <span className="text-gray-900">
-                            {account.username}
-                          </span>
+                          <span className="text-gray-900">{account.username}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -322,14 +315,14 @@ export function AdminAccounts() {
                       <td className="px-6 py-4">
                         <span
                           className={`px-3 py-1 rounded-full text-xs ${
-                            account.role === "owner"
-                              ? "bg-[#EB8C3A]/20 text-[#EB8C3A]"
-                              : "bg-[#6BA868]/20 text-[#6BA868]"
+                            account.role === 'owner'
+                              ? 'bg-[#EB8C3A]/20 text-[#EB8C3A]'
+                              : 'bg-[#6BA868]/20 text-[#6BA868]'
                           }`}
                         >
-                          {account.role === "owner"
-                            ? t("admin.accounts.role.owner")
-                            : t("admin.accounts.role.admin")}
+                          {account.role === 'owner'
+                            ? t('admin.accounts.role.owner')
+                            : t('admin.accounts.role.admin')}
                         </span>
                       </td>
                       <td className="px-6 py-4">
@@ -367,7 +360,7 @@ export function AdminAccounts() {
 
           {filteredAccounts.length === 0 && (
             <div className="text-center py-12 text-gray-500">
-              {t("admin.accounts.noResults")}
+              {t('admin.accounts.noResults')}
             </div>
           )}
         </motion.div>
@@ -380,13 +373,13 @@ export function AdminAccounts() {
           className="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-6"
         >
           <h3 className="text-[#2B5F9E] mb-3">
-            {t("admin.accounts.permissionInfo.title")}
+            {t('admin.accounts.permissionInfo.title')}
           </h3>
           <ul className="space-y-2 text-sm text-gray-700">
-            <li>• {t("admin.accounts.permissionInfo.owner1")}</li>
-            <li>• {t("admin.accounts.permissionInfo.owner2")}</li>
-            <li>• {t("admin.accounts.permissionInfo.admin1")}</li>
-            <li>• {t("admin.accounts.permissionInfo.admin2")}</li>
+            <li>• {t('admin.accounts.permissionInfo.owner1')}</li>
+            <li>• {t('admin.accounts.permissionInfo.owner2')}</li>
+            <li>• {t('admin.accounts.permissionInfo.admin1')}</li>
+            <li>• {t('admin.accounts.permissionInfo.admin2')}</li>
           </ul>
         </motion.div>
       </div>
@@ -395,25 +388,21 @@ export function AdminAccounts() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t("admin.accounts.deleteDialog.title")}
-            </AlertDialogTitle>
+            <AlertDialogTitle>{t('admin.accounts.deleteDialog.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("admin.accounts.deleteDialog.description").replace(
-                "{username}",
-                selectedAccount?.username || ""
+              {t('admin.accounts.deleteDialog.description').replace(
+                '{username}',
+                selectedAccount?.username || ''
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>
-              {t("admin.members.confirm.cancel")}
-            </AlertDialogCancel>
+            <AlertDialogCancel>{t('admin.members.confirm.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteAccount}
               className="bg-red-600 hover:bg-red-700"
             >
-              {t("admin.accounts.deleteDialog.confirm")}
+              {t('admin.accounts.deleteDialog.confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -423,19 +412,17 @@ export function AdminAccounts() {
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{t("admin.accounts.createDialog.title")}</DialogTitle>
+            <DialogTitle>{t('admin.accounts.createDialog.title')}</DialogTitle>
             <DialogDescription>
-              {t("admin.accounts.createDialog.description")}
+              {t('admin.accounts.createDialog.description')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="username">
-                {t("admin.accounts.form.username")}
-              </Label>
+              <Label htmlFor="username">{t('admin.accounts.form.username')}</Label>
               <Input
                 id="username"
-                placeholder={t("admin.accounts.form.usernamePlaceholder")}
+                placeholder={t('admin.accounts.form.usernamePlaceholder')}
                 value={newAccount.username}
                 onChange={(e) =>
                   setNewAccount({ ...newAccount, username: e.target.value })
@@ -443,11 +430,11 @@ export function AdminAccounts() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">{t("admin.accounts.form.email")}</Label>
+              <Label htmlFor="email">{t('admin.accounts.form.email')}</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder={t("admin.accounts.form.emailPlaceholder")}
+                placeholder={t('admin.accounts.form.emailPlaceholder')}
                 value={newAccount.email}
                 onChange={(e) =>
                   setNewAccount({ ...newAccount, email: e.target.value })
@@ -455,14 +442,12 @@ export function AdminAccounts() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">
-                {t("admin.accounts.form.password")}
-              </Label>
+              <Label htmlFor="password">{t('admin.accounts.form.password')}</Label>
               <div className="relative">
                 <Input
                   id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder={t("admin.accounts.form.passwordPlaceholder")}
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder={t('admin.accounts.form.passwordPlaceholder')}
                   value={newAccount.password}
                   onChange={(e) =>
                     setNewAccount({ ...newAccount, password: e.target.value })
@@ -481,14 +466,14 @@ export function AdminAccounts() {
                 </button>
               </div>
               <p className="text-xs text-gray-500">
-                {t("admin.accounts.form.passwordHelp")}
+                {t('admin.accounts.form.passwordHelp')}
               </p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="role">{t("admin.accounts.form.role")}</Label>
+              <Label htmlFor="role">{t('admin.accounts.form.role')}</Label>
               <Select
                 value={newAccount.role}
-                onValueChange={(value: "admin" | "owner") =>
+                onValueChange={(value: 'admin' | 'owner') =>
                   setNewAccount({ ...newAccount, role: value })
                 }
               >
@@ -497,10 +482,10 @@ export function AdminAccounts() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="admin">
-                    {t("admin.accounts.role.admin")}
+                    {t('admin.accounts.role.admin')}
                   </SelectItem>
                   <SelectItem value="owner">
-                    {t("admin.accounts.role.owner")}
+                    {t('admin.accounts.role.owner')}
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -511,26 +496,19 @@ export function AdminAccounts() {
               variant="outline"
               onClick={() => {
                 setCreateDialogOpen(false);
-                setNewAccount({
-                  username: "",
-                  email: "",
-                  password: "",
-                  role: "admin",
-                });
+                setNewAccount({ username: '', email: '', password: '', role: 'admin' });
               }}
             >
-              {t("common.cancel")}
+              {t('common.cancel')}
             </Button>
             <Button
               onClick={handleCreateAccount}
               disabled={
-                !newAccount.username ||
-                !newAccount.email ||
-                !newAccount.password
+                !newAccount.username || !newAccount.email || !newAccount.password
               }
               className="bg-[#2B5F9E] hover:bg-[#234a7e]"
             >
-              {t("admin.accounts.createDialog.create")}
+              {t('admin.accounts.createDialog.create')}
             </Button>
           </DialogFooter>
         </DialogContent>
