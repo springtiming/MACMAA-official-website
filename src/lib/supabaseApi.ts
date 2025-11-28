@@ -390,19 +390,21 @@ export class ConcurrencyError extends Error {
   }
 }
 
+const MEMBERS_API_BASE = "/api/members";
+
 export async function fetchMembers() {
-  const supabase = getSupabaseAdminClient();
-  const { data, error } = await supabase
-    .from("members")
-    .select(
-      "id, chinese_name, english_name, gender, birthday, phone, email, address, emergency_name, emergency_phone, emergency_relation, apply_date, status, notes, handled_by, created_at, updated_at",
-    )
-    .order("created_at", { ascending: false });
-  if (error) {
-    logSupabaseError("fetchMembers", error);
-    throw error;
+  const res = await fetch(MEMBERS_API_BASE, {
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch members");
   }
-  return data ?? [];
+
+  const body = (await res.json()) as { members: MemberRecord[] };
+  return body.members ?? [];
 }
 
 export async function updateMemberStatus(
@@ -410,37 +412,38 @@ export async function updateMemberStatus(
   status: "pending" | "approved" | "rejected",
   options?: { expectedStatus?: MemberRecord["status"]; expectedUpdatedAt?: string | null },
 ) {
-  const supabase = getSupabaseAdminClient();
-  let query = supabase
-    .from("members")
-    .update({ status, handled_by: authUidFallback() })
-    .eq("id", id);
+  const res = await fetch(`${MEMBERS_API_BASE}/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({
+      status,
+      expectedStatus: options?.expectedStatus,
+      expectedUpdatedAt: options?.expectedUpdatedAt,
+    }),
+  });
 
-  if (options?.expectedStatus) {
-    query = query.eq("status", options.expectedStatus);
+  if (res.status === 409) {
+    throw new ConcurrencyError();
   }
 
-  if (options?.expectedUpdatedAt) {
-    query = query.eq("updated_at", options.expectedUpdatedAt);
+  if (!res.ok) {
+    throw new Error("Failed to update member");
   }
 
-  const { data, error } = await query.select().single();
-  if (error) {
-    if (error.code === "PGRST116" || error.message?.includes("0 rows")) {
-      throw new ConcurrencyError();
-    }
-    logSupabaseError("updateMemberStatus", error);
-    throw error;
-  }
-  return data as MemberRecord;
+  const body = (await res.json()) as { member: MemberRecord };
+  return body.member;
 }
 
 export async function deleteMember(id: string) {
-  const supabase = getSupabaseAdminClient();
-  const { error } = await supabase.from("members").delete().eq("id", id);
-  if (error) {
-    logSupabaseError("deleteMember", error);
-    throw error;
+  const res = await fetch(`${MEMBERS_API_BASE}/${id}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok && res.status !== 204) {
+    throw new Error("Failed to delete member");
   }
 }
 
@@ -483,17 +486,6 @@ export async function createMemberApplication(payload: MemberApplicationInput) {
 }
 
 // helper to set handled_by when available
-function authUidFallback() {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const raw = (globalThis as any).__supabaseAuthUid;
-    if (typeof raw === "string") return raw;
-  } catch {
-    // ignore
-  }
-  return null;
-}
-
 export async function createEventRegistration(payload: {
   event_id: string;
   user_id?: string | null;
