@@ -1,87 +1,86 @@
-/**
- * 通用骨架屏卡片组件
- * 提供脉动动画效果，用于内容加载时的占位显示
- */
+import { motion } from 'motion/react';
 
 interface SkeletonCardProps {
   variant?: 'news' | 'event';
-  className?: string;
+  index?: number;
 }
 
-export function SkeletonCard({ variant = 'news', className = '' }: SkeletonCardProps) {
+export function SkeletonCard({ variant = 'news', index = 0 }: SkeletonCardProps) {
   if (variant === 'event') {
     return (
-      <div className={`bg-white rounded-xl sm:rounded-2xl shadow-lg overflow-hidden ${className}`}>
-        <div className="md:flex animate-pulse">
-          {/* 图片占位 */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: index * 0.1 }}
+        className="bg-white rounded-xl sm:rounded-2xl shadow-lg overflow-hidden"
+      >
+        <div className="md:flex">
+          {/* Image skeleton */}
           <div className="md:w-2/5">
             <div className="aspect-square bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer" />
           </div>
           
-          {/* 内容占位 */}
-          <div className="md:w-3/5 p-4 sm:p-6 flex flex-col">
-            {/* 标签占位 */}
-            <div className="mb-2 flex items-center gap-2">
-              <div className="h-6 w-20 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded-full animate-shimmer" />
-              <div className="h-6 w-24 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded-full animate-shimmer" />
+          {/* Content skeleton */}
+          <div className="md:w-3/5 p-4 sm:p-6 space-y-4">
+            {/* Tags */}
+            <div className="flex gap-2">
+              <div className="h-6 w-20 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded-full" />
+              <div className="h-6 w-24 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded-full" />
             </div>
             
-            {/* 标题占位 */}
-            <div className="h-7 w-3/4 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded mb-3 animate-shimmer" />
+            {/* Title */}
+            <div className="h-7 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded-lg w-3/4" />
             
-            {/* 描述占位 */}
-            <div className="space-y-2 mb-4 flex-1">
-              <div className="h-4 w-full bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded animate-shimmer" />
-              <div className="h-4 w-5/6 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded animate-shimmer" />
+            {/* Description */}
+            <div className="space-y-2">
+              <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded w-full" />
+              <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded w-5/6" />
             </div>
             
-            {/* 信息列表占位 */}
-            <div className="space-y-2 mb-4">
-              <div className="h-4 w-2/3 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded animate-shimmer" />
-              <div className="h-4 w-1/2 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded animate-shimmer" />
-              <div className="h-4 w-3/5 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded animate-shimmer" />
-              <div className="h-4 w-1/3 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded animate-shimmer" />
+            {/* Details */}
+            <div className="space-y-2">
+              <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded w-2/3" />
+              <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded w-1/2" />
+              <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded w-1/3" />
+              <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded w-1/2" />
             </div>
             
-            {/* 按钮占位 */}
-            <div className="h-12 w-full bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded-lg animate-shimmer" />
+            {/* Button */}
+            <div className="h-12 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded-lg w-full" />
           </div>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
-  // 新闻卡片骨架屏
+  // News variant
   return (
-    <div className={`bg-white rounded-xl sm:rounded-2xl shadow-lg overflow-hidden flex flex-col ${className}`}>
-      <div className="animate-pulse flex flex-col">
-        {/* 图片占位 */}
-        <div className="aspect-video bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer" />
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: index * 0.1 }}
+      className="bg-white rounded-xl sm:rounded-2xl shadow-lg overflow-hidden"
+    >
+      {/* Image skeleton */}
+      <div className="aspect-video bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer" />
+      
+      {/* Content skeleton */}
+      <div className="p-4 sm:p-6 space-y-3">
+        {/* Date */}
+        <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded w-1/3" />
         
-        {/* 内容占位 */}
-        <div className="p-4 sm:p-6">
-          {/* 日期占位 */}
-          <div className="flex items-center gap-2 mb-2 sm:mb-3">
-            <div className="h-3.5 w-3.5 sm:h-4 sm:w-4 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded animate-shimmer" />
-            <div className="h-3.5 sm:h-4 w-24 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded animate-shimmer" />
-          </div>
-          
-          {/* 标题占位 - 单行 */}
-          <div className="h-6 sm:h-7 w-4/5 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded mb-2 sm:mb-3 animate-shimmer" />
-          
-          {/* 描述占位 - 2行固定 */}
-          <div className="space-y-2 mb-3 sm:mb-4">
-            <div className="h-4 w-full bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded animate-shimmer" />
-            <div className="h-4 w-3/4 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded animate-shimmer" />
-          </div>
-          
-          {/* 链接占位 */}
-          <div className="flex items-center gap-2">
-            <div className="h-3.5 sm:h-4 w-20 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded animate-shimmer" />
-            <div className="h-3.5 sm:h-4 w-3.5 sm:w-4 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded animate-shimmer" />
-          </div>
+        {/* Title */}
+        <div className="h-6 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded w-3/4" />
+        
+        {/* Description */}
+        <div className="space-y-2">
+          <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded w-full" />
+          <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded w-5/6" />
         </div>
+        
+        {/* Read more */}
+        <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded w-1/4" />
       </div>
-    </div>
+    </motion.div>
   );
 }
