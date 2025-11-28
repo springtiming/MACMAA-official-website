@@ -211,6 +211,10 @@ html {
   animation: shimmer 2s infinite;
 }
 
+.bg-shimmer {
+  background-size: 200% 100%;
+}
+
 /* Rich Text Editor (Quill) Styles */
 .ql-toolbar.ql-snow {
   border: none !important;
