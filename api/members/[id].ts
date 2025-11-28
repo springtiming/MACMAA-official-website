@@ -10,6 +10,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: "Invalid id" });
     }
 
+    if (req.method === "OPTIONS") {
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Access-Control-Allow-Methods", "PATCH, DELETE, OPTIONS");
+      res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+      return res.status(200).end();
+    }
+
     if (req.method === "PATCH") {
       return handleUpdateStatus(id, req, res);
     }
@@ -27,6 +34,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 }
 
 async function handleUpdateStatus(id: string, req: VercelRequest, res: VercelResponse) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
   const { status, expectedStatus, expectedUpdatedAt } = (req.body ?? {}) as {
     status?: MemberStatus;
     expectedStatus?: MemberStatus;
@@ -64,6 +72,7 @@ async function handleUpdateStatus(id: string, req: VercelRequest, res: VercelRes
 }
 
 async function handleDelete(id: string, res: VercelResponse) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
   const supabase = getSupabaseServiceClient();
   const { error } = await supabase.from("members").delete().eq("id", id);
 
