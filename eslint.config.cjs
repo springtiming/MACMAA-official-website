@@ -11,7 +11,7 @@ module.exports = [
     ignores: ['dist/**', 'build/**', 'node_modules/**'],
   },
   {
-    files: ['vite.config.ts'],
+    files: ['vite.config.ts', 'api/**/*.ts'],
     languageOptions: {
       globals: {
         ...globals.node,

@@ -102,7 +102,7 @@ export function EventRegistration() {
       });
       setRegistrationId(result.id);
       setStep("success");
-    } catch (err) {
+    } catch {
       setSubmitError(
         language === "zh"
           ? "提交报名失败，请稍后再试"

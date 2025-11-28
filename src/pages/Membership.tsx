@@ -155,10 +155,11 @@ export function Membership() {
   };
 
   // Validate a single field
-  const validateField = (name: string, value: any): ErrorType | '' => {
+  const validateField = (name: string, value: string | boolean | null | undefined): ErrorType | '' => {
     const rule = validationRules[name as keyof typeof validationRules];
     
     if (!rule) return '';
+    if (typeof value !== 'string') return '';
 
     // Check if field is required and empty
     const requiredFields = [
@@ -196,18 +197,21 @@ export function Membership() {
   // Handle field blur - mark as touched and validate
   const handleBlur = (name: string) => {
     setTouched({ ...touched, [name]: true });
-    const error = validateField(name, formData[name as keyof typeof formData]);
-    if (error) {
-      setErrors({ ...errors, [name]: error });
-    } else {
-      const newErrors = { ...errors };
-      delete newErrors[name];
-      setErrors(newErrors);
+    const value = formData[name as keyof typeof formData];
+    if (typeof value === 'string') {
+      const error = validateField(name, value);
+      if (error) {
+        setErrors({ ...errors, [name]: error });
+        return;
+      }
     }
+    const newErrors = { ...errors };
+    delete newErrors[name];
+    setErrors(newErrors);
   };
 
   // Handle field change - validate if already touched
-  const handleChange = (name: string, value: any) => {
+  const handleChange = (name: string, value: string | boolean) => {
     setFormData({ ...formData, [name]: value });
     
     // Clear error immediately when user starts typing
@@ -217,8 +221,8 @@ export function Membership() {
       setErrors(newErrors);
     }
     
-    // If field was touched, validate on change
-    if (touched[name]) {
+    // If field was touched, validate on change (only string fields)
+    if (touched[name] && typeof value === 'string') {
       const error = validateField(name, value);
       if (error) {
         setErrors({ ...errors, [name]: error });
