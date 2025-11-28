@@ -6,12 +6,14 @@ import { Calendar, ArrowRight } from "lucide-react";
 import { fetchNewsPosts, type NewsPostRecord } from "../lib/supabaseApi";
 import { pickLocalized, resolveNewsCover } from "../lib/supabaseHelpers";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import { NewsSkeleton } from '../components/NewsSkeleton';
 
 export function NewsList() {
   const { language, t } = useLanguage();
   const [news, setNews] = useState<NewsPostRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
@@ -33,6 +35,14 @@ export function NewsList() {
       active = false;
     };
   }, [t]);
+
+  // Simulate data loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 800); // 800ms loading time
+    return () => clearTimeout(timer);
+  }, []);
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return language === "zh" ? "未公布" : "N/A";
@@ -70,15 +80,18 @@ export function NewsList() {
         </p>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-        {news.map((item, index) => (
-          <motion.div
-            key={item.id}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            whileHover={{ y: -8 }}
-          >
+      {isLoading ? (
+        <NewsSkeleton count={6} />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          {news.map((item, index) => (
+            <motion.div
+              key={item.id}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1, duration: 0.4 }}
+              whileHover={{ y: -8 }}
+            >
             <Link
               to={`/news/${item.id}`}
               className="block bg-white rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden h-full"
@@ -109,7 +122,8 @@ export function NewsList() {
             </Link>
           </motion.div>
         ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

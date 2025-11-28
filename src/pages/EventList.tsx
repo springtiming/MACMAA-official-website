@@ -10,12 +10,14 @@ import {
   resolveEventImage,
 } from "../lib/supabaseHelpers";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import { EventSkeleton } from '../components/EventSkeleton';
 
 export function EventList() {
   const { language, t } = useLanguage();
   const [events, setEvents] = useState<EventRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
@@ -34,6 +36,14 @@ export function EventList() {
       active = false;
     };
   }, [t]);
+
+  // Simulate data loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 800); // 800ms loading time
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -61,8 +71,11 @@ export function EventList() {
         </p>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-        {events.map((event, index) => (
+      {isLoading ? (
+        <EventSkeleton count={4} />
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+          {events.map((event, index) => (
           <motion.div
             key={event.id}
             initial={{ opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
@@ -181,7 +194,8 @@ export function EventList() {
             </div>
           </motion.div>
         ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
