@@ -58,14 +58,15 @@ export function ProcessingOverlay({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-[100]"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50"
       >
         <motion.div
           initial={{ scale: 0.8, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.8, opacity: 0, y: 20 }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className={`${config.bgClass} border-2 rounded-2xl shadow-2xl max-w-[24rem] w-full p-8`}
+          className={`${config.bgClass} border-2 rounded-2xl shadow-2xl w-full p-8`}
+          style={{ maxWidth: "24rem" }}
         >
           {/* 图标 */}
           <motion.div
