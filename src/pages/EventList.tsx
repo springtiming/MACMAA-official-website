@@ -3,12 +3,14 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { motion } from "motion/react";
 import { Calendar, MapPin, Users, DollarSign } from "lucide-react";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import { EventSkeleton } from "../components/EventSkeleton";
 import { useState, useEffect } from "react";
 import { fetchEvents, type EventRecord } from "../lib/supabaseApi";
 
 export function EventList() {
   const { language, t } = useLanguage();
   const [events, setEvents] = useState<EventRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const formatDate = (dateString: string, start?: string | null) => {
@@ -36,6 +38,7 @@ export function EventList() {
   useEffect(() => {
     let active = true;
     setError(null);
+    setIsLoading(true);
     const loadEvents = async () => {
       try {
         const data = await fetchEvents({
@@ -47,6 +50,8 @@ export function EventList() {
         setError(null);
       } catch {
         if (active) setError(t("common.error"));
+      } finally {
+        if (active) setIsLoading(false);
       }
     };
     loadEvents();
@@ -67,6 +72,8 @@ export function EventList() {
 
       {error ? (
         <p className="text-red-600 px-2">{error}</p>
+      ) : isLoading ? (
+        <EventSkeleton count={4} />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           {events.map((event, index) => (

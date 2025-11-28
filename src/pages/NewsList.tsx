@@ -3,17 +3,20 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { motion } from "motion/react";
 import { Calendar, ArrowRight } from "lucide-react";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import { NewsSkeleton } from "../components/NewsSkeleton";
 import { useState, useEffect } from "react";
 import { fetchNewsPosts, type NewsPostRecord } from "../lib/supabaseApi";
 
 export function NewsList() {
   const { language, t } = useLanguage();
   const [newsList, setNewsList] = useState<NewsPostRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
     setError(null);
+    setIsLoading(true);
     const loadNews = async () => {
       try {
         const data = await fetchNewsPosts({ publishedOnly: true });
@@ -22,6 +25,8 @@ export function NewsList() {
         setError(null);
       } catch {
         if (active) setError(t("common.error"));
+      } finally {
+        if (active) setIsLoading(false);
       }
     };
     loadNews();
@@ -42,6 +47,8 @@ export function NewsList() {
 
       {error ? (
         <p className="text-red-600 px-2">{error}</p>
+      ) : isLoading ? (
+        <NewsSkeleton count={6} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {newsList.map((news, index) => (
