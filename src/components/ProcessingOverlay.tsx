@@ -65,7 +65,7 @@ export function ProcessingOverlay({
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.8, opacity: 0, y: 20 }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className={`${config.bgClass} border-2 rounded-2xl shadow-2xl max-w-sm w-full p-8`}
+          className={`${config.bgClass} border-2 rounded-2xl shadow-2xl max-w-[24rem] w-full p-8`}
         >
           {/* 图标 */}
           <motion.div
