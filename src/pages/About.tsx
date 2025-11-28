@@ -129,30 +129,29 @@ export function About() {
               </p>
             </div>
 
-          {/* Video Section */}
+            {/* Video Section */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               className="mt-8 sm:mt-10"
             >
-            <h3 className="text-[#2B5F9E] mb-4 sm:mb-6 text-center text-xl sm:text-2xl">
-              {language === "zh" ? "协会介绍视频" : "Introduction Video"}
-            </h3>
+              <h3 className="text-[#2B5F9E] mb-4 sm:mb-6 text-center text-xl sm:text-2xl">
+                {language === "zh" ? "协会介绍视频" : "Introduction Video"}
+              </h3>
 
-            <div className="relative aspect-video bg-black rounded-xl overflow-hidden shadow-xl">
-              <video
-                className="w-full h-full object-cover"
-                src={introVideo}
-                controls
-                controlsList="nodownload"
-              >
-                {language === "zh"
-                  ? "您的浏览器不支持视频播放，请尝试更新浏览器。"
-                  : "Your browser does not support the video tag. Please update your browser."}
-              </video>
-            </div>
-
+              <div className="relative aspect-video bg-black rounded-xl overflow-hidden shadow-xl">
+                <video
+                  className="w-full h-full object-cover"
+                  src={introVideo}
+                  controls
+                  controlsList="nodownload"
+                >
+                  {language === "zh"
+                    ? "您的浏览器不支持视频播放，请尝试更新浏览器。"
+                    : "Your browser does not support the video tag. Please update your browser."}
+                </video>
+              </div>
             </motion.div>
           </div>
 

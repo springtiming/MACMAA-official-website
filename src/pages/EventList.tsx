@@ -47,9 +47,7 @@ export function EventList() {
         </h1>
       </motion.div>
 
-      {loading && (
-        <p className="text-gray-600 px-2">{t("common.loading")}</p>
-      )}
+      {loading && <p className="text-gray-600 px-2">{t("common.loading")}</p>}
 
       {error && (
         <p className="text-red-600 px-2" role="alert">
@@ -81,9 +79,13 @@ export function EventList() {
                       event.image_type,
                       event.image_keyword,
                       event.image_url,
-                      "thumb",
+                      "thumb"
                     )}
-                    alt={pickLocalized(event.title_zh, event.title_en, language)}
+                    alt={pickLocalized(
+                      event.title_zh,
+                      event.title_en,
+                      language
+                    )}
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                   />
                 </div>
@@ -111,7 +113,11 @@ export function EventList() {
                   {pickLocalized(event.title_zh, event.title_en, language)}
                 </h3>
                 <p className="text-gray-600 mb-3 sm:mb-4 flex-1 line-clamp-2 text-sm sm:text-base">
-                  {pickLocalized(event.description_zh, event.description_en, language)}
+                  {pickLocalized(
+                    event.description_zh,
+                    event.description_en,
+                    language
+                  )}
                 </p>
 
                 <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-700 mb-3 sm:mb-4">
@@ -122,7 +128,7 @@ export function EventList() {
                         event.event_date,
                         event.start_time,
                         event.end_time,
-                        language,
+                        language
                       )}
                     </span>
                   </div>
@@ -133,21 +139,21 @@ export function EventList() {
                   <div className="flex items-center gap-2">
                     <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#EB8C3A] flex-shrink-0" />
                     <span>
-                      {event.fee === 0
-                        ? t("common.free")
-                        : event.member_fee !== null &&
-                            event.member_fee < event.fee ? (
-                          <>
-                            <span className="line-through text-gray-400">
-                              ${event.fee}
-                            </span>
-                            <span className="ml-2 text-[#6BA868]">
-                              ${event.member_fee} {t("events.memberFee")}
-                            </span>
-                          </>
-                          ) : (
-                          `$${event.fee} AUD`
-                          )}
+                      {event.fee === 0 ? (
+                        t("common.free")
+                      ) : event.member_fee !== null &&
+                        event.member_fee < event.fee ? (
+                        <>
+                          <span className="line-through text-gray-400">
+                            ${event.fee}
+                          </span>
+                          <span className="ml-2 text-[#6BA868]">
+                            ${event.member_fee} {t("events.memberFee")}
+                          </span>
+                        </>
+                      ) : (
+                        `$${event.fee} AUD`
+                      )}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">

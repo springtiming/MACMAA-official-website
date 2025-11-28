@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getSupabaseServiceClient, logSupabaseError } from "../_supabaseAdminClient";
+import { getSupabaseServiceClient, logSupabaseError } from "../_supabaseAdminClient.js";
 
 type MemberStatus = "pending" | "approved" | "rejected";
 

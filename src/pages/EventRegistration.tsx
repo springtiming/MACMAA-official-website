@@ -82,7 +82,7 @@ export function EventRegistration() {
   const handlePaymentConfirm = async () => {
     if (event.fee > 0 && !paymentMethod) {
       setSubmitError(
-        language === "zh" ? "请选择支付方式" : "Please choose a payment method",
+        language === "zh" ? "请选择支付方式" : "Please choose a payment method"
       );
       return;
     }
@@ -106,7 +106,7 @@ export function EventRegistration() {
       setSubmitError(
         language === "zh"
           ? "提交报名失败，请稍后再试"
-          : "Failed to submit registration. Please try again.",
+          : "Failed to submit registration. Please try again."
       );
     } finally {
       setSubmitting(false);
@@ -317,11 +317,11 @@ export function EventRegistration() {
                     : `Event fee: ${event.fee === 0 ? "Free" : `$${event.fee} AUD`}`}
                 </p>
 
-                    {event.fee > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                        {paymentOptions.map((option) => (
-                          <motion.button
-                            key={option.id}
+                {event.fee > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    {paymentOptions.map((option) => (
+                      <motion.button
+                        key={option.id}
                         onClick={() => setPaymentMethod(option.id)}
                         className={`p-6 rounded-xl border-2 transition-all ${
                           paymentMethod === option.id

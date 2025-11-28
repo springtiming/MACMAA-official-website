@@ -83,7 +83,7 @@ export function EventDetail() {
               event.image_type,
               event.image_keyword,
               event.image_url,
-              "hero",
+              "hero"
             )}
             alt={pickLocalized(event.title_zh, event.title_en, language)}
             className="w-full h-full object-cover"
@@ -125,7 +125,7 @@ export function EventDetail() {
                   event.event_date,
                   event.start_time,
                   event.end_time,
-                  language,
+                  language
                 )}
               </p>
             </div>
@@ -151,7 +151,7 @@ export function EventDetail() {
                 {event.fee === 0 ? (
                   t("common.free")
                 ) : event.member_fee !== null &&
-                    event.member_fee < event.fee ? (
+                  event.member_fee < event.fee ? (
                   <div className="flex flex-col">
                     <span className="line-through text-gray-400 text-sm">
                       ${event.fee} AUD
@@ -188,7 +188,11 @@ export function EventDetail() {
         <div className="mb-8">
           <h2 className="text-[#2B5F9E] mb-4">{t("events.details")}</h2>
           <p className="text-gray-700 whitespace-pre-line">
-            {pickLocalized(event.description_zh, event.description_en, language)}
+            {pickLocalized(
+              event.description_zh,
+              event.description_en,
+              language
+            )}
           </p>
         </div>
 

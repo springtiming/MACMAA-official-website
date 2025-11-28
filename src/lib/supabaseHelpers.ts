@@ -3,7 +3,7 @@ export type Language = "zh" | "en";
 export function pickLocalized(
   zhValue: string | null,
   enValue: string | null,
-  language: Language,
+  language: Language
 ) {
   if (language === "zh") {
     return zhValue ?? enValue ?? "";
@@ -11,13 +11,19 @@ export function pickLocalized(
   return enValue ?? zhValue ?? "";
 }
 
-export function buildUnsplashUrl(keyword: string, size: "thumb" | "hero" = "thumb") {
+export function buildUnsplashUrl(
+  keyword: string,
+  size: "thumb" | "hero" = "thumb"
+) {
   const dimension = size === "hero" ? "1200x675" : "800x600";
   const encoded = encodeURIComponent(keyword || "community");
   return `https://source.unsplash.com/${dimension}/?${encoded}`;
 }
 
-export function resolveNewsCover(coverSource: string | null, size: "thumb" | "hero" = "thumb") {
+export function resolveNewsCover(
+  coverSource: string | null,
+  size: "thumb" | "hero" = "thumb"
+) {
   if (!coverSource) {
     return buildUnsplashUrl("community,news", size);
   }
@@ -31,7 +37,7 @@ export function resolveEventImage(
   imageType: "unsplash" | "upload" | null,
   imageKeyword: string | null,
   imageUrl: string | null,
-  size: "thumb" | "hero" = "thumb",
+  size: "thumb" | "hero" = "thumb"
 ) {
   if (imageType === "upload" && imageUrl) {
     return imageUrl;
@@ -46,7 +52,7 @@ export function formatEventDateTime(
   eventDate: string,
   startTime: string | null,
   endTime: string | null,
-  language: Language,
+  language: Language
 ) {
   const locale = language === "zh" ? "zh-CN" : "en-US";
   const date = new Date(`${eventDate}T00:00:00Z`);

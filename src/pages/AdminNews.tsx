@@ -39,8 +39,12 @@ export function AdminNews() {
   const [draftList, setDraftList] = useState<ArticleVersionRecord[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [editingArticle, setEditingArticle] = useState<NewsPostRecord | null>(null);
-  const [editingDraft, setEditingDraft] = useState<ArticleVersionRecord | null>(null);
+  const [editingArticle, setEditingArticle] = useState<NewsPostRecord | null>(
+    null
+  );
+  const [editingDraft, setEditingDraft] = useState<ArticleVersionRecord | null>(
+    null
+  );
   const [draftVersionId, setDraftVersionId] = useState<string | null>(null);
   const [showImageUploadModal, setShowImageUploadModal] = useState(false);
   const [uploadedImage, setUploadedImage] = useState("");
@@ -158,7 +162,9 @@ export function AdminNews() {
       setNewsList((prev) => {
         const exists = prev.some((n) => n.id === result.article.id);
         if (exists) {
-          return prev.map((n) => (n.id === result.article.id ? result.article : n));
+          return prev.map((n) =>
+            n.id === result.article.id ? result.article : n
+          );
         }
         return [result.article, ...prev];
       });
@@ -244,9 +250,7 @@ export function AdminNews() {
         </motion.div>
 
         {/* News List */}
-        {loading && (
-          <p className="text-gray-600 mb-3">{t("common.loading")}</p>
-        )}
+        {loading && <p className="text-gray-600 mb-3">{t("common.loading")}</p>}
         {error && (
           <p className="text-red-600 mb-3" role="alert">
             {error}
@@ -258,55 +262,71 @@ export function AdminNews() {
           </p>
         )}
         <div className="space-y-4">
-        {draftList.length > 0 && (
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <h3 className="text-[#2B5F9E] mb-3">
-              {language === "zh" ? "我的草稿" : "My Drafts"}
-            </h3>
-            <div className="space-y-3">
-              {draftList.map((draft) => (
-                <div
-                  key={draft.id}
-                  className="flex items-center gap-3 border border-gray-200 rounded-lg p-3"
-                >
-                  <div className="flex-1">
-                    <p className="text-[#2B5F9E] font-medium">
-                      {pickLocalized(draft.title_zh, draft.title_en, language)}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {language === "zh" ? "草稿版本" : "Draft version"} #{draft.version_number}
-                    </p>
+          {draftList.length > 0 && (
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <h3 className="text-[#2B5F9E] mb-3">
+                {language === "zh" ? "我的草稿" : "My Drafts"}
+              </h3>
+              <div className="space-y-3">
+                {draftList.map((draft) => (
+                  <div
+                    key={draft.id}
+                    className="flex items-center gap-3 border border-gray-200 rounded-lg p-3"
+                  >
+                    <div className="flex-1">
+                      <p className="text-[#2B5F9E] font-medium">
+                        {pickLocalized(
+                          draft.title_zh,
+                          draft.title_en,
+                          language
+                        )}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {language === "zh" ? "草稿版本" : "Draft version"} #
+                        {draft.version_number}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleEditDraft(draft)}
+                        className="p-2 text-[#2B5F9E] hover:text-[#1f4a7a] transition-colors"
+                        title={language === "zh" ? "继续编辑" : "Edit draft"}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={async () => {
+                          if (
+                            !confirm(
+                              language === "zh"
+                                ? "确认删除草稿？"
+                                : "Delete draft?"
+                            )
+                          )
+                            return;
+                          try {
+                            await deleteDraft(draft.id);
+                            setDraftList((prev) =>
+                              prev.filter((d) => d.id !== draft.id)
+                            );
+                            setSuccess(
+                              language === "zh" ? "草稿已删除" : "Draft deleted"
+                            );
+                          } catch {
+                            setError(t("common.error"));
+                          }
+                        }}
+                        className="p-2 text-[#2B5F9E] hover:text-red-600 transition-colors"
+                        title={language === "zh" ? "删除草稿" : "Delete draft"}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleEditDraft(draft)}
-                      className="p-2 text-[#2B5F9E] hover:text-[#1f4a7a] transition-colors"
-                      title={language === "zh" ? "继续编辑" : "Edit draft"}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={async () => {
-                        if (!confirm(language === "zh" ? "确认删除草稿？" : "Delete draft?")) return;
-                        try {
-                          await deleteDraft(draft.id);
-                          setDraftList((prev) => prev.filter((d) => d.id !== draft.id));
-                          setSuccess(language === "zh" ? "草稿已删除" : "Draft deleted");
-                        } catch {
-                          setError(t("common.error"));
-                        }
-                      }}
-                      className="p-2 text-[#2B5F9E] hover:text-red-600 transition-colors"
-                      title={language === "zh" ? "删除草稿" : "Delete draft"}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
           {filteredNews.map((news, index) => (
             <motion.div
               key={news.id}
@@ -431,7 +451,8 @@ function NewsFormModal({
 }) {
   const { language, t } = useLanguage();
   const [imageSource, setImageSource] = useState<"unsplash" | "upload">(
-    news?.cover_source?.startsWith("http") || news?.cover_source?.startsWith("/")
+    news?.cover_source?.startsWith("http") ||
+      news?.cover_source?.startsWith("/")
       ? "upload"
       : "unsplash"
   );
@@ -555,7 +576,6 @@ function NewsFormModal({
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
               />
             </div>
-
 
             {/* Image Section - Unsplash or Upload */}
             <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
@@ -920,7 +940,9 @@ function FullscreenEditorModal({
                 className="flex items-center gap-2 px-4 py-2 bg-[#6BA868] hover:bg-[#5a9157] rounded-lg transition-colors"
               >
                 <Save className="w-5 h-5" />
-                <span className="hidden sm:inline">{t("admin.news.form.saveDraft")}</span>
+                <span className="hidden sm:inline">
+                  {t("admin.news.form.saveDraft")}
+                </span>
               </button>
               <button
                 onClick={onClose}

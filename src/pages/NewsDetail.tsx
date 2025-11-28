@@ -3,14 +3,8 @@ import { useParams, Link } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import { motion } from "motion/react";
 import { Calendar, ArrowLeft, Share2 } from "lucide-react";
-import {
-  fetchNewsPostById,
-  type NewsPostRecord,
-} from "../lib/supabaseApi";
-import {
-  pickLocalized,
-  resolveNewsCover,
-} from "../lib/supabaseHelpers";
+import { fetchNewsPostById, type NewsPostRecord } from "../lib/supabaseApi";
+import { pickLocalized, resolveNewsCover } from "../lib/supabaseHelpers";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 
 export function NewsDetail() {
@@ -97,7 +91,7 @@ export function NewsDetail() {
                 {news.published_at
                   ? new Date(news.published_at).toLocaleDateString(
                       language === "zh" ? "zh-CN" : "en-US",
-                      { year: "numeric", month: "long", day: "numeric" },
+                      { year: "numeric", month: "long", day: "numeric" }
                     )
                   : language === "zh"
                     ? "未公布"

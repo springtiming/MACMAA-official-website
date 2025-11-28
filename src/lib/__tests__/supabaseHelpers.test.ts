@@ -29,19 +29,29 @@ describe("supabaseHelpers", () => {
   });
 
   it("resolves event images preferring uploaded URL", () => {
-    const upload = resolveEventImage("upload", null, "/uploads/image.png", "thumb");
+    const upload = resolveEventImage(
+      "upload",
+      null,
+      "/uploads/image.png",
+      "thumb"
+    );
     expect(upload).toBe("/uploads/image.png");
 
-    const keyword = resolveEventImage("unsplash", "culture event", null, "hero");
+    const keyword = resolveEventImage(
+      "unsplash",
+      "culture event",
+      null,
+      "hero"
+    );
     expect(keyword).toContain("culture%20event");
   });
 
   it("formats event date and time ranges", () => {
     expect(
-      formatEventDateTime("2025-04-10", "14:00:00", "16:00:00", "en"),
+      formatEventDateTime("2025-04-10", "14:00:00", "16:00:00", "en")
     ).toContain("14:00");
-    expect(
-      formatEventDateTime("2025-04-10", "14:00:00", null, "zh"),
-    ).toContain("14:00");
+    expect(formatEventDateTime("2025-04-10", "14:00:00", null, "zh")).toContain(
+      "14:00"
+    );
   });
 });

@@ -1,5 +1,9 @@
 import type { PostgrestError } from "@supabase/supabase-js";
-import { getSupabaseAdminClient, getSupabaseClient, logSupabaseError } from "./supabaseClient";
+import {
+  getSupabaseAdminClient,
+  getSupabaseClient,
+  logSupabaseError,
+} from "./supabaseClient";
 
 export interface NewsPostRecord {
   id: string;
@@ -84,7 +88,10 @@ interface FetchRegistrationsOptions {
   userId?: string;
 }
 
-type QueryResult<T> = PromiseLike<{ data: T[] | null; error: PostgrestError | null }>;
+type QueryResult<T> = PromiseLike<{
+  data: T[] | null;
+  error: PostgrestError | null;
+}>;
 async function runQuery<T>(context: string, query: QueryResult<T>) {
   const { data, error } = await query;
   if (error) {
@@ -101,7 +108,7 @@ export async function fetchNewsPosts(options: FetchNewsOptions = {}) {
   let query = supabase
     .from("articles")
     .select(
-      "id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, published_at, published, author_id",
+      "id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, published_at, published, author_id"
     )
     .order("published_at", { ascending: false });
 
@@ -122,7 +129,7 @@ export async function fetchEvents(options: FetchEventsOptions = {}) {
   let query = supabase
     .from("events")
     .select(
-      "id, title_zh, title_en, description_zh, description_en, event_date, start_time, end_time, location, fee, member_fee, capacity, access_type, image_type, image_keyword, image_url, created_by, created_at, updated_at, published",
+      "id, title_zh, title_en, description_zh, description_en, event_date, start_time, end_time, location, fee, member_fee, capacity, access_type, image_type, image_keyword, image_url, created_by, created_at, updated_at, published"
     )
     .eq("published", true)
     .order("event_date", { ascending: true })
@@ -141,14 +148,16 @@ export async function fetchEvents(options: FetchEventsOptions = {}) {
   return runQuery<EventRecord>("fetchEvents", query);
 }
 
-export async function fetchEventRegistrations(options: FetchRegistrationsOptions = {}) {
+export async function fetchEventRegistrations(
+  options: FetchRegistrationsOptions = {}
+) {
   const { eventId, userId } = options;
   const supabase = getSupabaseClient();
 
   let query = supabase
     .from("event_registrations")
     .select(
-      "id, event_id, user_id, name, phone, email, tickets, payment_method, registration_date, created_at",
+      "id, event_id, user_id, name, phone, email, tickets, payment_method, registration_date, created_at"
     )
     .order("registration_date", { ascending: false });
 
@@ -167,7 +176,7 @@ export async function fetchNewsPostById(id: string) {
   const { data, error } = await supabase
     .from("articles")
     .select(
-      "id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, published_at, published, author_id",
+      "id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, published_at, published, author_id"
     )
     .eq("id", id)
     .eq("published", true)
@@ -185,7 +194,7 @@ export async function fetchEventById(id: string) {
   const { data, error } = await supabase
     .from("events")
     .select(
-      "id, title_zh, title_en, description_zh, description_en, event_date, start_time, end_time, location, fee, member_fee, capacity, access_type, image_type, image_keyword, image_url, created_by, created_at, updated_at, published",
+      "id, title_zh, title_en, description_zh, description_en, event_date, start_time, end_time, location, fee, member_fee, capacity, access_type, image_type, image_keyword, image_url, created_by, created_at, updated_at, published"
     )
     .eq("id", id)
     .eq("published", true)
@@ -203,7 +212,7 @@ export async function fetchAdminNewsPosts() {
   const { data, error } = await supabase
     .from("articles")
     .select(
-      "id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, published_at, published, author_id",
+      "id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, published_at, published, author_id"
     )
     .order("published_at", { ascending: false });
 
@@ -219,7 +228,7 @@ export async function fetchMyDrafts() {
   const { data, error } = await supabase
     .from("article_versions")
     .select(
-      "id, article_id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, status, version_number, created_by, created_at, updated_at",
+      "id, article_id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, status, version_number, created_by, created_at, updated_at"
     )
     .eq("status", "draft")
     .order("updated_at", { ascending: false });
@@ -290,7 +299,7 @@ export async function publishNewsFromDraft(versionId: string) {
   const { data: draft, error: draftError } = await supabase
     .from("article_versions")
     .select(
-      "id, article_id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, status, version_number",
+      "id, article_id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, status, version_number"
     )
     .eq("id", versionId)
     .maybeSingle();
@@ -337,7 +346,10 @@ export async function publishNewsFromDraft(versionId: string) {
     throw versionError;
   }
 
-  return { article: article as NewsPostRecord, version: version as ArticleVersionRecord };
+  return {
+    article: article as NewsPostRecord,
+    version: version as ArticleVersionRecord,
+  };
 }
 
 export async function deleteArticle(id: string) {
@@ -413,7 +425,10 @@ export async function fetchMembers() {
 export async function updateMemberStatus(
   id: string,
   status: "pending" | "approved" | "rejected",
-  options?: { expectedStatus?: MemberRecord["status"]; expectedUpdatedAt?: string | null },
+  options?: {
+    expectedStatus?: MemberRecord["status"];
+    expectedUpdatedAt?: string | null;
+  }
 ) {
   const res = await fetch(`${MEMBERS_API_BASE}/${id}`, {
     method: "PATCH",
@@ -465,21 +480,19 @@ export type MemberApplicationInput = {
 
 export async function createMemberApplication(payload: MemberApplicationInput) {
   const supabase = getSupabaseClient();
-  const { error } = await supabase
-    .from("members")
-    .insert(
-      {
-        ...payload,
-        birthday: payload.birthday ?? null,
-        email: payload.email ?? null,
-        emergency_name: payload.emergency_name ?? null,
-        emergency_phone: payload.emergency_phone ?? null,
-        emergency_relation: payload.emergency_relation ?? null,
-        status: "pending",
-        apply_date: new Date().toISOString().slice(0, 10),
-      },
-      { returning: "minimal" } as never,
-    );
+  const { error } = await supabase.from("members").insert(
+    {
+      ...payload,
+      birthday: payload.birthday ?? null,
+      email: payload.email ?? null,
+      emergency_name: payload.emergency_name ?? null,
+      emergency_phone: payload.emergency_phone ?? null,
+      emergency_relation: payload.emergency_relation ?? null,
+      status: "pending",
+      apply_date: new Date().toISOString().slice(0, 10),
+    },
+    { returning: "minimal" } as never
+  );
 
   if (error) {
     logSupabaseError("createMemberApplication", error);
