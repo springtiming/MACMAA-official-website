@@ -63,7 +63,8 @@
     },
     build: {
       target: 'esnext',
-      outDir: 'build',
+      // Use Vite default output directory to match Vercel's expectation
+      outDir: 'dist',
     },
     server: {
       port: devPort,
