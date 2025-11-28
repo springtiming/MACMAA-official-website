@@ -4,12 +4,9 @@ import { motion } from 'motion/react';
 import { Calendar, MapPin, Users, DollarSign, Tag } from 'lucide-react';
 import { mockEvents } from '../data/mockData';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
-import { EventSkeleton } from '../components/EventSkeleton';
-import { useState, useEffect } from 'react';
 
 export function EventList() {
   const { language, t } = useLanguage();
-  const [isLoading, setIsLoading] = useState(true);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -22,14 +19,6 @@ export function EventList() {
     });
   };
 
-  // Simulate data loading
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 800); // 800ms loading time
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       <motion.div
@@ -41,20 +30,17 @@ export function EventList() {
         <p className="text-gray-600 text-sm sm:text-base px-2">{t('common.note')}</p>
       </motion.div>
 
-      {isLoading ? (
-        <EventSkeleton count={4} />
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-          {mockEvents.map((event, index) => (
-            <motion.div
-              key={event.id}
-              initial={{ opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1, duration: 0.4 }}
-              whileHover={{ scale: 1.02 }}
-              className="bg-white rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden"
-            >
-            <div className="md:flex">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+        {mockEvents.map((event, index) => (
+          <motion.div
+            key={event.id}
+            initial={{ opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.1, duration: 0.4 }}
+            whileHover={{ scale: 1.02 }}
+            className="bg-white rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden"
+          >
+          <div className="md:flex">
               <div className="md:w-2/5">
                 <div className="aspect-square bg-gray-200 overflow-hidden h-full">
                   <ImageWithFallback
@@ -132,10 +118,9 @@ export function EventList() {
                 </Link>
               </div>
             </div>
-            </motion.div>
-          ))}
-        </div>
-      )}
+          </motion.div>
+        ))}
+      </div>
     </div>
   );
 }
