@@ -300,7 +300,7 @@ export function Home() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: imagesLoaded ? 1 : 0 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.5, ease: "easeInOut" }}
+                transition={{ duration: 1, ease: "easeInOut" }}
                 className="absolute inset-0"
               >
                 <ImageWithFallback
@@ -315,7 +315,7 @@ export function Home() {
                 key={`caption-${currentImageIndex}`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
+                transition={{ duration: 0.8, delay: 0.3 }}
                 className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 sm:p-6"
               >
                 <p className="text-white text-center text-sm sm:text-base">

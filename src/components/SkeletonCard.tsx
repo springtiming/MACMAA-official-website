@@ -53,32 +53,32 @@ interface SkeletonCardProps {
   
     // 新闻卡片骨架屏
     return (
-      <div className={`bg-white rounded-xl sm:rounded-2xl shadow-lg overflow-hidden h-full ${className}`}>
-        <div className="animate-pulse">
+      <div className={`bg-white rounded-xl sm:rounded-2xl shadow-lg overflow-hidden flex flex-col ${className}`}>
+        <div className="animate-pulse flex flex-col">
           {/* 图片占位 */}
           <div className="aspect-video bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer" />
           
           {/* 内容占位 */}
           <div className="p-4 sm:p-6">
             {/* 日期占位 */}
-            <div className="flex items-center gap-2 mb-3">
-              <div className="h-4 w-4 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded animate-shimmer" />
-              <div className="h-4 w-24 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded animate-shimmer" />
+            <div className="flex items-center gap-2 mb-2 sm:mb-3">
+              <div className="h-3.5 w-3.5 sm:h-4 sm:w-4 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded animate-shimmer" />
+              <div className="h-3.5 sm:h-4 w-24 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded animate-shimmer" />
             </div>
             
-            {/* 标题占位 */}
-            <div className="h-7 w-4/5 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded mb-3 animate-shimmer" />
+            {/* 标题占位 - 单行 */}
+            <div className="h-6 sm:h-7 w-4/5 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded mb-2 sm:mb-3 animate-shimmer" />
             
-            {/* 描述占位 */}
-            <div className="space-y-2 mb-4">
+            {/* 描述占位 - 2行固定 */}
+            <div className="space-y-2 mb-3 sm:mb-4">
               <div className="h-4 w-full bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded animate-shimmer" />
               <div className="h-4 w-3/4 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded animate-shimmer" />
             </div>
             
             {/* 链接占位 */}
             <div className="flex items-center gap-2">
-              <div className="h-4 w-20 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded animate-shimmer" />
-              <div className="h-4 w-4 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded animate-shimmer" />
+              <div className="h-3.5 sm:h-4 w-20 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded animate-shimmer" />
+              <div className="h-3.5 sm:h-4 w-3.5 sm:w-4 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded animate-shimmer" />
             </div>
           </div>
         </div>

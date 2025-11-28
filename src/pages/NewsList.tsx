@@ -66,8 +66,6 @@ export function NewsList() {
         </h1>
       </motion.div>
 
-      {loading && <p className="text-gray-600 px-2">{t("common.loading")}</p>}
-
       {error && (
         <p className="text-red-600 px-2" role="alert">
           {error}
