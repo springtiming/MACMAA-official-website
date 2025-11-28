@@ -10,8 +10,7 @@ function ShimmerBlock({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 animate-shimmer",
-        "bg-[length:200%_100%] rounded-md",
+        "skeleton-shimmer rounded-md",
         className,
       )}
     />
