@@ -9,6 +9,7 @@ import consulPhoto from 'figma:asset/02ce48a06b4eb30c56fbf30084752dbc46f6e5e8.pn
 import performancePhoto from 'figma:asset/8ba07f20524fc73fdf6468451fb157940959f60e.png';
 import gatheringPhoto from 'figma:asset/c47e6fc792d8b9f97dd68ae29a97bfa32594f251.png';
 import calligraphyPhoto from 'figma:asset/928ec88ac46c7ad8c5c157f2f73842edb6fb5c04.png';
+import leadershipPhoto from 'figma:asset/e64db2d9d10306a4e7b8be715dce92e0c0c49c49.png';
 
 export function Home() {
   const { t, language } = useLanguage();
@@ -24,8 +25,12 @@ export function Home() {
       caption: language === 'zh' ? '中国驻墨尔本总领馆房新文总领事出席端午节活动' : 'Consul General Fang Xinwen attended Dragon Boat Festival',
     },
     {
+      url: leadershipPhoto,
+      caption: language === 'zh' ? '陈雅会长、Gabriel Ng MP议员与维州多元文化社区的理事团和会员合照' : 'President Chen Ya, MP Gabriel Ng with Victorian multicultural community board and members',
+    },
+    {
       url: performancePhoto,
-      caption: language === 'zh' ? '文化节庆演出' : 'Cultural Festival Performance',
+      caption: language === 'zh' ? '会员太极演出' : 'Member Tai Chi Performance',
     },
     {
       url: gatheringPhoto,
