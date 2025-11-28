@@ -390,7 +390,10 @@ export class ConcurrencyError extends Error {
   }
 }
 
-const MEMBERS_API_BASE = "/api/members";
+const MEMBERS_API_BASE =
+  typeof import.meta !== "undefined" && import.meta.env?.VITE_ADMIN_API_BASE
+    ? (import.meta.env.VITE_ADMIN_API_BASE as string)
+    : "/api/members";
 
 export async function fetchMembers() {
   const res = await fetch(MEMBERS_API_BASE, {

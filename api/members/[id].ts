@@ -4,21 +4,26 @@ import { getSupabaseServiceClient, logSupabaseError } from "../_supabaseAdminCli
 type MemberStatus = "pending" | "approved" | "rejected";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const { id } = req.query;
-  if (typeof id !== "string") {
-    return res.status(400).json({ error: "Invalid id" });
-  }
+  try {
+    const { id } = req.query;
+    if (typeof id !== "string") {
+      return res.status(400).json({ error: "Invalid id" });
+    }
 
-  if (req.method === "PATCH") {
-    return handleUpdateStatus(id, req, res);
-  }
+    if (req.method === "PATCH") {
+      return handleUpdateStatus(id, req, res);
+    }
 
-  if (req.method === "DELETE") {
-    return handleDelete(id, res);
-  }
+    if (req.method === "DELETE") {
+      return handleDelete(id, res);
+    }
 
-  res.setHeader("Allow", "PATCH, DELETE");
-  return res.status(405).json({ error: "Method not allowed" });
+    res.setHeader("Allow", "PATCH, DELETE");
+    return res.status(405).json({ error: "Method not allowed" });
+  } catch (err) {
+    logSupabaseError("api.members.unhandled", err as Error);
+    return res.status(500).json({ error: "Internal error", detail: (err as Error).message });
+  }
 }
 
 async function handleUpdateStatus(id: string, req: VercelRequest, res: VercelResponse) {

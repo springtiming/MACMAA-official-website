@@ -1,21 +1,14 @@
-import { Link } from "react-router-dom";
-import { useLanguage } from "../contexts/LanguageContext";
-import { motion } from "motion/react";
-import {
-  Heart,
-  Users,
-  Sparkles,
-  HeartPulse,
-  Flower2,
-  ArrowRight,
-} from "lucide-react";
-import { ImageWithFallback } from "../components/figma/ImageWithFallback";
-import { useState, useEffect } from "react";
-import groupPhoto from "figma:asset/4e1018159bf5b416cdd05a50c6634f65d81400fe.png";
-import consulPhoto from "figma:asset/02ce48a06b4eb30c56fbf30084752dbc46f6e5e8.png";
-import performancePhoto from "figma:asset/8ba07f20524fc73fdf6468451fb157940959f60e.png";
-import gatheringPhoto from "figma:asset/c47e6fc792d8b9f97dd68ae29a97bfa32594f251.png";
-import calligraphyPhoto from "figma:asset/928ec88ac46c7ad8c5c157f2f73842edb6fb5c04.png";
+import { Link } from 'react-router-dom';
+import { useLanguage } from '../contexts/LanguageContext';
+import { motion } from 'motion/react';
+import { Heart, Users, Sparkles, HeartPulse, Flower2, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { useState, useEffect } from 'react';
+import groupPhoto from 'figma:asset/4e1018159bf5b416cdd05a50c6634f65d81400fe.png';
+import consulPhoto from 'figma:asset/02ce48a06b4eb30c56fbf30084752dbc46f6e5e8.png';
+import performancePhoto from 'figma:asset/8ba07f20524fc73fdf6468451fb157940959f60e.png';
+import gatheringPhoto from 'figma:asset/c47e6fc792d8b9f97dd68ae29a97bfa32594f251.png';
+import calligraphyPhoto from 'figma:asset/928ec88ac46c7ad8c5c157f2f73842edb6fb5c04.png';
 
 export function Home() {
   const { t, language } = useLanguage();
@@ -24,71 +17,78 @@ export function Home() {
   const activityImages = [
     {
       url: groupPhoto,
-      caption: language === "zh" ? "社区大合影" : "Community Group Photo",
+      caption: language === 'zh' ? '社区大合影' : 'Community Group Photo',
     },
     {
       url: consulPhoto,
-      caption:
-        language === "zh"
-          ? "中国驻墨尔本总领馆房新文总领事出席端午节活动"
-          : "Consul General Fang Xinwen attended Dragon Boat Festival",
+      caption: language === 'zh' ? '中国驻墨尔本总领馆房新文总领事出席端午节活动' : 'Consul General Fang Xinwen attended Dragon Boat Festival',
     },
     {
       url: performancePhoto,
-      caption:
-        language === "zh" ? "文化节庆演出" : "Cultural Festival Performance",
+      caption: language === 'zh' ? '文化节庆演出' : 'Cultural Festival Performance',
     },
     {
       url: gatheringPhoto,
-      caption:
-        language === "zh" ? "社区节日聚会" : "Community Festival Gathering",
+      caption: language === 'zh' ? '社区节日聚会' : 'Community Festival Gathering',
     },
     {
       url: calligraphyPhoto,
-      caption:
-        language === "zh" ? "书法文化活动" : "Calligraphy Cultural Activity",
+      caption: language === 'zh' ? '书法文化活动' : 'Calligraphy Cultural Activity',
     },
   ];
 
+  // Manual navigation functions
+  const handlePrevImage = () => {
+    setCurrentImageIndex((prevIndex) => 
+      prevIndex === 0 ? activityImages.length - 1 : prevIndex - 1
+    );
+  };
+
+  const handleNextImage = () => {
+    setCurrentImageIndex((prevIndex) => (prevIndex + 1) % activityImages.length);
+  };
+
+  const handleDotClick = (index: number) => {
+    setCurrentImageIndex(index);
+  };
+
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentImageIndex(
-        (prevIndex) => (prevIndex + 1) % activityImages.length
-      );
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % activityImages.length);
     }, 4000);
     return () => clearInterval(interval);
-  }, [activityImages.length]);
+  }, [activityImages.length, currentImageIndex]);
 
   const services = [
     {
       icon: Heart,
-      title: t("home.services.mutual"),
-      description: t("home.services.mutual.desc"),
-      color: "#EB8C3A",
+      title: t('home.services.mutual'),
+      description: t('home.services.mutual.desc'),
+      color: '#EB8C3A',
     },
     {
       icon: Users,
-      title: t("home.services.community"),
-      description: t("home.services.community.desc"),
-      color: "#2B5F9E",
+      title: t('home.services.community'),
+      description: t('home.services.community.desc'),
+      color: '#2B5F9E',
     },
     {
       icon: Sparkles,
-      title: t("home.services.diverse"),
-      description: t("home.services.diverse.desc"),
-      color: "#6BA868",
+      title: t('home.services.diverse'),
+      description: t('home.services.diverse.desc'),
+      color: '#6BA868',
     },
     {
       icon: HeartPulse,
-      title: t("home.services.health"),
-      description: t("home.services.health.desc"),
-      color: "#EB8C3A",
+      title: t('home.services.health'),
+      description: t('home.services.health.desc'),
+      color: '#EB8C3A',
     },
     {
       icon: Flower2,
-      title: t("home.services.culture"),
-      description: t("home.services.culture.desc"),
-      color: "#2B5F9E",
+      title: t('home.services.culture'),
+      description: t('home.services.culture.desc'),
+      color: '#2B5F9E',
     },
   ];
 
@@ -105,7 +105,7 @@ export function Home() {
               className="text-[#2B5F9E] mb-4 sm:mb-6 text-3xl sm:text-4xl md:text-5xl lg:text-6xl px-2"
               style={{ fontWeight: 700 }}
             >
-              {t("home.hero.title")}
+              {t('home.hero.title')}
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -113,7 +113,7 @@ export function Home() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="text-gray-700 mb-6 sm:mb-8 max-w-2xl mx-auto text-base sm:text-lg md:text-xl px-4"
             >
-              {t("home.hero.subtitle")}
+              {t('home.hero.subtitle')}
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -127,7 +127,7 @@ export function Home() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  {t("home.hero.cta.news")}
+                  {t('home.hero.cta.news')}
                   <ArrowRight className="w-4 h-4" />
                 </motion.button>
               </Link>
@@ -137,13 +137,13 @@ export function Home() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  {t("home.hero.cta.join")}
+                  {t('home.hero.cta.join')}
                 </motion.button>
               </Link>
             </motion.div>
           </div>
         </div>
-
+        
         {/* Decorative Elements */}
         <motion.div
           className="hidden sm:block absolute top-10 left-10 w-20 h-20 rounded-full bg-[#6BA868]/20"
@@ -166,11 +166,9 @@ export function Home() {
           transition={{ duration: 0.6 }}
           className="text-center mb-8 sm:mb-12"
         >
-          <h2 className="text-[#2B5F9E] mb-3 sm:mb-4 text-2xl sm:text-3xl px-2">
-            {t("home.about.title")}
-          </h2>
+          <h2 className="text-[#2B5F9E] mb-3 sm:mb-4 text-2xl sm:text-3xl px-2">{t('home.about.title')}</h2>
           <p className="text-gray-700 max-w-3xl mx-auto px-4 text-sm sm:text-base">
-            {t("home.about.desc")}
+            {t('home.about.desc')}
           </p>
         </motion.div>
 
@@ -220,7 +218,7 @@ export function Home() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              {language === "zh" ? "了解更多" : "Learn More"}
+              {language === 'zh' ? '了解更多' : 'Learn More'}
               <ArrowRight className="w-4 h-4" />
             </motion.button>
           </Link>
@@ -237,41 +235,13 @@ export function Home() {
             viewport={{ once: true }}
             className="bg-[#F5EFE6] rounded-2xl p-6 sm:p-8 md:p-12 shadow-lg mb-10 sm:mb-16"
           >
-            <h2 className="text-[#2B5F9E] mb-4 sm:mb-6 text-center text-2xl sm:text-3xl px-2">
-              {t("home.weekly.title")}
-            </h2>
-            <p className="mb-2 text-gray-700 text-center text-sm sm:text-base px-2">
-              {t("home.weekly.time")}
-            </p>
-            <p className="mb-4 sm:mb-6 text-gray-600 text-center text-xs sm:text-sm px-2">
-              {t("home.weekly.location")}
-            </p>
+            <h2 className="text-[#2B5F9E] mb-4 sm:mb-6 text-center text-2xl sm:text-3xl px-2">{t('home.weekly.title')}</h2>
+            <p className="mb-2 text-gray-700 text-center text-sm sm:text-base px-2">{t('home.weekly.time')}</p>
+            <p className="mb-4 sm:mb-6 text-gray-600 text-center text-xs sm:text-sm px-2">{t('home.weekly.location')}</p>
             <div className="flex flex-wrap justify-center gap-2 sm:gap-3 text-xs sm:text-sm">
-              {(language === "zh"
-                ? [
-                    "太极",
-                    "八段锦",
-                    "舞蹈",
-                    "广场舞",
-                    "麻将",
-                    "打牌",
-                    "唱歌",
-                    "英文",
-                    "书法",
-                    "乒乓球",
-                  ]
-                : [
-                    "Tai Chi",
-                    "Ba Duan Jin",
-                    "Dance",
-                    "Square Dance",
-                    "Mahjong",
-                    "Cards",
-                    "Singing",
-                    "English",
-                    "Calligraphy",
-                    "Table Tennis",
-                  ]
+              {(language === 'zh' 
+                ? ['太极', '八段锦', '舞蹈', '广场舞', '麻将', '打牌', '唱歌', '英文', '书法', '乒乓球']
+                : ['Tai Chi', 'Ba Duan Jin', 'Dance', 'Square Dance', 'Mahjong', 'Cards', 'Singing', 'English', 'Calligraphy', 'Table Tennis']
               ).map((activity, index) => (
                 <span
                   key={index}
@@ -290,12 +260,8 @@ export function Home() {
             viewport={{ once: true }}
             className="text-center mb-6 sm:mb-8"
           >
-            <h3 className="text-[#2B5F9E] mb-2 sm:mb-3 text-xl sm:text-2xl px-2">
-              {t("home.activities.title")}
-            </h3>
-            <p className="text-gray-700 mb-6 sm:mb-8 text-sm sm:text-base px-4">
-              {t("home.activities.desc")}
-            </p>
+            <h3 className="text-[#2B5F9E] mb-2 sm:mb-3 text-xl sm:text-2xl px-2">{t('home.activities.title')}</h3>
+            <p className="text-gray-700 mb-6 sm:mb-8 text-sm sm:text-base px-4">{t('home.activities.desc')}</p>
           </motion.div>
 
           {/* Activity Images Carousel */}
@@ -316,6 +282,24 @@ export function Home() {
                   {activityImages[currentImageIndex].caption}
                 </p>
               </div>
+
+              {/* Left Arrow Button */}
+              <button
+                onClick={handlePrevImage}
+                className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 sm:p-3 rounded-full transition-all hover:scale-110"
+                aria-label={language === 'zh' ? '上一张图片' : 'Previous image'}
+              >
+                <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+              </button>
+
+              {/* Right Arrow Button */}
+              <button
+                onClick={handleNextImage}
+                className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 sm:p-3 rounded-full transition-all hover:scale-110"
+                aria-label={language === 'zh' ? '下一张图片' : 'Next image'}
+              >
+                <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+              </button>
             </div>
 
             {/* Image Indicators */}
@@ -323,11 +307,11 @@ export function Home() {
               {activityImages.map((_, index) => (
                 <button
                   key={index}
-                  onClick={() => setCurrentImageIndex(index)}
+                  onClick={() => handleDotClick(index)}
                   className={`w-2 h-2 rounded-full transition-all ${
                     index === currentImageIndex
-                      ? "bg-[#2B5F9E] w-6"
-                      : "bg-gray-300 hover:bg-gray-400"
+                      ? 'bg-[#2B5F9E] w-6'
+                      : 'bg-gray-300 hover:bg-gray-400'
                   }`}
                   aria-label={`Go to image ${index + 1}`}
                 />
