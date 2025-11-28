@@ -438,48 +438,71 @@ export function AdminMembers() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[60]"
+              transition={{ duration: 0.15 }}
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-[60]"
               onClick={() => setConfirmDialog(null)}
             >
               <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
+                transition={{ duration: 0.2, ease: [0.34, 1.56, 0.64, 1] }}
                 onClick={(e) => e.stopPropagation()}
-                className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6"
+                className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8"
               >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
-                    <AlertTriangle className="w-6 h-6 text-amber-600" />
+                <div className="flex justify-center mb-6">
+                  <div
+                    className={`w-20 h-20 rounded-full flex items-center justify-center ${
+                      confirmDialog.type === "delete" ||
+                      confirmDialog.type === "revoke" ||
+                      confirmDialog.type === "reject"
+                        ? "bg-red-50"
+                        : "bg-blue-50"
+                    }`}
+                  >
+                    <AlertTriangle
+                      className={`w-10 h-10 ${
+                        confirmDialog.type === "delete" ||
+                        confirmDialog.type === "revoke" ||
+                        confirmDialog.type === "reject"
+                          ? "text-red-500"
+                          : "text-amber-500"
+                      }`}
+                    />
                   </div>
-                  <h3 className="text-xl text-gray-900">
-                    {t(`admin.members.confirm.${confirmDialog.type}.title`)}
-                  </h3>
                 </div>
 
-                <p className="text-gray-600 mb-6">
+                <h3 className="text-gray-900 text-center mb-3">
+                  {t(`admin.members.confirm.${confirmDialog.type}.title`)}
+                </h3>
+
+                <p className="text-gray-600 text-center mb-8 text-sm leading-relaxed">
                   {t(`admin.members.confirm.${confirmDialog.type}.message`)}
                 </p>
 
                 <div className="flex gap-3">
-                  <button
+                  <motion.button
                     onClick={() => setConfirmDialog(null)}
-                    className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                   >
                     {t("admin.members.confirm.cancel")}
-                  </button>
-                  <button
+                  </motion.button>
+                  <motion.button
                     onClick={handleConfirm}
-                    className={`flex-1 px-4 py-2.5 rounded-lg transition-colors ${
+                    className={`flex-1 px-6 py-3 rounded-xl transition-colors ${
                       confirmDialog.type === "delete" ||
                       confirmDialog.type === "revoke" ||
                       confirmDialog.type === "reject"
                         ? "bg-red-500 text-white hover:bg-red-600"
                         : "bg-[#6BA868] text-white hover:bg-[#5a9157]"
                     }`}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                   >
                     {t("admin.members.confirm.confirm")}
-                  </button>
+                  </motion.button>
                 </div>
               </motion.div>
             </motion.div>
