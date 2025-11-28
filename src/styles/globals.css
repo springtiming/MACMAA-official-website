@@ -133,7 +133,7 @@
  * Base typography. This is not applied to elements which have an ancestor with a Tailwind text class.
  */
 @layer base {
-  :where(:not(:has([class*=" text-"]), :not(:has([class^="text-"])))) {
+  :where(:not(:has([class*=' text-']), :not(:has([class^='text-'])))) {
     h1 {
       font-size: var(--text-2xl);
       font-weight: var(--font-weight-medium);
@@ -197,6 +197,20 @@ html {
   overflow: hidden;
 }
 
+/* Skeleton shimmer animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
 /* Rich Text Editor (Quill) Styles */
 .ql-toolbar.ql-snow {
   border: none !important;
@@ -228,8 +242,7 @@ html {
   margin: 1rem 0;
 }
 
-.ql-editor ul,
-.ql-editor ol {
+.ql-editor ul, .ql-editor ol {
   padding-left: 1.5rem;
   margin-bottom: 0.75rem;
 }
@@ -242,34 +255,34 @@ html {
   font-size: 1.875rem;
   font-weight: 600;
   margin-bottom: 0.75rem;
-  color: #2b5f9e;
+  color: #2B5F9E;
 }
 
 .ql-editor h2 {
   font-size: 1.5rem;
   font-weight: 600;
   margin-bottom: 0.75rem;
-  color: #2b5f9e;
+  color: #2B5F9E;
 }
 
 .ql-editor h3 {
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 0.75rem;
-  color: #2b5f9e;
+  color: #2B5F9E;
 }
 
 .ql-editor strong {
   font-weight: 600;
-  color: #2b5f9e;
+  color: #2B5F9E;
 }
 
 .ql-snow .ql-stroke {
-  stroke: #6b7280;
+  stroke: #6B7280;
 }
 
 .ql-snow .ql-fill {
-  fill: #6b7280;
+  fill: #6B7280;
 }
 
 .ql-snow .ql-picker-label {
@@ -278,23 +291,23 @@ html {
 
 .ql-toolbar button:hover,
 .ql-toolbar button:focus {
-  color: #2b5f9e !important;
+  color: #2B5F9E !important;
 }
 
 .ql-toolbar button:hover .ql-stroke,
 .ql-toolbar button:focus .ql-stroke,
 .ql-toolbar button.ql-active .ql-stroke {
-  stroke: #2b5f9e !important;
+  stroke: #2B5F9E !important;
 }
 
 .ql-toolbar button:hover .ql-fill,
 .ql-toolbar button:focus .ql-fill,
 .ql-toolbar button.ql-active .ql-fill {
-  fill: #2b5f9e !important;
+  fill: #2B5F9E !important;
 }
 
 .ql-snow.ql-toolbar button.ql-active {
-  color: #2b5f9e !important;
+  color: #2B5F9E !important;
 }
 
 /* News content display styles */
@@ -309,8 +322,7 @@ html {
   margin: 1rem 0;
 }
 
-.news-content ul,
-.news-content ol {
+.news-content ul, .news-content ol {
   padding-left: 1.5rem;
   margin-bottom: 0.75rem;
 }
@@ -323,38 +335,24 @@ html {
   font-size: 1.875rem;
   font-weight: 600;
   margin-bottom: 0.75rem;
-  color: #2b5f9e;
+  color: #2B5F9E;
 }
 
 .news-content h2 {
   font-size: 1.5rem;
   font-weight: 600;
   margin-bottom: 0.75rem;
-  color: #2b5f9e;
+  color: #2B5F9E;
 }
 
 .news-content h3 {
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 0.75rem;
-  color: #2b5f9e;
+  color: #2B5F9E;
 }
 
 .news-content strong {
   font-weight: 600;
-  color: #2b5f9e;
-}
-
-/* Skeleton shimmer animation */
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-.animate-shimmer {
-  animation: shimmer 2s infinite;
+  color: #2B5F9E;
 }
