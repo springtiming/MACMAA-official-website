@@ -267,7 +267,7 @@ async function callEdgeFunction(path: string, init?: RequestInit) {
 
 
 export async function fetchAdminEvents() {
-  const res = await fetch(buildAdminApiUrl("/events"), {
+  const res = await callEdgeFunction("events-admin", {
     headers: { Accept: "application/json" },
   });
 
@@ -280,7 +280,7 @@ export async function fetchAdminEvents() {
 }
 
 export async function saveEvent(payload: UpsertEventInput) {
-  const res = await fetch(buildAdminApiUrl("/events"), {
+  const res = await callEdgeFunction("events-admin", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -298,7 +298,7 @@ export async function saveEvent(payload: UpsertEventInput) {
 }
 
 export async function deleteEvent(id: string) {
-  const res = await fetch(`${buildAdminApiUrl("/events")}/${id}`, {
+  const res = await callEdgeFunction(`events-admin?id=${encodeURIComponent(id)}`, {
     method: "DELETE",
   });
 
