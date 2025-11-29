@@ -6,8 +6,10 @@ import {
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const SUPABASE_SERVICE_ROLE_KEY = import.meta.env
-  .VITE_SUPABASE_SERVICE_ROLE_KEY;
+const SUPABASE_SERVICE_ROLE_KEY =
+  typeof process !== "undefined" && process.env
+    ? (process.env.SUPABASE_SERVICE_ROLE_KEY as string | undefined)
+    : undefined;
 const STORAGE_KEY = "vmca.supabase.auth";
 
 const memoryStorage = {

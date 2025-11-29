@@ -127,7 +127,7 @@ export function ProcessingOverlay({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.15 }}
+        transition={{ duration: 0.075 }}
         className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50"
       >
         <motion.div
@@ -162,7 +162,7 @@ export function ProcessingOverlay({
                 className="flex justify-center mb-6"
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.05, type: "spring", damping: 14 }}
+                transition={{ delay: 0.025, type: "spring", damping: 14 }}
               >
                 <div className="relative flex items-center justify-center">
                   {state === "processing" ? (
@@ -206,7 +206,7 @@ export function ProcessingOverlay({
                 <motion.h3
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
+                  transition={{ delay: 0.05 }}
                   className={`${config.titleClass} text-center mb-3 font-semibold`}
                 >
                   {title}
@@ -218,7 +218,7 @@ export function ProcessingOverlay({
                 <motion.p
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.15 }}
+                  transition={{ delay: 0.075 }}
                   className="text-gray-600 text-center text-sm"
                 >
                   {message}
@@ -230,7 +230,7 @@ export function ProcessingOverlay({
                 <motion.div
                   initial={{ opacity: 0, scaleX: 0.9 }}
                   animate={{ opacity: 1, scaleX: 1 }}
-                  transition={{ delay: 0.225, duration: 0.25 }}
+                  transition={{ delay: 0.1125, duration: 0.125 }}
                   className="mt-6 h-2 rounded-full relative overflow-hidden"
                   style={{ background: config.progressTrack }}
                 >
@@ -255,7 +255,7 @@ export function ProcessingOverlay({
                 <motion.div
                   initial={{ pathLength: 0, opacity: 0 }}
                   animate={{ pathLength: 1, opacity: 1 }}
-                  transition={{ delay: 0.1, duration: 0.25, ease: "easeInOut" }}
+                  transition={{ delay: 0.05, duration: 0.125, ease: "easeInOut" }}
                   className="mt-4"
                 >
                   <svg className="w-full h-2" viewBox="0 0 100 2">

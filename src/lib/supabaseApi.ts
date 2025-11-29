@@ -1,9 +1,5 @@
 import type { PostgrestError } from "@supabase/supabase-js";
-import {
-  getSupabaseAdminClient,
-  getSupabaseClient,
-  logSupabaseError,
-} from "./supabaseClient";
+import { getSupabaseClient, logSupabaseError } from "./supabaseClient";
 
 export interface NewsPostRecord {
   id: string;
@@ -207,37 +203,48 @@ export async function fetchEventById(id: string) {
   return data;
 }
 
-export async function fetchAdminNewsPosts() {
-  const supabase = getSupabaseAdminClient();
-  const { data, error } = await supabase
-    .from("articles")
-    .select(
-      "id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, published_at, published, author_id"
-    )
-    .order("published_at", { ascending: false });
+const ADMIN_API_BASE =
+  typeof import.meta !== "undefined" && import.meta.env?.VITE_ADMIN_API_BASE
+    ? (import.meta.env.VITE_ADMIN_API_BASE as string)
+    : "/api";
 
-  if (error) {
-    logSupabaseError("fetchAdminNewsPosts", error);
-    throw error;
+function buildAdminApiUrl(path: string) {
+  const normalizedBase = ADMIN_API_BASE.replace(/\/$/, "");
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  if (normalizedBase.endsWith(normalizedPath)) {
+    return normalizedBase;
   }
-  return data ?? [];
+  return `${normalizedBase}${normalizedPath}`;
+}
+
+const ADMIN_NEWS_API_BASE = buildAdminApiUrl("/news");
+const ADMIN_NEWS_DRAFTS_API_BASE = buildAdminApiUrl("/news/drafts");
+const ADMIN_NEWS_PUBLISH_API = buildAdminApiUrl("/news/publish");
+
+export async function fetchAdminNewsPosts() {
+  const res = await fetch(ADMIN_NEWS_API_BASE, {
+    headers: { Accept: "application/json" },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch admin news");
+  }
+
+  const body = (await res.json()) as { articles: NewsPostRecord[] };
+  return body.articles ?? [];
 }
 
 export async function fetchMyDrafts() {
-  const supabase = getSupabaseAdminClient();
-  const { data, error } = await supabase
-    .from("article_versions")
-    .select(
-      "id, article_id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, status, version_number, created_by, created_at, updated_at"
-    )
-    .eq("status", "draft")
-    .order("updated_at", { ascending: false });
+  const res = await fetch(ADMIN_NEWS_DRAFTS_API_BASE, {
+    headers: { Accept: "application/json" },
+  });
 
-  if (error) {
-    logSupabaseError("fetchMyDrafts", error);
-    throw error;
+  if (!res.ok) {
+    throw new Error("Failed to fetch drafts");
   }
-  return data ?? [];
+
+  const body = (await res.json()) as { drafts: ArticleVersionRecord[] };
+  return body.drafts ?? [];
 }
 
 export type NewsDraftInput = {
@@ -252,125 +259,58 @@ export type NewsDraftInput = {
 };
 
 export async function saveNewsDraft(payload: NewsDraftInput) {
-  const supabase = getSupabaseAdminClient();
+  const res = await fetch(ADMIN_NEWS_DRAFTS_API_BASE, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
 
-  // Determine next version_number
-  let versionNumber = 1;
-  if (payload.id) {
-    const { data: latestVersion } = await supabase
-      .from("article_versions")
-      .select("version_number")
-      .eq("article_id", payload.id)
-      .order("version_number", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (latestVersion?.version_number) {
-      versionNumber = latestVersion.version_number + 1;
-    }
+  if (!res.ok) {
+    throw new Error("Failed to save draft");
   }
 
-  const { data, error } = await supabase
-    .from("article_versions")
-    .insert({
-      article_id: payload.id ?? null,
-      title_zh: payload.title_zh,
-      title_en: payload.title_en,
-      summary_zh: payload.summary_zh ?? null,
-      summary_en: payload.summary_en ?? null,
-      content_zh: payload.content_zh ?? null,
-      content_en: payload.content_en ?? null,
-      cover_source: payload.cover_source ?? null,
-      status: "draft",
-      version_number: versionNumber,
-    })
-    .select()
-    .single();
-
-  if (error) {
-    logSupabaseError("saveNewsDraft", error);
-    throw error;
-  }
-  return data as ArticleVersionRecord;
+  const body = (await res.json()) as { draft: ArticleVersionRecord };
+  return body.draft;
 }
 
 export async function publishNewsFromDraft(versionId: string) {
-  const supabase = getSupabaseAdminClient();
-  // Fetch draft
-  const { data: draft, error: draftError } = await supabase
-    .from("article_versions")
-    .select(
-      "id, article_id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, status, version_number"
-    )
-    .eq("id", versionId)
-    .maybeSingle();
-  if (draftError || !draft) {
-    logSupabaseError("publishNewsFromDraft", draftError);
-    throw draftError;
+  const res = await fetch(ADMIN_NEWS_PUBLISH_API, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({ versionId }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to publish draft");
   }
 
-  const articleId = draft.article_id || crypto.randomUUID();
-
-  // Upsert article with draft content
-  const { data: article, error: articleError } = await supabase
-    .from("articles")
-    .upsert({
-      id: articleId,
-      title_zh: draft.title_zh,
-      title_en: draft.title_en,
-      summary_zh: draft.summary_zh,
-      summary_en: draft.summary_en,
-      content_zh: draft.content_zh,
-      content_en: draft.content_en,
-      cover_source: draft.cover_source,
-      published: true,
-      published_at: new Date().toISOString(),
-    })
-    .select()
-    .single();
-
-  if (articleError) {
-    logSupabaseError("publishNewsFromDraft", articleError);
-    throw articleError;
-  }
-
-  // Mark version as published and ensure article_id is set
-  const { data: version, error: versionError } = await supabase
-    .from("article_versions")
-    .update({ status: "published", article_id: article.id })
-    .eq("id", draft.id)
-    .select()
-    .single();
-
-  if (versionError) {
-    logSupabaseError("publishNewsFromDraft", versionError);
-    throw versionError;
-  }
-
-  return {
-    article: article as NewsPostRecord,
-    version: version as ArticleVersionRecord,
+  const body = (await res.json()) as {
+    article: NewsPostRecord;
+    version: ArticleVersionRecord;
   };
+
+  return body;
 }
 
 export async function deleteArticle(id: string) {
-  const supabase = getSupabaseAdminClient();
-  const { error } = await supabase.from("articles").delete().eq("id", id);
-  if (error) {
-    logSupabaseError("deleteArticle", error);
-    throw error;
+  const res = await fetch(`${ADMIN_NEWS_API_BASE}/${id}`, { method: "DELETE" });
+  if (!res.ok && res.status !== 204) {
+    throw new Error("Failed to delete article");
   }
 }
 
 export async function deleteDraft(versionId: string) {
-  const supabase = getSupabaseAdminClient();
-  const { error } = await supabase
-    .from("article_versions")
-    .delete()
-    .eq("id", versionId)
-    .eq("status", "draft");
-  if (error) {
-    logSupabaseError("deleteDraft", error);
-    throw error;
+  const res = await fetch(`${ADMIN_NEWS_DRAFTS_API_BASE}/${versionId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok && res.status !== 204) {
+    throw new Error("Failed to delete draft");
   }
 }
 
@@ -402,10 +342,7 @@ export class ConcurrencyError extends Error {
   }
 }
 
-const MEMBERS_API_BASE =
-  typeof import.meta !== "undefined" && import.meta.env?.VITE_ADMIN_API_BASE
-    ? (import.meta.env.VITE_ADMIN_API_BASE as string)
-    : "/api/members";
+const MEMBERS_API_BASE = buildAdminApiUrl("/members");
 
 export async function fetchMembers() {
   const res = await fetch(MEMBERS_API_BASE, {
