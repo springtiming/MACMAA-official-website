@@ -1,7 +1,17 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { Search, Plus, Edit, Trash2, Calendar, ArrowLeft, X } from "lucide-react";
+import {
+  Search,
+  Plus,
+  Edit,
+  Trash2,
+  Calendar,
+  MapPin,
+  DollarSign,
+  ArrowLeft,
+  X,
+} from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import {
   fetchAdminEvents,
@@ -141,81 +151,129 @@ export function AdminEvents() {
   return (
     <div className="min-h-screen bg-[#F5EFE6] px-4 sm:px-6 lg:px-8 py-8">
       <div className="max-w-7xl mx-auto">
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6 flex items-center gap-3">
-          <button onClick={() => navigate("/admin/dashboard")} className="text-[#2B5F9E] hover:text-[#6BA868] flex items-center gap-2">
-            <ArrowLeft className="w-4 h-4" /> {t("admin.backToDashboard")}
-          </button>
-          <h1 className="text-[#2B5F9E] text-2xl">{t("admin.events.title")}</h1>
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <motion.button
+            onClick={() => navigate("/admin/dashboard")}
+            className="flex items-center gap-2 text-[#2B5F9E] hover:text-[#6BA868] transition-colors mb-4"
+            whileHover={{ x: -4 }}
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>{t("admin.backToDashboard")}</span>
+          </motion.button>
+
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-[#2B5F9E] to-[#6BA868] rounded-xl flex items-center justify-center">
+                <Calendar className="w-6 h-6 text-white" />
+              </div>
+              <h1 className="text-[#2B5F9E] text-2xl">{t("admin.events.title")}</h1>
+            </div>
+            <motion.button
+              onClick={() => {
+                setForm(emptyForm);
+                setShowForm(true);
+              }}
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#6BA868] text-white rounded-lg hover:bg-[#5a9157] transition-colors"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Plus className="w-5 h-5" />
+              <span>{t("admin.events.add")}</span>
+            </motion.button>
+          </div>
         </motion.div>
 
         {error && <p className="text-red-600 mb-3">{error}</p>}
         {loading && <p className="text-gray-600 mb-3">{t("common.loading")}</p>}
 
-        <div className="bg-white rounded-xl shadow p-4 mb-4 flex items-center gap-3">
-          <Search className="w-5 h-5 text-gray-400" />
-          <input
-            className="flex-1 outline-none"
-            placeholder={t("admin.events.search")}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <button
-            onClick={() => {
-              setForm(emptyForm);
-              setShowForm(true);
-            }}
-            className="px-4 py-2 bg-[#6BA868] text-white rounded-lg"
-          >
-            <Plus className="w-4 h-4 inline" /> {t("admin.events.add")}
-          </button>
-        </div>
+        {/* Search */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-xl shadow-md p-4 sm:p-6 mb-6"
+        >
+          <div className="relative flex items-center">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              className="flex-1 pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
+              placeholder={t("admin.events.search")}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        </motion.div>
 
+        {/* Event list */}
         <div className="space-y-4">
           {filtered.map((event) => (
-            <div key={event.id} className="bg-white rounded-xl shadow p-6">
-              <div className="flex justify-between items-start gap-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-lg text-[#2B5F9E]">
+            <div key={event.id} className="bg-white rounded-xl shadow-md p-6">
+              <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-xl text-[#2B5F9E]">
                       {pickLocalized(event.title_zh, event.title_en, language)}
                     </h3>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      event.access_type === "members-only"
-                        ? "bg-[#EB8C3A] text-white"
-                        : "bg-[#7BA3C7] text-white"
-                    }`}>
+                    <span
+                      className={`text-xs px-3 py-1 rounded-full ${
+                        event.access_type === "members-only"
+                          ? "bg-[#EB8C3A] text-white"
+                          : "bg-[#7BA3C7] text-white"
+                      }`}
+                    >
                       {event.access_type === "members-only"
                         ? t("events.memberOnly")
                         : t("events.allWelcome")}
                     </span>
                   </div>
-                  <p className="text-gray-600 mb-3">
+                  <p className="text-gray-700">
                     {pickLocalized(event.description_zh, event.description_en, language)}
                   </p>
-                  <p className="text-sm text-gray-700 flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-[#EB8C3A]" />
-                    {event.event_date} {event.start_time?.slice(0, 5) ?? ""} {event.end_time ? `- ${event.end_time.slice(0, 5)}` : ""}
-                  </p>
-                  <p className="text-sm text-gray-700">{t("events.location")}: {event.location}</p>
-                  <p className="text-sm text-gray-700">
-                    {t("events.fee")}: {event.fee === 0 ? t("common.free") : `$${event.fee}`}
-                  </p>
+                  <div className="space-y-2 text-sm text-gray-700">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-[#EB8C3A]" />
+                      <span>
+                        {event.event_date}{" "}
+                        {event.start_time?.slice(0, 5) ?? ""}{" "}
+                        {event.end_time ? `- ${event.end_time.slice(0, 5)}` : ""}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-[#6BA868]" />
+                      <span>{event.location}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="w-4 h-4 text-[#2B5F9E]" />
+                      <span>
+                        {event.fee === 0
+                          ? t("common.free")
+                          : `$${event.fee}` }
+                        {event.member_fee != null ? ` (${t("events.memberFee")}: $${event.member_fee})` : ""}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-3">
                   <button
                     onClick={() => {
                       setForm(toForm(event));
                       setShowForm(true);
                     }}
-                    className="px-3 py-2 bg-[#6BA868] text-white rounded-lg"
+                    className="flex items-center gap-2 px-4 py-2 bg-[#6BA868] text-white rounded-lg hover:bg-[#5a9157]"
                   >
                     <Edit className="w-4 h-4" />
+                    <span>{t("admin.events.edit")}</span>
                   </button>
                   <button
                     onClick={() => handleDelete(event.id)}
-                    className="px-3 py-2 bg-red-500 text-white rounded-lg"
+                    className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
                   >
                     <Trash2 className="w-4 h-4" />
+                    <span>{t("common.delete")}</span>
                   </button>
                 </div>
               </div>
