@@ -12,6 +12,11 @@ export function EventList() {
   const [events, setEvents] = useState<EventRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // 仅在首次加载时展示骨架屏，之后加载直接展示内容
+  const [showSkeleton, setShowSkeleton] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return !window.sessionStorage.getItem("EventListSkeletonSeen");
+  });
 
   const formatDate = (dateString: string, start?: string | null) => {
     const date = new Date(dateString);
@@ -51,14 +56,22 @@ export function EventList() {
       } catch {
         if (active) setError(t("common.error"));
       } finally {
-        if (active) setIsLoading(false);
+        if (!active) return;
+        setIsLoading(false);
+        // 首次完成加载后记录已播放骨架屏
+        if (showSkeleton) {
+          if (typeof window !== "undefined") {
+            window.sessionStorage.setItem("EventListSkeletonSeen", "1");
+          }
+          setShowSkeleton(false);
+        }
       }
     };
     loadEvents();
     return () => {
       active = false;
     };
-  }, [t]);
+  }, [t, showSkeleton]);
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -72,7 +85,7 @@ export function EventList() {
 
       {error ? (
         <p className="text-red-600 px-2">{error}</p>
-      ) : isLoading ? (
+      ) : isLoading && showSkeleton ? (
         <EventSkeleton count={4} />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">

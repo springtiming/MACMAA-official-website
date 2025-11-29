@@ -12,6 +12,11 @@ export function NewsList() {
   const [newsList, setNewsList] = useState<NewsPostRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // 仅在首次加载时展示骨架屏，之后加载直接展示内容
+  const [showSkeleton, setShowSkeleton] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return !window.sessionStorage.getItem("NewsListSkeletonSeen");
+  });
 
   useEffect(() => {
     let active = true;
@@ -26,14 +31,22 @@ export function NewsList() {
       } catch {
         if (active) setError(t("common.error"));
       } finally {
-        if (active) setIsLoading(false);
+        if (!active) return;
+        setIsLoading(false);
+        // 首次完成加载后记录已播放骨架屏
+        if (showSkeleton) {
+          if (typeof window !== "undefined") {
+            window.sessionStorage.setItem("NewsListSkeletonSeen", "1");
+          }
+          setShowSkeleton(false);
+        }
       }
     };
     loadNews();
     return () => {
       active = false;
     };
-  }, [t]);
+  }, [t, showSkeleton]);
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -47,7 +60,7 @@ export function NewsList() {
 
       {error ? (
         <p className="text-red-600 px-2">{error}</p>
-      ) : isLoading ? (
+      ) : isLoading && showSkeleton ? (
         <NewsSkeleton count={6} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
