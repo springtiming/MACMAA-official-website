@@ -12,7 +12,12 @@ import {
   Clock,
   Shield,
 } from "lucide-react";
-import { fetchEvents, fetchNewsPosts } from "../lib/supabaseApi";
+import {
+  fetchEvents,
+  fetchNewsPosts,
+  fetchActivities,
+  type ActivityRecord,
+} from "../lib/supabaseApi";
 
 export function AdminDashboard() {
   const navigate = useNavigate();
@@ -21,6 +26,9 @@ export function AdminDashboard() {
   const [eventsCount, setEventsCount] = useState(0);
   const [statsError, setStatsError] = useState<string | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
+  const [activities, setActivities] = useState<ActivityRecord[]>([]);
+  const [activitiesLoading, setActivitiesLoading] = useState(false);
+  const [activitiesError, setActivitiesError] = useState<string | null>(null);
 
   // Get current user role
   const currentUserRole =
@@ -53,6 +61,27 @@ export function AdminDashboard() {
         if (active) setStatsLoading(false);
       });
 
+    return () => {
+      active = false;
+    };
+  }, [t]);
+
+  useEffect(() => {
+    let active = true;
+    setActivitiesLoading(true);
+    fetchActivities({ limit: 5, days: 7 })
+      .then((data) => {
+        if (active) {
+          setActivities(data);
+          setActivitiesError(null);
+        }
+      })
+      .catch(() => {
+        if (active) setActivitiesError(t("common.error"));
+      })
+      .finally(() => {
+        if (active) setActivitiesLoading(false);
+      });
     return () => {
       active = false;
     };
@@ -143,35 +172,26 @@ export function AdminDashboard() {
     },
   ];
 
-  const recentActivities = [
-    {
-      type: "registration",
-      user: "John Smith",
-      action:
-        language === "zh"
-          ? '报名了"元宵节庆祝活动"'
-          : 'registered for "Lantern Festival"',
-      time: "2 hours ago",
-    },
-    {
-      type: "member",
-      user: "Wei Li",
-      action:
-        language === "zh"
-          ? "提交了会员申请"
-          : "submitted membership application",
-      time: "5 hours ago",
-    },
-    {
-      type: "news",
-      user: "Admin",
-      action:
-        language === "zh"
-          ? '发布了新闻"多元文化艺术展览"'
-          : 'published "Multicultural Art Exhibition"',
-      time: "1 day ago",
-    },
-  ];
+  const formatRelativeTime = (iso: string) => {
+    const ts = new Date(iso).getTime();
+    if (Number.isNaN(ts)) return "";
+    const diff = Date.now() - ts;
+    const mins = Math.floor(diff / (60 * 1000));
+    if (mins < 1) return language === "zh" ? "刚刚" : "just now";
+    if (mins < 60)
+      return language === "zh"
+        ? `${mins} 分钟前`
+        : `${mins} minute${mins === 1 ? "" : "s"} ago`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24)
+      return language === "zh"
+        ? `${hours} 小时前`
+        : `${hours} hour${hours === 1 ? "" : "s"} ago`;
+    const days = Math.floor(hours / 24);
+    return language === "zh"
+      ? `${days} 天前`
+      : `${days} day${days === 1 ? "" : "s"} ago`;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -306,33 +326,56 @@ export function AdminDashboard() {
               className="bg-white rounded-xl shadow-lg p-6"
             >
               <div className="space-y-4">
-                {recentActivities.map((activity, index) => (
-                  <div
-                    key={index}
-                    className="flex gap-3 pb-4 border-b last:border-b-0 last:pb-0"
-                  >
-                    <div className="w-10 h-10 bg-[#F5EFE6] rounded-full flex items-center justify-center flex-shrink-0">
-                      {activity.type === "registration" && (
-                        <Calendar className="w-5 h-5 text-[#2B5F9E]" />
-                      )}
-                      {activity.type === "member" && (
-                        <Users className="w-5 h-5 text-[#EB8C3A]" />
-                      )}
-                      {activity.type === "news" && (
-                        <Newspaper className="w-5 h-5 text-[#6BA868]" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-gray-900 text-sm">
-                        <strong>{activity.user}</strong> {activity.action}
-                      </p>
-                      <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
-                        <Clock className="w-3 h-3" />
-                        <span>{activity.time}</span>
+                {activitiesLoading && (
+                  <p className="text-gray-600 text-sm">
+                    {t("common.loading")}
+                  </p>
+                )}
+                {activitiesError && (
+                  <p className="text-red-600 text-sm" role="alert">
+                    {activitiesError}
+                  </p>
+                )}
+                {!activitiesLoading && !activitiesError && activities.length === 0 && (
+                  <p className="text-gray-500 text-sm">
+                    {language === "zh" ? "暂无最近活动" : "No recent activity"}
+                  </p>
+                )}
+                {activities.map((activity) => {
+                  const Icon =
+                    activity.type === "registration"
+                      ? Calendar
+                      : activity.type === "member"
+                        ? Users
+                        : Newspaper;
+                  const color =
+                    activity.type === "registration"
+                      ? "#2B5F9E"
+                      : activity.type === "member"
+                        ? "#EB8C3A"
+                        : "#6BA868";
+                  const actionText =
+                    language === "zh" ? activity.action.zh : activity.action.en;
+                  return (
+                    <div
+                      key={activity.id}
+                      className="flex gap-3 pb-4 border-b last:border-b-0 last:pb-0"
+                    >
+                      <div className="w-10 h-10 bg-[#F5EFE6] rounded-full flex items-center justify-center flex-shrink-0">
+                        <Icon className="w-5 h-5" style={{ color }} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-gray-900 text-sm">
+                          <strong>{activity.user}</strong> {actionText}
+                        </p>
+                        <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+                          <Clock className="w-3 h-3" />
+                          <span>{formatRelativeTime(activity.timestamp)}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </motion.div>
           </div>

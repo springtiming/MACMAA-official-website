@@ -245,6 +245,7 @@ const ADMIN_EVENT_REGISTRATIONS_API_BASE = buildAdminApiUrl(
   "/events/registrations"
 );
 const ADMIN_ACCOUNTS_API_BASE = buildAdminApiUrl("/admin-accounts");
+const ADMIN_ACTIVITIES_API_BASE = buildAdminApiUrl("/activities");
 
 export async function fetchAdminEvents() {
   const res = await fetch(ADMIN_EVENTS_API_BASE, {
@@ -377,6 +378,25 @@ export async function deleteAdminAccount(id: string) {
   }
 }
 
+export async function fetchActivities(options?: {
+  limit?: number;
+  days?: number;
+}) {
+  const params = new URLSearchParams();
+  if (options?.limit) params.set("limit", String(options.limit));
+  if (options?.days) params.set("days", String(options.days));
+  const url = params.toString()
+    ? `${ADMIN_ACTIVITIES_API_BASE}?${params.toString()}`
+    : ADMIN_ACTIVITIES_API_BASE;
+
+  const res = await fetch(url, { headers: { Accept: "application/json" } });
+  if (!res.ok) {
+    throw new Error("Failed to fetch activities");
+  }
+  const body = (await res.json()) as { activities: ActivityRecord[] };
+  return body.activities ?? [];
+}
+
 export async function fetchAdminNewsPosts() {
   const res = await fetch(ADMIN_NEWS_API_BASE, {
     headers: { Accept: "application/json" },
@@ -500,6 +520,15 @@ export interface AdminAccountRecord {
   created_at: string | null;
   last_login_at: string | null;
 }
+
+export type ActivityRecord = {
+  id: string;
+  type: "registration" | "member" | "news";
+  timestamp: string;
+  user: string;
+  action: { zh: string; en: string };
+  metadata: Record<string, unknown>;
+};
 
 export class ConcurrencyError extends Error {
   constructor(message = "Record was modified by another user") {
