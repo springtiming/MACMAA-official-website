@@ -7,14 +7,7 @@ type SkeletonCardProps = {
 };
 
 function ShimmerBlock({ className }: { className?: string }) {
-  return (
-    <div
-      className={cn(
-        "skeleton-shimmer rounded-md",
-        className,
-      )}
-    />
-  );
+  return <div className={cn("skeleton-shimmer rounded-md", className)} />;
 }
 
 function NewsSkeletonLayout() {

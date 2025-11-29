@@ -31,14 +31,15 @@ export function NewsList() {
       } catch {
         if (active) setError(t("common.error"));
       } finally {
-        if (!active) return;
-        setIsLoading(false);
-        // 首次完成加载后记录已播放骨架屏
-        if (showSkeleton) {
-          if (typeof window !== "undefined") {
-            window.sessionStorage.setItem("NewsListSkeletonSeen", "1");
+        if (active) {
+          setIsLoading(false);
+          // 首次完成加载后记录已播放骨架屏
+          if (showSkeleton) {
+            if (typeof window !== "undefined") {
+              window.sessionStorage.setItem("NewsListSkeletonSeen", "1");
+            }
+            setShowSkeleton(false);
           }
-          setShowSkeleton(false);
         }
       }
     };
@@ -55,7 +56,9 @@ export function NewsList() {
         animate={{ opacity: 1, y: 0 }}
         className="mb-6 sm:mb-8"
       >
-        <h1 className="text-[#2B5F9E] mb-3 sm:mb-4 text-3xl sm:text-4xl px-2">{t('news.title')}</h1>
+        <h1 className="text-[#2B5F9E] mb-3 sm:mb-4 text-3xl sm:text-4xl px-2">
+          {t("news.title")}
+        </h1>
       </motion.div>
 
       {error ? (
@@ -81,7 +84,7 @@ export function NewsList() {
                     src={
                       news.cover_source ||
                       `https://source.unsplash.com/800x600/?${encodeURIComponent(
-                        language === "zh" ? news.title_zh : news.title_en,
+                        language === "zh" ? news.title_zh : news.title_en
                       )}`
                     }
                     alt={language === "zh" ? news.title_zh : news.title_en}
@@ -94,7 +97,7 @@ export function NewsList() {
                     <span>
                       {news.published_at
                         ? new Date(news.published_at).toLocaleDateString(
-                            language === "zh" ? "zh-CN" : "en-US",
+                            language === "zh" ? "zh-CN" : "en-US"
                           )
                         : ""}
                     </span>
@@ -103,10 +106,11 @@ export function NewsList() {
                     {language === "zh" ? news.title_zh : news.title_en}
                   </h3>
                   <p className="text-gray-600 mb-3 sm:mb-4 line-clamp-2 text-sm sm:text-base">
-                    {(language === "zh" ? news.summary_zh : news.summary_en) ?? ""}
+                    {(language === "zh" ? news.summary_zh : news.summary_en) ??
+                      ""}
                   </p>
                   <div className="flex items-center gap-2 text-[#2B5F9E] text-sm sm:text-base">
-                    <span>{t('news.readMore')}</span>
+                    <span>{t("news.readMore")}</span>
                     <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </div>
                 </div>

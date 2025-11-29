@@ -170,9 +170,7 @@ export function AdminSettings() {
             {error}
           </div>
         )}
-        {loading && (
-          <p className="mb-6 text-gray-600">{t("common.loading")}</p>
-        )}
+        {loading && <p className="mb-6 text-gray-600">{t("common.loading")}</p>}
 
         <div className="space-y-6">
           {/* Email Section */}
@@ -218,7 +216,9 @@ export function AdminSettings() {
                 whileTap={{ scale: 0.98 }}
               >
                 <Save className="w-5 h-5" />
-                {savingEmail ? t("common.loading") : t("admin.settings.saveEmail")}
+                {savingEmail
+                  ? t("common.loading")
+                  : t("admin.settings.saveEmail")}
               </motion.button>
             </form>
           </motion.div>

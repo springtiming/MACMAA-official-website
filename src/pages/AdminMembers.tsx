@@ -28,7 +28,12 @@ import {
 } from "../components/ProcessingOverlay";
 
 type MemberFilter = "all" | "pending" | "approved" | "rejected";
-const FILTER_OPTIONS: MemberFilter[] = ["all", "pending", "approved", "rejected"];
+const FILTER_OPTIONS: MemberFilter[] = [
+  "all",
+  "pending",
+  "approved",
+  "rejected",
+];
 
 export function AdminMembers() {
   const { language, t } = useLanguage();
@@ -36,7 +41,9 @@ export function AdminMembers() {
   const [members, setMembers] = useState<MemberRecord[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<MemberFilter>("all");
-  const [selectedMember, setSelectedMember] = useState<MemberRecord | null>(null);
+  const [selectedMember, setSelectedMember] = useState<MemberRecord | null>(
+    null
+  );
   const [showRejectedNote, setShowRejectedNote] = useState(true);
   const [confirmDialog, setConfirmDialog] = useState<{
     type: "approve" | "reject" | "revoke" | "delete" | "reopen";
@@ -44,8 +51,12 @@ export function AdminMembers() {
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [processingState, setProcessingState] = useState<ProcessingState>("idle");
-  const [processingMessage, setProcessingMessage] = useState({ title: "", message: "" });
+  const [processingState, setProcessingState] =
+    useState<ProcessingState>("idle");
+  const [processingMessage, setProcessingMessage] = useState({
+    title: "",
+    message: "",
+  });
 
   const loadMembers = useCallback(async () => {
     setLoading(true);
@@ -72,7 +83,8 @@ export function AdminMembers() {
         member.english_name.toLowerCase().includes(term) ||
         member.phone.includes(searchTerm) ||
         (member.email ?? "").toLowerCase().includes(term);
-      const matchesStatus = filterStatus === "all" || member.status === filterStatus;
+      const matchesStatus =
+        filterStatus === "all" || member.status === filterStatus;
       return matchesSearch && matchesStatus;
     });
   }, [members, searchTerm, filterStatus]);
@@ -208,7 +220,9 @@ export function AdminMembers() {
             expectedUpdatedAt: member.updated_at,
           }
         );
-        setMembers((prev) => prev.map((m) => (m.id === member.id ? updated : m)));
+        setMembers((prev) =>
+          prev.map((m) => (m.id === member.id ? updated : m))
+        );
         if (selectedMember?.id === member.id) setSelectedMember(updated);
       }
 
@@ -400,7 +414,9 @@ export function AdminMembers() {
           transition={{ delay: 0.1 }}
           className="bg-white rounded-xl shadow-md overflow-hidden"
         >
-          {loading && <p className="text-gray-600 px-4 py-3">{t("common.loading")}</p>}
+          {loading && (
+            <p className="text-gray-600 px-4 py-3">{t("common.loading")}</p>
+          )}
           {error && (
             <p className="text-red-600 px-4 py-3" role="alert">
               {error}
@@ -410,7 +426,9 @@ export function AdminMembers() {
             <table className="w-full">
               <thead className="bg-[#2B5F9E] text-white">
                 <tr>
-                  <th className="px-4 py-3 text-left">{t("admin.members.table.name")}</th>
+                  <th className="px-4 py-3 text-left">
+                    {t("admin.members.table.name")}
+                  </th>
                   <th className="px-4 py-3 text-left hidden sm:table-cell">
                     {t("admin.members.table.phone")}
                   </th>
@@ -420,8 +438,12 @@ export function AdminMembers() {
                   <th className="px-4 py-3 text-left hidden lg:table-cell">
                     {t("admin.members.table.applyDate")}
                   </th>
-                  <th className="px-4 py-3 text-left">{t("admin.members.table.status")}</th>
-                  <th className="px-4 py-3 text-center">{t("admin.members.table.actions")}</th>
+                  <th className="px-4 py-3 text-left">
+                    {t("admin.members.table.status")}
+                  </th>
+                  <th className="px-4 py-3 text-center">
+                    {t("admin.members.table.actions")}
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -436,16 +458,24 @@ export function AdminMembers() {
                     <td className="px-4 py-3">
                       <div>
                         <div>{member.chinese_name}</div>
-                        <div className="text-sm text-gray-500">{member.english_name}</div>
+                        <div className="text-sm text-gray-500">
+                          {member.english_name}
+                        </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 hidden sm:table-cell">{member.phone}</td>
+                    <td className="px-4 py-3 hidden sm:table-cell">
+                      {member.phone}
+                    </td>
                     <td className="px-4 py-3 hidden md:table-cell">
                       {member.email || <span className="text-gray-400">-</span>}
                     </td>
-                    <td className="px-4 py-3 hidden lg:table-cell">{member.apply_date ?? ""}</td>
+                    <td className="px-4 py-3 hidden lg:table-cell">
+                      {member.apply_date ?? ""}
+                    </td>
                     <td className="px-4 py-3">
-                      <span className={`px-2.5 py-1 rounded-full text-xs ${getStatusColor(member.status)}`}>
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-xs ${getStatusColor(member.status)}`}
+                      >
                         {getStatusText(member.status)}
                       </span>
                     </td>
@@ -461,14 +491,18 @@ export function AdminMembers() {
                         {member.status === "pending" && (
                           <>
                             <button
-                              onClick={() => openConfirmDialog("approve", member)}
+                              onClick={() =>
+                                openConfirmDialog("approve", member)
+                              }
                               className="p-2 text-[#6BA868] hover:bg-[#6BA868] hover:text-white rounded-lg transition-colors"
                               title={t("admin.members.approve")}
                             >
                               <Check className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => openConfirmDialog("reject", member)}
+                              onClick={() =>
+                                openConfirmDialog("reject", member)
+                              }
                               className="p-2 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors"
                               title={t("admin.members.reject")}
                             >
@@ -488,14 +522,18 @@ export function AdminMembers() {
                         {member.status === "rejected" && (
                           <>
                             <button
-                              onClick={() => openConfirmDialog("reopen", member)}
+                              onClick={() =>
+                                openConfirmDialog("reopen", member)
+                              }
                               className="p-2 text-[#2B5F9E] hover:bg-[#2B5F9E] hover:text-white rounded-lg transition-colors"
                               title={t("admin.members.reopen")}
                             >
                               <RotateCcw className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => openConfirmDialog("delete", member)}
+                              onClick={() =>
+                                openConfirmDialog("delete", member)
+                              }
                               className="p-2 text-gray-500 hover:bg-gray-500 hover:text-white rounded-lg transition-colors"
                               title={t("admin.members.delete")}
                             >
@@ -512,7 +550,9 @@ export function AdminMembers() {
 
             {filteredMembers.length === 0 && !loading && (
               <div className="text-center py-12 text-gray-500">
-                {language === "zh" ? "没有找到符合条件的会员" : "No members found"}
+                {language === "zh"
+                  ? "没有找到符合条件的会员"
+                  : "No members found"}
               </div>
             )}
           </div>
@@ -565,7 +605,7 @@ export function AdminMembers() {
                 <h3 className="text-gray-900 text-center mb-3">
                   {t(`admin.members.confirm.${confirmDialog.type}.title`)}
                 </h3>
-                
+
                 {/* Message */}
                 <p className="text-gray-600 text-center mb-8 text-sm leading-relaxed">
                   {t(`admin.members.confirm.${confirmDialog.type}.message`)}
@@ -718,7 +758,9 @@ export function AdminMembers() {
                     <span className="text-gray-500">
                       {t("admin.members.table.status")}
                     </span>
-                    <span className={`px-2.5 py-1 rounded-full text-xs ${getStatusColor(selectedMember.status)}`}>
+                    <span
+                      className={`px-2.5 py-1 rounded-full text-xs ${getStatusColor(selectedMember.status)}`}
+                    >
                       {getStatusText(selectedMember.status)}
                     </span>
                   </div>

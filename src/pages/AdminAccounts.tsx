@@ -190,9 +190,7 @@ export function AdminAccounts() {
       </div>
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        {loading && (
-          <p className="text-gray-600 mb-4">{t("common.loading")}</p>
-        )}
+        {loading && <p className="text-gray-600 mb-4">{t("common.loading")}</p>}
         {error && (
           <p className="text-red-600 mb-4" role="alert">
             {error}

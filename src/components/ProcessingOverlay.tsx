@@ -131,7 +131,11 @@ export function ProcessingOverlay({
         className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50"
       >
         <motion.div
-          initial={state === "processing" ? { scale: 0.98, opacity: 0, y: -4 } : { scale: 0.8, opacity: 0, y: 20 }}
+          initial={
+            state === "processing"
+              ? { scale: 0.98, opacity: 0, y: -4 }
+              : { scale: 0.8, opacity: 0, y: 20 }
+          }
           animate={
             state === "processing"
               ? { scale: [0.98, 1, 0.98], opacity: 1, y: [-4, 0, -4] }
@@ -140,18 +144,18 @@ export function ProcessingOverlay({
           exit={{ scale: 0.8, opacity: 0, y: 20 }}
           transition={
             state === "processing"
-              ? { 
+              ? {
                   opacity: { duration: 0.15 },
-                  scale: { 
-                    duration: 2.6, 
-                    repeat: Infinity, 
-                    ease: "easeInOut"
+                  scale: {
+                    duration: 2.6,
+                    repeat: Infinity,
+                    ease: "easeInOut",
                   },
-                  y: { 
-                    duration: 2.6, 
-                    repeat: Infinity, 
-                    ease: "easeInOut"
-                  }
+                  y: {
+                    duration: 2.6,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  },
                 }
               : { duration: 0.15, ease: "easeOut" }
           }

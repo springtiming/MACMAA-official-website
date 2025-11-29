@@ -8,7 +8,7 @@ const globals = require('globals');
 
 module.exports = [
   {
-    ignores: ['dist/**', 'build/**', 'node_modules/**'],
+    ignores: ['dist/**', 'build/**', 'node_modules/**', 'docs_local/**'],
   },
   {
     files: ['vite.config.ts', 'api/**/*.ts'],

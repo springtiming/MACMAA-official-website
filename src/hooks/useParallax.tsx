@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 /**
  * 视差滚动Hook - 返回滚动偏移量
@@ -12,10 +12,9 @@ export function useParallax(speed: number = 0.5) {
       setOffsetY(window.scrollY * speed);
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [speed]);
 
   return offsetY;
 }
-
