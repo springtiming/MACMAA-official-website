@@ -373,22 +373,6 @@ export function Membership() {
               </div>
             </div>
 
-            {/* Weekly Activities Banner */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="bg-gradient-to-r from-[#2B5F9E] to-[#6BA868] rounded-xl p-5 sm:p-6 mb-8 sm:mb-12 text-white text-center"
-            >
-              <h3 className="mb-2 text-xl sm:text-2xl">
-                {t("home.weekly.title")}
-              </h3>
-              <p className="mb-1 text-sm sm:text-base">
-                {t("home.weekly.time")}
-              </p>
-              <p className="text-xs sm:text-sm">{t("home.weekly.location")}</p>
-            </motion.div>
-
             {/* Application Form */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}

@@ -17,6 +17,7 @@ import { AdminNews } from "./pages/AdminNews";
 import { AdminMembers } from "./pages/AdminMembers";
 import { AdminSettings } from "./pages/AdminSettings";
 import { AdminAccounts } from "./pages/AdminAccounts";
+import { FontShowcase } from "./pages/FontShowcase";
 import "./styles/globals.css";
 
 export default function App() {
@@ -45,6 +46,7 @@ export default function App() {
               <Route path="/admin/members" element={<AdminMembers />} />
               <Route path="/admin/accounts" element={<AdminAccounts />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
+              <Route path="/font-showcase" element={<FontShowcase />} />
             </Routes>
           </main>
           <Footer />

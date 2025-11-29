@@ -35,10 +35,10 @@ export function ParallaxBackground({
           }}
         />
       )}
-      {/* 🎨 层级2: 米黄色渐变蒙版层 */}
+      {/* 🎨 层级2: 米黄色渐变蒙版层 - 85%遮挡，叠加在原图上 */}
       {overlay && (
         <div
-          className="absolute inset-0 bg-gradient-to-b from-[#F5EFE6]/90 via-[#F5EFE6]/80 to-[#F5EFE6]/90"
+          className="absolute inset-0 bg-gradient-to-b from-[#F5EFE6] via-[#F5EFE6] to-[#F5EFE6]"
           style={{ opacity: overlayOpacity }}
         />
       )}

@@ -228,6 +228,12 @@ const ADMIN_API_BASE =
     ? (import.meta.env.VITE_ADMIN_API_BASE as string)
     : "/api";
 
+const SUPABASE_URL =
+  typeof import.meta !== "undefined" ? (import.meta.env.VITE_SUPABASE_URL as string) : "";
+const SUPABASE_ANON_KEY =
+  typeof import.meta !== "undefined" ? (import.meta.env.VITE_SUPABASE_ANON_KEY as string) : "";
+const FUNCTIONS_BASE = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1` : "";
+
 function buildAdminApiUrl(path: string) {
   const normalizedBase = ADMIN_API_BASE.replace(/\/$/, "");
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
@@ -239,13 +245,28 @@ function buildAdminApiUrl(path: string) {
 
 const ADMIN_NEWS_API_BASE = buildAdminApiUrl("/news");
 const ADMIN_NEWS_DRAFTS_API_BASE = buildAdminApiUrl("/news/drafts");
-const ADMIN_NEWS_PUBLISH_API = buildAdminApiUrl("/news/publish");
 const ADMIN_EVENTS_API_BASE = buildAdminApiUrl("/events");
-const ADMIN_EVENT_REGISTRATIONS_API_BASE = buildAdminApiUrl(
-  "/events/registrations"
-);
 const ADMIN_ACCOUNTS_API_BASE = buildAdminApiUrl("/admin-accounts");
-const ADMIN_ACTIVITIES_API_BASE = buildAdminApiUrl("/activities");
+
+function ensureFunctionsBase() {
+  if (!FUNCTIONS_BASE || !SUPABASE_ANON_KEY) {
+    throw new Error("Missing Supabase functions configuration");
+  }
+}
+
+async function callEdgeFunction(
+  name: string,
+  init?: RequestInit
+): Promise<Response> {
+  ensureFunctionsBase();
+  const url = `${FUNCTIONS_BASE}/${name}`;
+  const headers: HeadersInit = {
+    apikey: SUPABASE_ANON_KEY,
+    Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+    ...(init?.headers ?? {}),
+  };
+  return fetch(url, { ...init, headers });
+}
 
 export async function fetchAdminEvents() {
   const res = await fetch(ADMIN_EVENTS_API_BASE, {
@@ -289,11 +310,12 @@ export async function deleteEvent(id: string) {
 }
 
 export async function fetchAdminEventRegistrations(eventId?: string) {
-  const url = eventId
-    ? `${ADMIN_EVENT_REGISTRATIONS_API_BASE}?eventId=${encodeURIComponent(eventId)}`
-    : ADMIN_EVENT_REGISTRATIONS_API_BASE;
-
-  const res = await fetch(url, { headers: { Accept: "application/json" } });
+  const params = new URLSearchParams();
+  if (eventId) params.set("eventId", eventId);
+  const res = await callEdgeFunction(
+    `events-registrations${params.toString() ? `?${params.toString()}` : ""}`,
+    { headers: { Accept: "application/json" } }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch event registrations");
@@ -385,11 +407,10 @@ export async function fetchActivities(options?: {
   const params = new URLSearchParams();
   if (options?.limit) params.set("limit", String(options.limit));
   if (options?.days) params.set("days", String(options.days));
-  const url = params.toString()
-    ? `${ADMIN_ACTIVITIES_API_BASE}?${params.toString()}`
-    : ADMIN_ACTIVITIES_API_BASE;
-
-  const res = await fetch(url, { headers: { Accept: "application/json" } });
+  const res = await callEdgeFunction(
+    `activities${params.toString() ? `?${params.toString()}` : ""}`,
+    { headers: { Accept: "application/json" } }
+  );
   if (!res.ok) {
     throw new Error("Failed to fetch activities");
   }
@@ -453,7 +474,7 @@ export async function saveNewsDraft(payload: NewsDraftInput) {
 }
 
 export async function publishNewsFromDraft(versionId: string) {
-  const res = await fetch(ADMIN_NEWS_PUBLISH_API, {
+  const res = await callEdgeFunction("news-publish", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
