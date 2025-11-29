@@ -122,10 +122,10 @@ export function Home() {
         imageUrl={groupPhoto}
         speed={0.3}
         overlay={true}
-        overlayOpacity={0.85}
+        overlayOpacity={0.5}
         className="relative overflow-hidden"
       >
-        <section className="relative bg-gradient-to-br from-[#F5EFE6] to-[#E8DCC8] overflow-hidden">
+        <section className="relative overflow-hidden">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-28">
           <div className="text-center">
             <motion.h1

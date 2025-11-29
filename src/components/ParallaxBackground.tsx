@@ -35,7 +35,7 @@ export function ParallaxBackground({
       {/* 渐变遮罩 */}
       {overlay && (
         <div
-          className="absolute inset-0 bg-gradient-to-b from-[#F5EFE6]/90 via-[#F5EFE6]/80 to-[#F5EFE6]/90"
+          className="absolute inset-0 bg-gradient-to-b from-[#F5EFE6] via-[#F5EFE6] to-[#F5EFE6]"
           style={{ opacity: overlayOpacity }}
         />
       )}

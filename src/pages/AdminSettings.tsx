@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
@@ -14,15 +14,26 @@ import {
   Bell,
   Globe,
 } from "lucide-react";
+import {
+  fetchAdminAccounts,
+  updateAdminAccount,
+  type AdminAccountRecord,
+} from "../lib/supabaseApi";
 
 export function AdminSettings() {
   const { t } = useLanguage();
   const navigate = useNavigate();
 
   const [successMessage, setSuccessMessage] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [currentAccount, setCurrentAccount] =
+    useState<AdminAccountRecord | null>(null);
+  const [savingEmail, setSavingEmail] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
 
   // Email state
-  const [email, setEmail] = useState("admin@macmaa.org");
+  const [email, setEmail] = useState("");
 
   // Password state
   const [currentPassword, setCurrentPassword] = useState("");
@@ -40,23 +51,73 @@ export function AdminSettings() {
   // Email language preference
   const [emailLanguage, setEmailLanguage] = useState<"zh" | "en">("zh");
 
-  const handleSaveEmail = (e: React.FormEvent) => {
+  useEffect(() => {
+    let active = true;
+    const username = sessionStorage.getItem("adminUsername") || "";
+    setLoading(true);
+    fetchAdminAccounts()
+      .then((accounts) => {
+        if (!active) return;
+        const target =
+          accounts.find((a) => a.username === username) ||
+          accounts.find((a) => a.role === "owner") ||
+          accounts[0];
+        if (target) {
+          setCurrentAccount(target);
+          setEmail(target.email ?? "");
+        } else {
+          setError(t("common.error"));
+        }
+      })
+      .catch(() => {
+        if (active) setError(t("common.error"));
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [t]);
+
+  const handleSaveEmail = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSuccessMessage(t("admin.settings.emailUpdated"));
-    setTimeout(() => setSuccessMessage(""), 3000);
+    if (!currentAccount) return;
+    setSavingEmail(true);
+    setError(null);
+    try {
+      const updated = await updateAdminAccount(currentAccount.id, { email });
+      setCurrentAccount(updated);
+      setSuccessMessage(t("admin.settings.emailUpdated"));
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } catch {
+      setError(t("common.error"));
+    } finally {
+      setSavingEmail(false);
+    }
   };
 
-  const handleChangePassword = (e: React.FormEvent) => {
+  const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!currentAccount) return;
     if (newPassword !== confirmPassword) {
       alert(t("admin.settings.passwordMismatch"));
       return;
     }
-    setSuccessMessage(t("admin.settings.passwordUpdated"));
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
-    setTimeout(() => setSuccessMessage(""), 3000);
+    setSavingPassword(true);
+    setError(null);
+    try {
+      await updateAdminAccount(currentAccount.id, { password: newPassword });
+      setSuccessMessage(t("admin.settings.passwordUpdated"));
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } catch {
+      setError(t("common.error"));
+    } finally {
+      setSavingPassword(false);
+    }
   };
 
   const handleSaveNotifications = (e: React.FormEvent) => {
@@ -92,7 +153,7 @@ export function AdminSettings() {
           </div>
         </motion.div>
 
-        {/* Success Message */}
+        {/* Success / Error */}
         {successMessage && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -103,6 +164,14 @@ export function AdminSettings() {
             <Check className="w-5 h-5" />
             <span>{successMessage}</span>
           </motion.div>
+        )}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            {error}
+          </div>
+        )}
+        {loading && (
+          <p className="mb-6 text-gray-600">{t("common.loading")}</p>
         )}
 
         <div className="space-y-6">
@@ -143,12 +212,13 @@ export function AdminSettings() {
 
               <motion.button
                 type="submit"
+                disabled={savingEmail || loading}
                 className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-[#2B5F9E] to-[#3a7bc8] text-white rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-200"
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.98 }}
               >
                 <Save className="w-5 h-5" />
-                {t("admin.settings.saveEmail")}
+                {savingEmail ? t("common.loading") : t("admin.settings.saveEmail")}
               </motion.button>
             </form>
           </motion.div>
@@ -258,12 +328,15 @@ export function AdminSettings() {
 
               <motion.button
                 type="submit"
+                disabled={savingPassword || loading}
                 className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-[#2B5F9E] to-[#3a7bc8] text-white rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-200"
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.98 }}
               >
                 <Save className="w-5 h-5" />
-                {t("admin.settings.changePassword")}
+                {savingPassword
+                  ? t("common.loading")
+                  : t("admin.settings.changePassword")}
               </motion.button>
             </form>
           </motion.div>

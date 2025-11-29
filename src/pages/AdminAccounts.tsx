@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import { motion, AnimatePresence } from "motion/react";
@@ -44,56 +44,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
-
-interface Account {
-  id: string;
-  username: string;
-  email: string;
-  role: "owner" | "admin";
-  createdAt: string;
-  lastLogin: string;
-}
+import {
+  fetchAdminAccounts,
+  createAdminAccount,
+  deleteAdminAccount,
+  type AdminAccountRecord,
+} from "../lib/supabaseApi";
 
 export function AdminAccounts() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
+  const [selectedAccount, setSelectedAccount] =
+    useState<AdminAccountRecord | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [accounts, setAccounts] = useState<AdminAccountRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   // Current user role (from sessionStorage)
   const currentUserRole =
     (sessionStorage.getItem("adminRole") as "owner" | "admin") || "admin";
-
-  // Mock accounts data
-  const [accounts, setAccounts] = useState<Account[]>([
-    {
-      id: "1",
-      username: "owner_admin",
-      email: "owner@macmaa.org.au",
-      role: "owner",
-      createdAt: "2024-01-15",
-      lastLogin: "2025-11-27",
-    },
-    {
-      id: "2",
-      username: "zhang_admin",
-      email: "zhang@macmaa.org.au",
-      role: "admin",
-      createdAt: "2024-06-20",
-      lastLogin: "2025-11-26",
-    },
-    {
-      id: "3",
-      username: "li_admin",
-      email: "li@macmaa.org.au",
-      role: "admin",
-      createdAt: "2024-09-10",
-      lastLogin: "2025-11-25",
-    },
-  ]);
 
   // Form state for creating new account
   const [newAccount, setNewAccount] = useState({
@@ -103,35 +77,81 @@ export function AdminAccounts() {
     role: "admin" as "admin" | "owner",
   });
 
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    fetchAdminAccounts()
+      .then((data) => {
+        if (active) setAccounts(data);
+      })
+      .catch(() => {
+        if (active) setError(t("common.error"));
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [t]);
+
   const filteredAccounts = accounts.filter(
     (account) =>
       account.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
       account.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleDeleteAccount = () => {
-    if (selectedAccount) {
-      setAccounts(accounts.filter((a) => a.id !== selectedAccount.id));
+  const handleDeleteAccount = async () => {
+    if (!selectedAccount) return;
+    setError(null);
+    try {
+      await deleteAdminAccount(selectedAccount.id);
+      setAccounts((prev) => prev.filter((a) => a.id !== selectedAccount.id));
+      setSuccess(t("admin.accounts.deleteDialog.confirm"));
+    } catch (err) {
+      const msg =
+        (err as Error).message === "forbidden"
+          ? language === "zh"
+            ? "无法删除站长账号"
+            : "Cannot delete owner account"
+          : t("common.error");
+      setError(msg);
+    } finally {
       setDeleteDialogOpen(false);
       setSelectedAccount(null);
+      setTimeout(() => setSuccess(null), 2500);
     }
   };
 
-  const handleCreateAccount = () => {
-    const account: Account = {
-      id: Date.now().toString(),
-      username: newAccount.username,
-      email: newAccount.email,
-      role: newAccount.role,
-      createdAt: new Date().toISOString().split("T")[0],
-      lastLogin: "-",
-    };
-    setAccounts([...accounts, account]);
-    setCreateDialogOpen(false);
-    setNewAccount({ username: "", email: "", password: "", role: "admin" });
+  const handleCreateAccount = async () => {
+    setError(null);
+    try {
+      const account = await createAdminAccount({
+        username: newAccount.username,
+        email: newAccount.email,
+        password: newAccount.password,
+        role: newAccount.role,
+      });
+      setAccounts((prev) => [...prev, account]);
+      setSuccess(t("admin.accounts.createDialog.create"));
+      setCreateDialogOpen(false);
+      setNewAccount({ username: "", email: "", password: "", role: "admin" });
+    } catch (err) {
+      const duplicateMsg =
+        language === "zh"
+          ? "用户名或邮箱已存在"
+          : "Username or email already exists";
+      const msg =
+        (err as Error).message === "duplicate"
+          ? duplicateMsg
+          : t("common.error");
+      setError(msg);
+    } finally {
+      setTimeout(() => setSuccess(null), 2500);
+    }
   };
 
-  const canManageAccount = (account: Account) => {
+  const canManageAccount = (account: AdminAccountRecord) => {
     // Owner can manage all accounts except themselves
     // Admin cannot manage any accounts
     if (currentUserRole !== "owner") return false;
@@ -170,6 +190,20 @@ export function AdminAccounts() {
       </div>
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        {loading && (
+          <p className="text-gray-600 mb-4">{t("common.loading")}</p>
+        )}
+        {error && (
+          <p className="text-red-600 mb-4" role="alert">
+            {error}
+          </p>
+        )}
+        {success && (
+          <p className="text-green-700 mb-4" role="status">
+            {success}
+          </p>
+        )}
+
         {/* Permission Notice */}
         {currentUserRole !== "owner" && (
           <motion.div
@@ -335,11 +369,11 @@ export function AdminAccounts() {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2 text-gray-600 text-sm">
                           <Calendar className="w-4 h-4" />
-                          <span>{account.createdAt}</span>
+                          <span>{account.created_at?.slice(0, 10) ?? "-"}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-gray-600 text-sm">
-                        {account.lastLogin}
+                        {account.last_login_at?.slice(0, 10) ?? "-"}
                       </td>
                       <td className="px-6 py-4">
                         {canManageAccount(account) ? (

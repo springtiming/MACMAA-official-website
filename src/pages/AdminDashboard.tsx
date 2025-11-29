@@ -9,7 +9,6 @@ import {
   UserCheck,
   Settings,
   LogOut,
-  TrendingUp,
   Clock,
   Shield,
 } from "lucide-react";
@@ -70,28 +69,24 @@ export function AdminDashboard() {
       label: t("admin.dashboard.stats.events"),
       value: statsLoading ? "…" : eventsCount,
       color: "#2B5F9E",
-      trend: "+2",
     },
     {
       icon: Newspaper,
       label: t("admin.dashboard.stats.news"),
       value: statsLoading ? "…" : newsCount,
       color: "#6BA868",
-      trend: "+1",
     },
     {
       icon: Users,
       label: t("admin.dashboard.stats.members"),
       value: "—",
       color: "#EB8C3A",
-      trend: "+5",
     },
     {
       icon: UserCheck,
       label: t("admin.dashboard.stats.registrations"),
       value: "—",
       color: "#8B5CF6",
-      trend: "+3",
     },
   ];
 
@@ -231,7 +226,7 @@ export function AdminDashboard() {
               whileHover={{ y: -4 }}
               className="bg-white rounded-xl p-6 shadow-lg"
             >
-              <div className="flex items-center justify-between mb-4">
+              <div className="mb-4">
                 <div
                   className="w-12 h-12 rounded-full flex items-center justify-center"
                   style={{ backgroundColor: `${stat.color}20` }}
@@ -240,10 +235,6 @@ export function AdminDashboard() {
                     className="w-6 h-6"
                     style={{ color: stat.color }}
                   />
-                </div>
-                <div className="flex items-center gap-1 text-sm text-[#6BA868]">
-                  <TrendingUp className="w-4 h-4" />
-                  <span>{stat.trend}</span>
                 </div>
               </div>
               <p className="text-gray-600 text-sm mb-1">{stat.label}</p>

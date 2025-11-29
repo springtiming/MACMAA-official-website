@@ -244,6 +244,7 @@ const ADMIN_EVENTS_API_BASE = buildAdminApiUrl("/events");
 const ADMIN_EVENT_REGISTRATIONS_API_BASE = buildAdminApiUrl(
   "/events/registrations"
 );
+const ADMIN_ACCOUNTS_API_BASE = buildAdminApiUrl("/admin-accounts");
 
 export async function fetchAdminEvents() {
   const res = await fetch(ADMIN_EVENTS_API_BASE, {
@@ -301,6 +302,79 @@ export async function fetchAdminEventRegistrations(eventId?: string) {
     registrations: EventRegistrationRecord[];
   };
   return body.registrations ?? [];
+}
+
+export async function fetchAdminAccounts() {
+  const res = await fetch(ADMIN_ACCOUNTS_API_BASE, {
+    headers: { Accept: "application/json" },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch admin accounts");
+  }
+
+  const body = (await res.json()) as { accounts: AdminAccountRecord[] };
+  return body.accounts ?? [];
+}
+
+export async function createAdminAccount(payload: {
+  username: string;
+  email: string;
+  password: string;
+  role: "owner" | "admin";
+}) {
+  const res = await fetch(ADMIN_ACCOUNTS_API_BASE, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (res.status === 409) {
+    throw new Error("duplicate");
+  }
+  if (!res.ok) {
+    throw new Error("Failed to create admin account");
+  }
+
+  const body = (await res.json()) as { account: AdminAccountRecord };
+  return body.account;
+}
+
+export async function updateAdminAccount(
+  id: string,
+  payload: { email?: string; password?: string }
+) {
+  const res = await fetch(`${ADMIN_ACCOUNTS_API_BASE}/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to update admin account");
+  }
+
+  const body = (await res.json()) as { account: AdminAccountRecord };
+  return body.account;
+}
+
+export async function deleteAdminAccount(id: string) {
+  const res = await fetch(`${ADMIN_ACCOUNTS_API_BASE}/${id}`, {
+    method: "DELETE",
+  });
+
+  if (res.status === 403) {
+    throw new Error("forbidden");
+  }
+  if (!res.ok && res.status !== 204) {
+    throw new Error("Failed to delete admin account");
+  }
 }
 
 export async function fetchAdminNewsPosts() {
@@ -415,6 +489,16 @@ export interface MemberRecord {
   handled_by: string | null;
   created_at: string | null;
   updated_at: string | null;
+}
+
+export interface AdminAccountRecord {
+  id: string;
+  username: string;
+  email: string;
+  role: "owner" | "admin";
+  status: "active" | "disabled";
+  created_at: string | null;
+  last_login_at: string | null;
 }
 
 export class ConcurrencyError extends Error {
