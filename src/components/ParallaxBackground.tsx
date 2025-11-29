@@ -24,20 +24,30 @@ export function ParallaxBackground({
       {/* 视差背景图 */}
       {imageUrl && (
         <div
-          className="absolute inset-0 w-full h-[120%] bg-cover bg-center parallax-optimized"
+          className="absolute inset-0 w-full h-[120%] parallax-optimized"
           style={{
             backgroundImage: `url(${imageUrl})`,
+            backgroundSize: 'contain',
+            backgroundPosition: 'center center',
+            backgroundRepeat: 'no-repeat',
             transform: `translateY(${offsetY}px)`,
             top: '-10%',
           }}
         />
       )}
-      {/* 渐变遮罩 */}
+      {/* 虚化蒙版 - 先添加模糊效果 */}
       {overlay && (
-        <div
-          className="absolute inset-0 bg-gradient-to-b from-[#F5EFE6] via-[#F5EFE6] to-[#F5EFE6]"
-          style={{ opacity: overlayOpacity }}
-        />
+        <>
+          <div
+            className="absolute inset-0 backdrop-blur-sm"
+            style={{ opacity: 0.6 }}
+          />
+          {/* 渐变遮罩 - 再添加颜色遮罩 */}
+          <div
+            className="absolute inset-0 bg-gradient-to-b from-[#F5EFE6] via-[#F5EFE6] to-[#F5EFE6]"
+            style={{ opacity: overlayOpacity }}
+          />
+        </>
       )}
       {/* 内容 */}
       <div className="relative z-10">{children}</div>
