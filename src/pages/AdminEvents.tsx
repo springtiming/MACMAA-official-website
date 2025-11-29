@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
@@ -17,192 +17,286 @@ import {
 } from "lucide-react";
 import { ImageCropper } from "../components/ImageCropper";
 import * as XLSX from "xlsx";
+import {
+  deleteEvent,
+  fetchAdminEvents,
+  fetchAdminEventRegistrations,
+  saveEvent,
+  type EventRecord,
+  type EventRegistrationRecord,
+  type UpsertEventInput,
+} from "../lib/supabaseApi";
+import { pickLocalized } from "../lib/supabaseHelpers";
 
-interface Event {
+type EventFormState = {
   id: string;
   title: { zh: string; en: string };
   description: { zh: string; en: string };
   date: string;
-  time: string;
+  startTime: string;
+  endTime: string;
   location: string;
   fee: number;
-  memberFee?: number;
-  capacity: number | null; // null means unlimited
+  memberFee: number | "";
+  capacity: number | "";
   imageType: "unsplash" | "upload";
-  imageKeyword?: string; // for Unsplash search
-  imageUrl?: string; // for uploaded image
+  imageKeyword: string;
+  imageUrl: string;
   accessType: "members-only" | "all-welcome";
+};
+
+const defaultDate = new Date().toISOString().split("T")[0];
+
+function normalizeTime(value: string) {
+  if (!value) return "";
+  if (value.length === 5) return `${value}:00`;
+  return value;
 }
 
-interface Registration {
-  id: string;
-  eventId: string;
-  name: string;
-  phone: string;
-  email: string;
-  tickets: number;
-  paymentMethod: "card" | "cash" | "transfer";
-  registrationDate: string;
+function sortEvents(list: EventRecord[]) {
+  return [...list].sort((a, b) => {
+    if (a.event_date === b.event_date) {
+      return (a.start_time ?? "").localeCompare(b.start_time ?? "");
+    }
+    return a.event_date.localeCompare(b.event_date);
+  });
 }
 
-// Mock data
-const mockEvents: Event[] = [
-  {
-    id: "1",
-    title: {
-      zh: "春节联欢晚会",
-      en: "Chinese New Year Gala",
-    },
-    description: {
-      zh: "欢度春节，共享欢乐时光。精彩节目、美食分享。",
-      en: "Celebrate Chinese New Year with performances and food sharing.",
-    },
-    date: "2025-01-25",
-    time: "18:00 - 21:00",
-    location: "Lower Templestowe Community Centre",
-    fee: 25,
-    memberFee: 15,
-    capacity: 100,
-    imageType: "unsplash",
-    imageKeyword: "chinese,new,year,celebration",
-    accessType: "all-welcome",
-  },
-  {
-    id: "2",
-    title: {
-      zh: "会员专享：健康讲座",
-      en: "Members Only: Health Seminar",
-    },
-    description: {
-      zh: "专业医生讲解老年健康知识，仅限会员参加。",
-      en: "Professional health seminar for senior wellbeing, members only.",
-    },
-    date: "2025-02-10",
-    time: "14:00 - 16:00",
-    location: "Lower Templestowe Community Centre",
-    fee: 0,
-    capacity: 50,
-    imageType: "unsplash",
-    imageKeyword: "health,seminar,seniors",
-    accessType: "members-only",
-  },
-];
+function formatTimeRange(start?: string | null, end?: string | null) {
+  const startShort = start ? start.slice(0, 5) : "";
+  const endShort = end ? end.slice(0, 5) : "";
+  if (startShort && endShort) return `${startShort} - ${endShort}`;
+  if (startShort) return startShort;
+  return "";
+}
 
-// Mock registration data
-const mockRegistrations: Registration[] = [
-  {
-    id: "r1",
-    eventId: "1",
-    name: "张伟",
-    phone: "0412 345 678",
-    email: "zhang.wei@email.com",
-    tickets: 2,
-    paymentMethod: "card",
-    registrationDate: "2024-11-20",
-  },
-  {
-    id: "r2",
-    eventId: "1",
-    name: "李娜",
-    phone: "0423 456 789",
-    email: "li.na@email.com",
-    tickets: 1,
-    paymentMethod: "transfer",
-    registrationDate: "2024-11-21",
-  },
-  {
-    id: "r3",
-    eventId: "1",
-    name: "John Smith",
-    phone: "0434 567 890",
-    email: "john.smith@email.com",
-    tickets: 3,
-    paymentMethod: "cash",
-    registrationDate: "2024-11-22",
-  },
-  {
-    id: "r4",
-    eventId: "2",
-    name: "王芳",
-    phone: "0445 678 901",
-    email: "wang.fang@email.com",
-    tickets: 1,
-    paymentMethod: "card",
-    registrationDate: "2024-11-18",
-  },
-  {
-    id: "r5",
-    eventId: "2",
-    name: "陈明",
-    phone: "0456 789 012",
-    email: "chen.ming@email.com",
-    tickets: 1,
-    paymentMethod: "transfer",
-    registrationDate: "2024-11-19",
-  },
-];
+function formatEventDate(
+  event: EventRecord,
+  language: "zh" | "en" | string = "en"
+) {
+  if (!event.event_date) return "";
+  const datePart = new Date(event.event_date).toLocaleDateString(
+    language === "zh" ? "zh-CN" : "en-US",
+    {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }
+  );
+  const timePart = formatTimeRange(event.start_time, event.end_time);
+  return timePart ? `${datePart} ${timePart}` : datePart;
+}
+
+function eventToFormState(event: EventRecord | null): EventFormState {
+  if (!event) {
+    return {
+      id: "",
+      title: { zh: "", en: "" },
+      description: { zh: "", en: "" },
+      date: defaultDate,
+      startTime: "",
+      endTime: "",
+      location: "",
+      fee: 0,
+      memberFee: "",
+      capacity: 50,
+      imageType: "unsplash",
+      imageKeyword: "",
+      imageUrl: "",
+      accessType: "all-welcome",
+    };
+  }
+
+  return {
+    id: event.id,
+    title: { zh: event.title_zh ?? "", en: event.title_en ?? "" },
+    description: {
+      zh: event.description_zh ?? "",
+      en: event.description_en ?? "",
+    },
+    date: event.event_date ?? defaultDate,
+    startTime: event.start_time ? event.start_time.slice(0, 5) : "",
+    endTime: event.end_time ? event.end_time.slice(0, 5) : "",
+    location: event.location ?? "",
+    fee: Number(event.fee ?? 0),
+    memberFee:
+      event.access_type === "all-welcome" && event.member_fee !== null
+        ? Number(event.member_fee)
+        : "",
+    capacity: event.capacity ?? "",
+    imageType: (event.image_type as "unsplash" | "upload") ?? "unsplash",
+    imageKeyword: event.image_keyword ?? "",
+    imageUrl: event.image_url ?? "",
+    accessType: (event.access_type as "members-only" | "all-welcome") ??
+      "all-welcome",
+  };
+}
 
 export function AdminEvents() {
   const { language, t } = useLanguage();
   const navigate = useNavigate();
-  const [events, setEvents] = useState<Event[]>(mockEvents);
-  const [registrations] = useState<Registration[]>(mockRegistrations);
+  const [events, setEvents] = useState<EventRecord[]>([]);
+  const [registrations, setRegistrations] = useState<
+    EventRegistrationRecord[]
+  >([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [editingEvent, setEditingEvent] = useState<EventRecord | null>(null);
   const [viewingRegistrations, setViewingRegistrations] = useState<
     string | null
   >(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [registrationsLoading, setRegistrationsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
-  // Filter events
-  const filteredEvents = events.filter(
-    (event) =>
-      event.title.zh.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      event.title.en.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      event.location.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    fetchAdminEvents()
+      .then((data) => {
+        if (active) {
+          setEvents(sortEvents(data));
+        }
+      })
+      .catch(() => {
+        if (active) setError(t("common.error"));
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [t]);
+
+  useEffect(() => {
+    if (!viewingRegistrations) {
+      setRegistrations([]);
+      return;
+    }
+
+    let active = true;
+    setRegistrationsLoading(true);
+    fetchAdminEventRegistrations(viewingRegistrations)
+      .then((data) => {
+        if (active) setRegistrations(data);
+      })
+      .catch(() => {
+        if (active) setError(t("common.error"));
+      })
+      .finally(() => {
+        if (active) setRegistrationsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [viewingRegistrations, t]);
+
+  const filteredEvents = useMemo(() => {
+    const term = searchTerm.toLowerCase();
+    return events.filter((event) => {
+      const title = pickLocalized(event.title_zh, event.title_en, language)
+        ?.toLowerCase()
+        .trim();
+      const desc = pickLocalized(
+        event.description_zh,
+        event.description_en,
+        language
+      )
+        ?.toLowerCase()
+        .trim();
+      const location = event.location?.toLowerCase() ?? "";
+      return (
+        title?.includes(term) ||
+        desc?.includes(term) ||
+        location.includes(term)
+      );
+    });
+  }, [events, searchTerm, language]);
 
   const handleAdd = () => {
     setEditingEvent(null);
     setShowForm(true);
   };
 
-  const handleEdit = (event: Event) => {
+  const handleEdit = (event: EventRecord) => {
     setEditingEvent(event);
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm(t("admin.events.deleteConfirm"))) {
-      setEvents(events.filter((e) => e.id !== id));
+  const handleDelete = async (id: string) => {
+    if (!confirm(t("admin.events.deleteConfirm"))) return;
+    setError(null);
+    try {
+      await deleteEvent(id);
+      setEvents((prev) => prev.filter((e) => e.id !== id));
+      setSuccess(language === "zh" ? "已删除" : "Deleted");
+    } catch {
+      setError(t("common.error"));
     }
   };
 
-  const handleSave = (event: Event) => {
-    if (editingEvent) {
-      setEvents(events.map((e) => (e.id === event.id ? event : e)));
-    } else {
-      setEvents([...events, { ...event, id: Date.now().toString() }]);
+  const handleSave = async (form: EventFormState) => {
+    setSaving(true);
+    setError(null);
+    try {
+      const payload: UpsertEventInput = {
+        id: form.id || undefined,
+        title_zh: form.title.zh,
+        title_en: form.title.en,
+        description_zh: form.description.zh,
+        description_en: form.description.en,
+        event_date: form.date,
+        start_time: form.startTime ? normalizeTime(form.startTime) : null,
+        end_time: form.endTime ? normalizeTime(form.endTime) : null,
+        location: form.location,
+        fee: Number(form.fee) || 0,
+        member_fee:
+          form.accessType === "all-welcome" && form.memberFee !== ""
+            ? Number(form.memberFee)
+            : null,
+        capacity: form.capacity === "" ? null : Number(form.capacity),
+        access_type: form.accessType,
+        image_type: form.imageType,
+        image_keyword:
+          form.imageType === "unsplash" ? form.imageKeyword || null : null,
+        image_url: form.imageType === "upload" ? form.imageUrl || null : null,
+        published: true,
+      };
+
+      const saved = await saveEvent(payload);
+
+      setEvents((prev) => {
+        const exists = prev.some((e) => e.id === saved.id);
+        if (exists) {
+          return sortEvents(prev.map((e) => (e.id === saved.id ? saved : e)));
+        }
+        return sortEvents([saved, ...prev]);
+      });
+
+      setSuccess(language === "zh" ? "活动已保存" : "Event saved");
+      setShowForm(false);
+      setEditingEvent(null);
+    } catch {
+      setError(t("common.error"));
+    } finally {
+      setSaving(false);
     }
-    setShowForm(false);
-    setEditingEvent(null);
   };
 
   const handleViewRegistrations = (eventId: string) => {
     setViewingRegistrations(eventId);
   };
 
-  const getEventRegistrations = (eventId: string) => {
-    return registrations.filter((r) => r.eventId === eventId);
-  };
-
   const handleExportRegistrations = (eventId: string) => {
     const event = events.find((e) => e.id === eventId);
-    const eventRegs = getEventRegistrations(eventId);
+    if (!event) return;
+    const eventRegs = registrations.filter((r) => r.event_id === eventId);
+    if (eventRegs.length === 0) return;
 
-    if (!event || eventRegs.length === 0) return;
-
-    // Prepare data for Excel
     const headers = [
       t("admin.events.registrations.name"),
       t("admin.events.registrations.phone"),
@@ -215,26 +309,24 @@ export function AdminEvents() {
     const data = eventRegs.map((reg) => [
       reg.name,
       reg.phone,
-      reg.email,
+      reg.email ?? "",
       reg.tickets,
-      t(`admin.events.payment.${reg.paymentMethod}`),
-      reg.registrationDate,
+      reg.payment_method
+        ? t(`admin.events.payment.${reg.payment_method}`)
+        : "",
+      reg.registration_date,
     ]);
 
-    // Create worksheet
     const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
-
-    // Set column widths
     ws["!cols"] = [
-      { wch: 15 }, // Name
-      { wch: 15 }, // Phone
-      { wch: 25 }, // Email
-      { wch: 10 }, // Tickets
-      { wch: 20 }, // Payment
-      { wch: 15 }, // Date
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 25 },
+      { wch: 10 },
+      { wch: 20 },
+      { wch: 15 },
     ];
 
-    // Style the header row
     const range = XLSX.utils.decode_range(ws["!ref"] || "A1");
     for (let col = range.s.c; col <= range.e.c; col++) {
       const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
@@ -243,10 +335,9 @@ export function AdminEvents() {
         fill: { fgColor: { rgb: "2B5F9E" } },
         font: { bold: true, color: { rgb: "FFFFFF" } },
         alignment: { horizontal: "left", vertical: "center" },
-      };
+      } as never;
     }
 
-    // Create workbook
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(
       wb,
@@ -254,10 +345,14 @@ export function AdminEvents() {
       language === "zh" ? "报名信息" : "Registrations"
     );
 
-    // Generate filename
-    const filename = `${event.title[language]}_${language === "zh" ? "报名信息" : "Registrations"}_${new Date().toISOString().split("T")[0]}.xlsx`;
+    const filename = `${pickLocalized(
+      event.title_zh,
+      event.title_en,
+      language
+    )}_${language === "zh" ? "报名信息" : "Registrations"}_${new Date()
+      .toISOString()
+      .split("T")[0]}.xlsx`;
 
-    // Download file
     XLSX.writeFile(wb, filename);
   };
 
@@ -317,6 +412,18 @@ export function AdminEvents() {
           </div>
         </motion.div>
 
+        {loading && <p className="text-gray-600 mb-3">{t("common.loading")}</p>}
+        {error && (
+          <p className="text-red-600 mb-3" role="alert">
+            {error}
+          </p>
+        )}
+        {success && (
+          <p className="text-green-700 mb-3" role="status">
+            {success}
+          </p>
+        )}
+
         {/* Events List */}
         <div className="space-y-4">
           {filteredEvents.map((event, index) => (
@@ -332,30 +439,34 @@ export function AdminEvents() {
                 <div className="flex-1 flex flex-col justify-center">
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <h3 className="text-[#2B5F9E] text-lg sm:text-xl">
-                      {event.title[language]}
+                      {pickLocalized(event.title_zh, event.title_en, language)}
                     </h3>
                     <span
                       className={`px-2.5 py-1 rounded-full text-xs ${
-                        event.accessType === "members-only"
+                        event.access_type === "members-only"
                           ? "bg-[#EB8C3A] text-white"
                           : "bg-[#7BA3C7] text-white"
                       }`}
                     >
-                      {event.accessType === "members-only"
+                      {event.access_type === "members-only"
                         ? t("events.memberOnly")
                         : t("events.allWelcome")}
                     </span>
                   </div>
 
                   <p className="text-gray-600 mb-4">
-                    {event.description[language]}
+                    {pickLocalized(
+                      event.description_zh,
+                      event.description_en,
+                      language
+                    )}
                   </p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                     <div>
                       <span className="text-gray-500">{t("events.date")}:</span>
                       <div className="text-gray-900">
-                        {event.date} {event.time}
+                        {formatEventDate(event, language)}
                       </div>
                     </div>
                     <div>
@@ -367,11 +478,13 @@ export function AdminEvents() {
                     <div>
                       <span className="text-gray-500">{t("events.fee")}:</span>
                       <div className="text-gray-900">
-                        ${event.fee}
-                        {event.memberFee !== undefined &&
-                          event.accessType !== "members-only" && (
+                        {event.fee === 0
+                          ? t("common.free")
+                          : `$${event.fee}`}
+                        {event.member_fee !== null &&
+                          event.access_type === "all-welcome" && (
                             <span className="text-[#6BA868] ml-2">
-                              ({t("events.memberFee")}: ${event.memberFee})
+                              ({t("events.memberFee")}: ${event.member_fee})
                             </span>
                           )}
                       </div>
@@ -381,9 +494,7 @@ export function AdminEvents() {
                         {t("events.capacity")}:
                       </span>
                       <div className="text-gray-900">
-                        {event.capacity
-                          ? event.capacity
-                          : t("admin.events.unlimited")}
+                        {event.capacity ?? t("admin.events.unlimited")}
                       </div>
                     </div>
                   </div>
@@ -398,11 +509,7 @@ export function AdminEvents() {
                   >
                     <Users className="w-4 h-4" />
                     <span className="hidden sm:inline">
-                      {t("admin.events.viewRegistrations")} (
-                      {getEventRegistrations(event.id).length})
-                    </span>
-                    <span className="sm:hidden">
-                      {getEventRegistrations(event.id).length}
+                      {t("admin.events.viewRegistrations")}
                     </span>
                   </button>
                   <button
@@ -428,7 +535,7 @@ export function AdminEvents() {
             </motion.div>
           ))}
 
-          {filteredEvents.length === 0 && (
+          {filteredEvents.length === 0 && !loading && (
             <div className="text-center py-12 text-gray-500">
               {language === "zh" ? "没有找到活动" : "No events found"}
             </div>
@@ -444,6 +551,7 @@ export function AdminEvents() {
               setShowForm(false);
               setEditingEvent(null);
             }}
+            saving={saving}
           />
         )}
 
@@ -451,7 +559,10 @@ export function AdminEvents() {
         {viewingRegistrations && (
           <RegistrationsModal
             event={events.find((e) => e.id === viewingRegistrations)!}
-            registrations={getEventRegistrations(viewingRegistrations)}
+            registrations={registrations.filter(
+              (r) => r.event_id === viewingRegistrations
+            )}
+            loading={registrationsLoading}
             onClose={() => setViewingRegistrations(null)}
             onExport={() => handleExportRegistrations(viewingRegistrations)}
           />
@@ -461,35 +572,21 @@ export function AdminEvents() {
   );
 }
 
-// Event Form Modal Component
 function EventFormModal({
   event,
   onSave,
   onClose,
+  saving,
 }: {
-  event: Event | null;
-  onSave: (event: Event) => void;
+  event: EventRecord | null;
+  onSave: (event: EventFormState) => void;
   onClose: () => void;
+  saving: boolean;
 }) {
   const { t } = useLanguage();
-  const [formData, setFormData] = useState<Event>(
-    event || {
-      id: "",
-      title: { zh: "", en: "" },
-      description: { zh: "", en: "" },
-      date: "",
-      time: "",
-      location: "",
-      fee: 0,
-      memberFee: undefined,
-      capacity: 50,
-      imageType: "unsplash",
-      imageKeyword: "",
-      imageUrl: "",
-      accessType: "all-welcome",
-    }
+  const [formData, setFormData] = useState<EventFormState>(
+    eventToFormState(event)
   );
-
   const [showCropper, setShowCropper] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
 
@@ -594,10 +691,9 @@ function EventFormModal({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-gray-700 mb-2">
-                  {t("admin.events.form.descZh")} *
+                  {t("admin.events.form.descriptionZh")}
                 </label>
                 <textarea
-                  required
                   value={formData.description.zh}
                   onChange={(e) =>
                     setFormData({
@@ -614,10 +710,9 @@ function EventFormModal({
               </div>
               <div>
                 <label className="block text-gray-700 mb-2">
-                  {t("admin.events.form.descEn")} *
+                  {t("admin.events.form.descriptionEn")}
                 </label>
                 <textarea
-                  required
                   value={formData.description.en}
                   onChange={(e) =>
                     setFormData({
@@ -634,7 +729,7 @@ function EventFormModal({
               </div>
             </div>
 
-            {/* Date, Time, Location */}
+            {/* Date, Time, Capacity */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-gray-700 mb-2">
@@ -654,16 +749,25 @@ function EventFormModal({
                 <label className="block text-gray-700 mb-2">
                   {t("admin.events.form.time")} *
                 </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="14:00 - 16:00"
-                  value={formData.time}
-                  onChange={(e) =>
-                    setFormData({ ...formData, time: e.target.value })
-                  }
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="time"
+                    required
+                    value={formData.startTime}
+                    onChange={(e) =>
+                      setFormData({ ...formData, startTime: e.target.value })
+                    }
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
+                  />
+                  <input
+                    type="time"
+                    value={formData.endTime}
+                    onChange={(e) =>
+                      setFormData({ ...formData, endTime: e.target.value })
+                    }
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-gray-700 mb-2">
@@ -672,13 +776,13 @@ function EventFormModal({
                 <input
                   type="number"
                   placeholder={t("admin.events.form.unlimited")}
-                  value={formData.capacity || ""}
+                  value={formData.capacity}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
                       capacity: e.target.value
-                        ? parseInt(e.target.value)
-                        : null,
+                        ? parseInt(e.target.value, 10)
+                        : "",
                     })
                   }
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
@@ -722,8 +826,8 @@ function EventFormModal({
                           | "members-only",
                         memberFee:
                           e.target.value === "all-welcome"
-                            ? formData.fee
-                            : undefined,
+                            ? formData.memberFee || formData.fee
+                            : "",
                       })
                     }
                     className="w-4 h-4 text-[#2B5F9E]"
@@ -742,7 +846,7 @@ function EventFormModal({
                         accessType: e.target.value as
                           | "all-welcome"
                           | "members-only",
-                        memberFee: undefined,
+                        memberFee: "",
                       })
                     }
                     className="w-4 h-4 text-[#2B5F9E]"
@@ -752,9 +856,8 @@ function EventFormModal({
               </div>
             </div>
 
-            {/* Fee - Conditional based on accessType */}
+            {/* Fee */}
             {formData.accessType === "members-only" ? (
-              // Members only - single price
               <div>
                 <label className="block text-gray-700 mb-2">
                   {t("admin.events.form.price")} *
@@ -775,7 +878,6 @@ function EventFormModal({
                 />
               </div>
             ) : (
-              // All welcome - member and non-member prices
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-gray-700 mb-2">
@@ -805,13 +907,13 @@ function EventFormModal({
                     min="0"
                     step="0.01"
                     placeholder={formData.fee.toString()}
-                    value={formData.memberFee || ""}
+                    value={formData.memberFee === "" ? "" : formData.memberFee}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
                         memberFee: e.target.value
                           ? parseFloat(e.target.value)
-                          : undefined,
+                          : "",
                       })
                     }
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
@@ -833,7 +935,11 @@ function EventFormModal({
                     value="unsplash"
                     checked={formData.imageType === "unsplash"}
                     onChange={() =>
-                      setFormData({ ...formData, imageType: "unsplash" })
+                      setFormData({
+                        ...formData,
+                        imageType: "unsplash",
+                        imageUrl: "",
+                      })
                     }
                     className="w-4 h-4 text-[#2B5F9E]"
                   />
@@ -846,7 +952,11 @@ function EventFormModal({
                     value="upload"
                     checked={formData.imageType === "upload"}
                     onChange={() =>
-                      setFormData({ ...formData, imageType: "upload" })
+                      setFormData({
+                        ...formData,
+                        imageType: "upload",
+                        imageKeyword: "",
+                      })
                     }
                     className="w-4 h-4 text-[#2B5F9E]"
                   />
@@ -858,7 +968,7 @@ function EventFormModal({
                 <div>
                   <input
                     type="text"
-                    placeholder="chinese,new,year,celebration"
+                    placeholder="community,festival"
                     value={formData.imageKeyword || ""}
                     onChange={(e) =>
                       setFormData({ ...formData, imageKeyword: e.target.value })
@@ -905,16 +1015,21 @@ function EventFormModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-center"
             >
               {t("admin.events.cancel")}
             </button>
             <button
               type="submit"
-              className="flex-1 px-6 py-3 bg-[#6BA868] text-white rounded-lg hover:bg-[#5a9157] transition-colors flex items-center justify-center gap-2"
+              disabled={saving}
+              className="flex-1 px-6 py-3 bg-[#6BA868] text-white rounded-lg hover:bg-[#5a9157] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <Save className="w-5 h-5" />
-              {t("admin.events.save")}
+              {saving
+                ? t("common.loading")
+                : event
+                  ? t("admin.events.save")
+                  : t("admin.events.add")}
             </button>
           </div>
         </form>
@@ -938,28 +1053,30 @@ function EventFormModal({
   );
 }
 
-// Registrations Modal Component
 function RegistrationsModal({
   event,
   registrations,
+  loading,
   onClose,
   onExport,
 }: {
-  event: Event;
-  registrations: Registration[];
+  event: EventRecord;
+  registrations: EventRegistrationRecord[];
+  loading: boolean;
   onClose: () => void;
   onExport: () => void;
 }) {
   const { language, t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Filter registrations based on search
-  const filteredRegistrations = registrations.filter(
-    (reg) =>
-      reg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      reg.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      reg.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredRegistrations = registrations.filter((reg) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      reg.name.toLowerCase().includes(term) ||
+      reg.phone.toLowerCase().includes(term) ||
+      (reg.email ?? "").toLowerCase().includes(term)
+    );
+  });
 
   return (
     <motion.div
@@ -992,7 +1109,9 @@ function RegistrationsModal({
               <X className="w-6 h-6" />
             </button>
           </div>
-          <p className="text-white/90">{event.title[language]}</p>
+          <p className="text-white/90">
+            {pickLocalized(event.title_zh, event.title_en, language)}
+          </p>
           <p className="text-white/80 text-sm mt-1">
             {t("admin.events.registrations.count")}: {registrations.length}
           </p>
@@ -1000,7 +1119,6 @@ function RegistrationsModal({
 
         {/* Search and Export Bar */}
         <div className="p-4 border-b bg-gray-50 space-y-3">
-          {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
@@ -1012,10 +1130,10 @@ function RegistrationsModal({
             />
           </div>
 
-          {/* Export Button */}
           <button
             onClick={onExport}
-            className="flex items-center gap-2 px-4 py-2 bg-[#6BA868] text-white rounded-lg hover:bg-[#5a9157] transition-colors"
+            disabled={registrations.length === 0}
+            className="flex items-center gap-2 px-4 py-2 bg-[#6BA868] text-white rounded-lg hover:bg-[#5a9157] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <Download className="w-4 h-4" />
             <span>{t("admin.events.registrations.export")}</span>
@@ -1024,7 +1142,11 @@ function RegistrationsModal({
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-6">
-          {filteredRegistrations.length > 0 ? (
+          {loading ? (
+            <div className="text-center py-12 text-gray-500">
+              {t("common.loading")}
+            </div>
+          ) : filteredRegistrations.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50 border-b-2 border-gray-200">
@@ -1063,24 +1185,28 @@ function RegistrationsModal({
                         {reg.phone}
                       </td>
                       <td className="px-4 py-3 hidden md:table-cell">
-                        {reg.email}
+                        {reg.email ?? ""}
                       </td>
                       <td className="px-4 py-3">{reg.tickets}</td>
                       <td className="px-4 py-3 hidden lg:table-cell">
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-xs ${
-                            reg.paymentMethod === "card"
-                              ? "bg-blue-100 text-blue-700"
-                              : reg.paymentMethod === "cash"
-                                ? "bg-green-100 text-green-700"
-                                : "bg-purple-100 text-purple-700"
-                          }`}
-                        >
-                          {t(`admin.events.payment.${reg.paymentMethod}`)}
-                        </span>
+                        {reg.payment_method ? (
+                          <span
+                            className={`px-2.5 py-1 rounded-full text-xs ${
+                              reg.payment_method === "card"
+                                ? "bg-blue-100 text-blue-700"
+                                : reg.payment_method === "cash"
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-purple-100 text-purple-700"
+                            }`}
+                          >
+                            {t(`admin.events.payment.${reg.payment_method}`)}
+                          </span>
+                        ) : (
+                          "-"
+                        )}
                       </td>
                       <td className="px-4 py-3 hidden lg:table-cell">
-                        {reg.registrationDate}
+                        {reg.registration_date}
                       </td>
                     </motion.tr>
                   ))}

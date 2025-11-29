@@ -124,14 +124,13 @@ export function ProcessingOverlay({
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0 }}
+        initial={false}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.075 }}
         className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50"
       >
         <motion.div
-          initial={{ scale: 0.8, opacity: 0, y: 20 }}
+          initial={{ scale: 1, opacity: 1, y: 0 }}
           animate={
             state === "processing"
               ? { scale: [0.98, 1, 0.98], opacity: 1, y: [-4, 0, -4] }
@@ -160,9 +159,7 @@ export function ProcessingOverlay({
               {/* 图标 / 动画 */}
               <motion.div
                 className="flex justify-center mb-6"
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.025, type: "spring", damping: 14 }}
+                initial={false}
               >
                 <div className="relative flex items-center justify-center">
                   {state === "processing" ? (
@@ -204,9 +201,7 @@ export function ProcessingOverlay({
               {/* 标题 */}
               {title && (
                 <motion.h3
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.05 }}
+                  initial={false}
                   className={`${config.titleClass} text-center mb-3 font-semibold`}
                 >
                   {title}
@@ -216,9 +211,7 @@ export function ProcessingOverlay({
               {/* 消息 */}
               {message && (
                 <motion.p
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.075 }}
+                  initial={false}
                   className="text-gray-600 text-center text-sm"
                 >
                   {message}
@@ -228,9 +221,7 @@ export function ProcessingOverlay({
               {/* 处理中的进度条 */}
               {state === "processing" && (
                 <motion.div
-                  initial={{ opacity: 0, scaleX: 0.9 }}
-                  animate={{ opacity: 1, scaleX: 1 }}
-                  transition={{ delay: 0.1125, duration: 0.125 }}
+                  initial={false}
                   className="mt-6 h-2 rounded-full relative overflow-hidden"
                   style={{ background: config.progressTrack }}
                 >

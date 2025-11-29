@@ -38,6 +38,26 @@ export interface EventRecord {
   published: boolean;
 }
 
+export type UpsertEventInput = {
+  id?: string;
+  title_zh: string;
+  title_en: string;
+  description_zh?: string | null;
+  description_en?: string | null;
+  event_date: string;
+  start_time?: string | null;
+  end_time?: string | null;
+  location: string;
+  fee: number;
+  member_fee?: number | null;
+  capacity?: number | null;
+  access_type?: "members-only" | "all-welcome" | null;
+  image_type?: "unsplash" | "upload" | null;
+  image_keyword?: string | null;
+  image_url?: string | null;
+  published?: boolean;
+};
+
 export interface ArticleVersionRecord {
   id: string;
   article_id: string;
@@ -220,6 +240,68 @@ function buildAdminApiUrl(path: string) {
 const ADMIN_NEWS_API_BASE = buildAdminApiUrl("/news");
 const ADMIN_NEWS_DRAFTS_API_BASE = buildAdminApiUrl("/news/drafts");
 const ADMIN_NEWS_PUBLISH_API = buildAdminApiUrl("/news/publish");
+const ADMIN_EVENTS_API_BASE = buildAdminApiUrl("/events");
+const ADMIN_EVENT_REGISTRATIONS_API_BASE = buildAdminApiUrl(
+  "/events/registrations"
+);
+
+export async function fetchAdminEvents() {
+  const res = await fetch(ADMIN_EVENTS_API_BASE, {
+    headers: { Accept: "application/json" },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch admin events");
+  }
+
+  const body = (await res.json()) as { events: EventRecord[] };
+  return body.events ?? [];
+}
+
+export async function saveEvent(payload: UpsertEventInput) {
+  const res = await fetch(ADMIN_EVENTS_API_BASE, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to save event");
+  }
+
+  const body = (await res.json()) as { event: EventRecord };
+  return body.event;
+}
+
+export async function deleteEvent(id: string) {
+  const res = await fetch(`${ADMIN_EVENTS_API_BASE}/${id}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok && res.status !== 204) {
+    throw new Error("Failed to delete event");
+  }
+}
+
+export async function fetchAdminEventRegistrations(eventId?: string) {
+  const url = eventId
+    ? `${ADMIN_EVENT_REGISTRATIONS_API_BASE}?eventId=${encodeURIComponent(eventId)}`
+    : ADMIN_EVENT_REGISTRATIONS_API_BASE;
+
+  const res = await fetch(url, { headers: { Accept: "application/json" } });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch event registrations");
+  }
+
+  const body = (await res.json()) as {
+    registrations: EventRegistrationRecord[];
+  };
+  return body.registrations ?? [];
+}
 
 export async function fetchAdminNewsPosts() {
   const res = await fetch(ADMIN_NEWS_API_BASE, {
