@@ -228,12 +228,6 @@ const ADMIN_API_BASE =
     ? (import.meta.env.VITE_ADMIN_API_BASE as string)
     : "/api";
 
-const SUPABASE_URL =
-  typeof import.meta !== "undefined" ? (import.meta.env.VITE_SUPABASE_URL as string) : "";
-const SUPABASE_ANON_KEY =
-  typeof import.meta !== "undefined" ? (import.meta.env.VITE_SUPABASE_ANON_KEY as string) : "";
-const FUNCTIONS_BASE = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1` : "";
-
 function buildAdminApiUrl(path: string) {
   const normalizedBase = ADMIN_API_BASE.replace(/\/$/, "");
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
@@ -244,22 +238,25 @@ function buildAdminApiUrl(path: string) {
 }
 
 const ADMIN_NEWS_API_BASE = buildAdminApiUrl("/news");
-const ADMIN_NEWS_DRAFTS_API_BASE = buildAdminApiUrl("/news/drafts");
-const ADMIN_EVENTS_API_BASE = buildAdminApiUrl("/events");
 const ADMIN_ACCOUNTS_API_BASE = buildAdminApiUrl("/admin-accounts");
+const SUPABASE_URL =
+  typeof import.meta !== "undefined"
+    ? (import.meta.env.VITE_SUPABASE_URL as string)
+    : "";
+const SUPABASE_ANON_KEY =
+  typeof import.meta !== "undefined"
+    ? (import.meta.env.VITE_SUPABASE_ANON_KEY as string)
+    : "";
 
-function ensureFunctionsBase() {
-  if (!FUNCTIONS_BASE || !SUPABASE_ANON_KEY) {
-    throw new Error("Missing Supabase functions configuration");
+function ensureEdgeConfig() {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    throw new Error("Missing Supabase URL or anon key for Edge Function calls");
   }
 }
 
-async function callEdgeFunction(
-  name: string,
-  init?: RequestInit
-): Promise<Response> {
-  ensureFunctionsBase();
-  const url = `${FUNCTIONS_BASE}/${name}`;
+async function callEdgeFunction(path: string, init?: RequestInit) {
+  ensureEdgeConfig();
+  const url = `${SUPABASE_URL.replace(/\/$/, "")}/functions/v1/${path}`;
   const headers: HeadersInit = {
     apikey: SUPABASE_ANON_KEY,
     Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
@@ -268,8 +265,9 @@ async function callEdgeFunction(
   return fetch(url, { ...init, headers });
 }
 
+
 export async function fetchAdminEvents() {
-  const res = await fetch(ADMIN_EVENTS_API_BASE, {
+  const res = await fetch(buildAdminApiUrl("/events"), {
     headers: { Accept: "application/json" },
   });
 
@@ -282,7 +280,7 @@ export async function fetchAdminEvents() {
 }
 
 export async function saveEvent(payload: UpsertEventInput) {
-  const res = await fetch(ADMIN_EVENTS_API_BASE, {
+  const res = await fetch(buildAdminApiUrl("/events"), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -300,7 +298,7 @@ export async function saveEvent(payload: UpsertEventInput) {
 }
 
 export async function deleteEvent(id: string) {
-  const res = await fetch(`${ADMIN_EVENTS_API_BASE}/${id}`, {
+  const res = await fetch(`${buildAdminApiUrl("/events")}/${id}`, {
     method: "DELETE",
   });
 
@@ -419,7 +417,7 @@ export async function fetchActivities(options?: {
 }
 
 export async function fetchAdminNewsPosts() {
-  const res = await fetch(ADMIN_NEWS_API_BASE, {
+  const res = await callEdgeFunction("news-admin", {
     headers: { Accept: "application/json" },
   });
 
@@ -432,7 +430,7 @@ export async function fetchAdminNewsPosts() {
 }
 
 export async function fetchMyDrafts() {
-  const res = await fetch(ADMIN_NEWS_DRAFTS_API_BASE, {
+  const res = await callEdgeFunction("news-drafts", {
     headers: { Accept: "application/json" },
   });
 
@@ -456,7 +454,7 @@ export type NewsDraftInput = {
 };
 
 export async function saveNewsDraft(payload: NewsDraftInput) {
-  const res = await fetch(ADMIN_NEWS_DRAFTS_API_BASE, {
+  const res = await callEdgeFunction("news-drafts", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -503,9 +501,10 @@ export async function deleteArticle(id: string) {
 }
 
 export async function deleteDraft(versionId: string) {
-  const res = await fetch(`${ADMIN_NEWS_DRAFTS_API_BASE}/${versionId}`, {
-    method: "DELETE",
-  });
+  const res = await callEdgeFunction(
+    `news-drafts-delete?versionId=${encodeURIComponent(versionId)}`,
+    { method: "DELETE" }
+  );
   if (!res.ok && res.status !== 204) {
     throw new Error("Failed to delete draft");
   }
