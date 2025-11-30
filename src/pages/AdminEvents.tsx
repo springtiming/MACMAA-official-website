@@ -12,6 +12,8 @@ import {
   ArrowLeft,
   X,
   Users,
+  Upload,
+  Image as ImageIcon,
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import {
@@ -24,6 +26,7 @@ import {
   type EventRegistrationRecord,
 } from "../lib/supabaseApi";
 import { pickLocalized } from "../lib/supabaseHelpers";
+import { ImageUploadModal } from "../components/ImageUploadModal";
 
 type FormState = {
   id: string;
@@ -39,6 +42,9 @@ type FormState = {
   memberFee: string;
   capacity: string;
   access: "all-welcome" | "members-only";
+  imageType: "unsplash" | "upload";
+  imageKeyword: string;
+  imageUrl: string;
 };
 
 const emptyForm: FormState = {
@@ -55,10 +61,15 @@ const emptyForm: FormState = {
   memberFee: "",
   capacity: "",
   access: "all-welcome",
+  imageType: "upload",
+  imageKeyword: "",
+  imageUrl: "",
 };
 
 function toForm(e: EventRecord | null): FormState {
   if (!e) return emptyForm;
+  const resolvedType: "unsplash" | "upload" =
+    e?.image_type ?? (e?.image_url ? "upload" : "unsplash");
   return {
     id: e.id,
     titleZh: e.title_zh ?? "",
@@ -73,6 +84,9 @@ function toForm(e: EventRecord | null): FormState {
     memberFee: e.member_fee != null ? String(e.member_fee) : "",
     capacity: e.capacity != null ? String(e.capacity) : "",
     access: (e.access_type as FormState["access"]) ?? "all-welcome",
+    imageType: resolvedType,
+    imageKeyword: e.image_keyword ?? "",
+    imageUrl: e.image_url ?? "",
   };
 }
 
@@ -93,6 +107,11 @@ export function AdminEvents() {
   const [activeRegEvent, setActiveRegEvent] = useState<EventRecord | null>(
     null
   );
+  const [imageSource, setImageSource] = useState<"unsplash" | "upload">(
+    emptyForm.imageType
+  );
+  const [uploadedImage, setUploadedImage] = useState("");
+  const [showImageUploadModal, setShowImageUploadModal] = useState(false);
   const isUnlimited = form.capacity === "";
 
   useEffect(() => {
@@ -130,6 +149,21 @@ export function AdminEvents() {
     } finally {
       setRegsLoading(false);
     }
+  };
+
+  const openImageUpload = () => {
+    setShowImageUploadModal(true);
+  };
+
+  const closeImageUpload = () => {
+    setShowImageUploadModal(false);
+  };
+
+  const handleImageUploadSuccess = (url: string) => {
+    setUploadedImage(url);
+    setForm((prev) => ({ ...prev, imageUrl: url, imageType: "upload" }));
+    setImageSource("upload");
+    setShowImageUploadModal(false);
   };
 
   const closeRegistrations = () => {
@@ -187,9 +221,10 @@ export function AdminEvents() {
             : null,
         capacity: form.capacity ? Number(form.capacity) : null,
         access_type: form.access,
-        image_type: null,
-        image_keyword: null,
-        image_url: null,
+        image_type: form.imageType,
+        image_keyword:
+          form.imageType === "unsplash" ? form.imageKeyword || null : null,
+        image_url: form.imageType === "upload" ? form.imageUrl || null : null,
         published: true,
       };
       const saved = await saveEvent(payload);
@@ -345,6 +380,11 @@ export function AdminEvents() {
                   <button
                     onClick={() => {
                       setForm(toForm(event));
+                      setImageSource(
+                        (event.image_type as "unsplash" | "upload") ||
+                          (event.image_url ? "upload" : "unsplash")
+                      );
+                      setUploadedImage(event.image_url ?? "");
                       setShowForm(true);
                     }}
                     className="flex items-center justify-center gap-2 px-4 py-2 bg-[#6BA868] text-white rounded-lg hover:bg-[#5a9157] transition-colors min-w-[140px]"

@@ -90,6 +90,7 @@ export function AdminNews() {
   });
 
   const handleAdd = () => {
+    setUploadedImage("");
     setEditingArticle(null);
     setEditingDraft(null);
     setDraftVersionId(null);
@@ -109,6 +110,7 @@ export function AdminNews() {
   };
 
   const handleEdit = (news: NewsPostRecord) => {
+    setUploadedImage(news.cover_source ?? "");
     setEditingArticle(news);
     setEditingDraft(null);
     setDraftVersionId(null);
@@ -116,6 +118,7 @@ export function AdminNews() {
   };
 
   const handleEditDraft = (draft: ArticleVersionRecord) => {
+    setUploadedImage(draft.cover_source ?? "");
     setEditingDraft(draft);
     setEditingArticle(null);
     setDraftVersionId(draft.id);
@@ -529,12 +532,18 @@ function NewsFormModal({
   formLoading: boolean;
 }) {
   const { language, t } = useLanguage();
-  const [imageSource, setImageSource] = useState<"unsplash" | "upload">(
-    news?.cover_source?.startsWith("http") ||
-      news?.cover_source?.startsWith("/")
-      ? "upload"
-      : "unsplash"
-  );
+  const initialCover = draft?.cover_source || news?.cover_source || "";
+  const [imageSource, setImageSource] = useState<"unsplash" | "upload">(() => {
+    if (!initialCover) return "upload";
+    if (
+      initialCover.startsWith("http") ||
+      initialCover.startsWith("/") ||
+      initialCover.startsWith("data:image")
+    ) {
+      return "upload";
+    }
+    return "unsplash";
+  });
   const [fullscreenEditor, setFullscreenEditor] = useState<"zh" | "en" | null>(
     null
   );
@@ -570,6 +579,13 @@ function NewsFormModal({
       image: "",
     };
   });
+
+  useEffect(() => {
+    if (uploadedImage) {
+      setImageSource("upload");
+      setFormData((prev) => ({ ...prev, image: uploadedImage }));
+    }
+  }, [uploadedImage]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -609,7 +625,7 @@ function NewsFormModal({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto"
+      className="fixed inset-0 bg-black/50 flex items-start justify-center p-4 z-50 overflow-y-auto"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -620,7 +636,7 @@ function NewsFormModal({
         exit={{ scale: 0.9, opacity: 0 }}
         onMouseDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full my-8 max-h-[90vh] overflow-hidden flex flex-col"
+        className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full mt-8 max-h-[90vh] overflow-hidden flex flex-col"
       >
         {/* Fixed Header */}
         <div className="bg-gradient-to-r from-[#2B5F9E] to-[#6BA868] text-white p-6 flex-shrink-0">
@@ -666,17 +682,6 @@ function NewsFormModal({
               <div className="flex gap-2 mb-4">
                 <button
                   type="button"
-                  onClick={() => setImageSource("unsplash")}
-                  className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all ${
-                    imageSource === "unsplash"
-                      ? "bg-[#2B5F9E] text-white shadow-md"
-                      : "bg-white text-gray-600 border border-gray-300 hover:border-[#2B5F9E]"
-                  }`}
-                >
-                  {t("admin.news.form.useUnsplash")}
-                </button>
-                <button
-                  type="button"
                   onClick={() => setImageSource("upload")}
                   className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all ${
                     imageSource === "upload"
@@ -685,6 +690,17 @@ function NewsFormModal({
                   }`}
                 >
                   {t("admin.news.form.useUpload")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setImageSource("unsplash")}
+                  className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all ${
+                    imageSource === "unsplash"
+                      ? "bg-[#2B5F9E] text-white shadow-md"
+                      : "bg-white text-gray-600 border border-gray-300 hover:border-[#2B5F9E]"
+                  }`}
+                >
+                  {t("admin.news.form.useUnsplash")}
                 </button>
               </div>
 
@@ -730,14 +746,15 @@ function NewsFormModal({
                   </p>
 
                   {/* Show uploaded image preview */}
-                  {uploadedImage && (
+                  {imageSource === "upload" &&
+                    (uploadedImage || formData.image) && (
                     <div className="mt-3 p-3 bg-white border border-gray-200 rounded-lg">
                       <div className="flex items-center gap-2 text-sm text-green-600 mb-2">
                         <ImageIcon className="w-4 h-4" />
                         <span>{t("admin.news.form.imagePreview")}</span>
                       </div>
                       <img
-                        src={uploadedImage}
+                        src={uploadedImage || formData.image}
                         alt="Preview"
                         className="w-full h-48 object-cover rounded-lg"
                       />

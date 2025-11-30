@@ -13,6 +13,7 @@ export function NewsDetail() {
   const [news, setNews] = useState<NewsPostRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [shareSuccess, setShareSuccess] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -32,6 +33,42 @@ export function NewsDetail() {
       active = false;
     };
   }, [id, t]);
+
+  const handleShare = async () => {
+    if (!news || !id) return;
+
+    const title = pickLocalized(news.title_zh, news.title_en, language);
+    const url = window.location.href;
+
+    // Try Web Share API first
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: title,
+          url: url,
+        });
+        return;
+      } catch (err) {
+        // User cancelled or error occurred
+        // Fall through to clipboard fallback
+        if ((err as Error).name === "AbortError") {
+          return; // User cancelled, don't show error
+        }
+      }
+    }
+
+    // Fallback to clipboard
+    try {
+      const textToCopy = `${title}\n${url}`;
+      await navigator.clipboard.writeText(textToCopy);
+      setShareSuccess(true);
+      setTimeout(() => setShareSuccess(false), 2000);
+    } catch (err) {
+      // Clipboard API failed, show error
+      setError(language === "zh" ? "复制失败" : "Failed to copy");
+      setTimeout(() => setError(null), 3000);
+    }
+  };
 
   if (loading) {
     return (
@@ -99,21 +136,33 @@ export function NewsDetail() {
               </span>
             </div>
             <motion.button
+              onClick={handleShare}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               className="flex items-center gap-2 text-[#2B5F9E] hover:underline"
             >
               <Share2 className="w-4 h-4" />
-              {t("news.share")}
+              {shareSuccess
+                ? language === "zh"
+                  ? "已复制"
+                  : "Copied"
+                : t("news.share")}
             </motion.button>
           </div>
         </div>
 
         {/* Article Content */}
-        <div className="prose prose-lg max-w-none">
-          <div className="text-gray-700 whitespace-pre-line">
-            {pickLocalized(news.content_zh, news.content_en, language)}
-          </div>
+        <div className="prose prose-lg max-w-none prose-img:rounded-xl prose-img:w-full prose-p:my-3">
+          <div
+            className="text-gray-700"
+            dangerouslySetInnerHTML={{
+              __html: pickLocalized(
+                news.content_zh,
+                news.content_en,
+                language
+              ) || "",
+            }}
+          />
         </div>
 
         {/* Related News or CTA */}
