@@ -143,7 +143,7 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Admin - Event Management
     "admin.events.title": "活动管理",
-    "admin.events.add": "添加活",
+    "admin.events.add": "添加活动",
     "admin.events.edit": "编辑活动",
     "admin.events.search": "搜索活动...",
     "admin.events.all": "全部活动",
@@ -370,6 +370,7 @@ const translations: Record<Language, Record<string, string>> = {
     "common.submit": "提交",
     "common.cancel": "取消",
     "common.back": "返回",
+    "common.delete": "删除",
     "common.error": "出错了，请稍后重试",
     "common.loading": "加载中...",
     "common.free": "免费",
@@ -760,6 +761,7 @@ const translations: Record<Language, Record<string, string>> = {
     "common.submit": "Submit",
     "common.cancel": "Cancel",
     "common.back": "Back",
+    "common.delete": "Delete",
     "common.error": "Something went wrong. Please try again.",
     "common.loading": "Loading...",
     "common.free": "Free",

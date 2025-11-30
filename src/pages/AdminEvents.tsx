@@ -221,9 +221,9 @@ export function AdminEvents() {
         <div className="space-y-4">
           {filtered.map((event) => (
             <div key={event.id} className="bg-white rounded-xl shadow-md p-6">
-              <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
+              <div className="flex flex-col lg:flex-row gap-6">
+                <div className="flex-1 space-y-3">
+                  <div className="flex items-center gap-3 flex-wrap">
                     <h3 className="text-xl text-[#2B5F9E]">
                       {pickLocalized(event.title_zh, event.title_en, language)}
                     </h3>
@@ -271,20 +271,20 @@ export function AdminEvents() {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex md:flex-col gap-2 items-stretch self-center">
                   <button
                     onClick={() => {
                       setForm(toForm(event));
                       setShowForm(true);
                     }}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#6BA868] text-white rounded-lg hover:bg-[#5a9157]"
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-[#6BA868] text-white rounded-lg hover:bg-[#5a9157] transition-colors min-w-[140px]"
                   >
                     <Edit className="w-4 h-4" />
                     <span>{t("admin.events.edit")}</span>
                   </button>
                   <button
                     onClick={() => handleDelete(event.id)}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors min-w-[140px]"
                   >
                     <Trash2 className="w-4 h-4" />
                     <span>{t("common.delete")}</span>
@@ -337,7 +337,7 @@ export function AdminEvents() {
                       {t("admin.events.form.titleZh")}
                     </label>
                     <input
-                    className="w-full border rounded px-3 py-2"
+                    className="w-full border rounded-xl px-4 py-3 shadow-sm"
                     value={form.titleZh}
                     onChange={(e) =>
                       setForm({ ...form, titleZh: e.target.value })
@@ -349,7 +349,7 @@ export function AdminEvents() {
                     {t("admin.events.form.titleEn")}
                   </label>
                   <input
-                    className="w-full border rounded px-3 py-2"
+                    className="w-full border rounded-xl px-4 py-3 shadow-sm"
                     value={form.titleEn}
                     onChange={(e) =>
                       setForm({ ...form, titleEn: e.target.value })
@@ -361,7 +361,7 @@ export function AdminEvents() {
                     {t("admin.events.form.descriptionZh")}
                   </label>
                   <textarea
-                    className="w-full border rounded px-3 py-2"
+                    className="w-full border rounded-xl px-4 py-3 shadow-sm"
                     value={form.descZh}
                     onChange={(e) =>
                       setForm({ ...form, descZh: e.target.value })
@@ -373,7 +373,7 @@ export function AdminEvents() {
                     {t("admin.events.form.descriptionEn")}
                   </label>
                   <textarea
-                    className="w-full border rounded px-3 py-2"
+                    className="w-full border rounded-xl px-4 py-3 shadow-sm"
                     value={form.descEn}
                     onChange={(e) =>
                       setForm({ ...form, descEn: e.target.value })
@@ -389,7 +389,7 @@ export function AdminEvents() {
                     </label>
                     <input
                       type="date"
-                      className="w-full border rounded px-3 py-2"
+                      className="w-full border rounded-xl px-4 py-3 shadow-sm"
                       value={form.date}
                       onChange={(e) =>
                         setForm({ ...form, date: e.target.value })
@@ -403,7 +403,7 @@ export function AdminEvents() {
                     <div className="flex gap-2">
                       <input
                         type="time"
-                        className="w-full border rounded px-3 py-2"
+                        className="w-full border rounded-xl px-4 py-3 shadow-sm"
                         value={form.start}
                         onChange={(e) =>
                           setForm({ ...form, start: e.target.value })
@@ -411,7 +411,7 @@ export function AdminEvents() {
                       />
                       <input
                         type="time"
-                        className="w-full border rounded px-3 py-2"
+                        className="w-full border rounded-xl px-4 py-3 shadow-sm"
                         value={form.end}
                         onChange={(e) =>
                           setForm({ ...form, end: e.target.value })
@@ -438,7 +438,7 @@ export function AdminEvents() {
                     </label>
                     <input
                       type="number"
-                      className="w-full border rounded px-3 py-2"
+                    className="w-full border rounded-xl px-4 py-3 shadow-sm"
                       value={form.capacity}
                       onChange={(e) =>
                         setForm({ ...form, capacity: e.target.value })
@@ -455,7 +455,7 @@ export function AdminEvents() {
                       {t("admin.events.form.location")}
                     </label>
                     <input
-                      className="w-full border rounded px-3 py-2"
+                      className="w-full border rounded-xl px-4 py-3 shadow-sm"
                       value={form.location}
                       onChange={(e) =>
                         setForm({ ...form, location: e.target.value })
@@ -502,7 +502,7 @@ export function AdminEvents() {
                     </label>
                     <input
                       type="number"
-                      className="w-full border rounded px-3 py-2"
+                      className="w-full border rounded-xl px-4 py-3 shadow-sm"
                       value={form.fee}
                       onChange={(e) =>
                         setForm({ ...form, fee: e.target.value })
@@ -516,7 +516,7 @@ export function AdminEvents() {
                       </label>
                       <input
                         type="number"
-                        className="w-full border rounded px-3 py-2"
+                      className="w-full border rounded-xl px-4 py-3 shadow-sm"
                         value={form.memberFee}
                         onChange={(e) =>
                           setForm({ ...form, memberFee: e.target.value })
@@ -526,18 +526,18 @@ export function AdminEvents() {
                   )}
                 </div>
 
-                <div className="flex justify-end gap-3 mt-6">
+                <div className="grid grid-cols-2 gap-3 mt-6">
                   <button
                     onClick={() => setShowForm(false)}
                     type="button"
-                    className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                    className="w-full px-4 py-3 border rounded-xl shadow-sm hover:bg-gray-50"
                   >
                     {t("common.cancel")}
                   </button>
                   <button
                     onClick={handleSave}
                     type="button"
-                    className="px-5 py-2.5 bg-gradient-to-r from-[#2B5F9E] to-[#6BA868] text-white rounded-lg shadow-md hover:shadow-lg transition-all"
+                    className="w-full px-4 py-3 bg-gradient-to-r from-[#2B5F9E] to-[#6BA868] text-white rounded-xl shadow-md hover:shadow-lg transition-all"
                   >
                     {form.id ? t("admin.events.save") : t("admin.events.add")}
                   </button>
