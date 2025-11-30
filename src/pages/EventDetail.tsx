@@ -174,7 +174,7 @@ export function EventDetail() {
             <div>
               <p className="text-sm text-gray-600">{t("events.capacity")}</p>
               <p className="text-gray-900">
-                {event.capacity
+                {event.capacity && event.capacity > 0
                   ? `${event.capacity} ${language === "zh" ? "名额" : "capacity"}`
                   : language === "zh"
                     ? "名额不限"
@@ -220,14 +220,6 @@ export function EventDetail() {
           </motion.button>
         </div>
 
-        {/* API Integration Note */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-xl text-sm text-gray-600">
-          <p>
-            {language === "zh"
-              ? "活动数据已从 Supabase 读取，报名将在下一步提交到数据库。"
-              : "Event data is fetched from Supabase; registration will be submitted to the database in the next step."}
-          </p>
-        </div>
       </motion.div>
     </div>
   );
