@@ -13,36 +13,39 @@ export function AdminLogin() {
     password: "",
   });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    // Mock authentication - support multiple test accounts
-    const validAccounts = [
-      { username: "owner_admin", password: "Owner@123", role: "owner" },
-      { username: "zhang_admin", password: "Admin@123", role: "admin" },
-      { username: "admin", password: "demo123", role: "admin" }, // Legacy account
-    ];
+    if (!credentials.username || !credentials.password) {
+      setError(language === "zh" ? "请输入用户名和密码" : "Enter username and password");
+      return;
+    }
 
-    const account = validAccounts.find(
-      (acc) =>
-        acc.username === credentials.username &&
-        acc.password === credentials.password
-    );
+    try {
+      setLoading(true);
+      const res = await fetch("/api/admin-auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(credentials),
+      });
 
-    if (account) {
-      // Store auth token and role (mock)
+      if (!res.ok) {
+        setError(language === "zh" ? "用户名或密码错误" : "Invalid username or password");
+        return;
+      }
+
+      const body = (await res.json()) as { role: "owner" | "admin"; username: string };
       sessionStorage.setItem("adminAuth", "true");
-      sessionStorage.setItem("adminRole", account.role);
-      sessionStorage.setItem("adminUsername", account.username);
+      sessionStorage.setItem("adminRole", body.role);
+      sessionStorage.setItem("adminUsername", body.username);
       navigate("/admin/dashboard");
-    } else {
-      setError(
-        language === "zh"
-          ? "用户名或密码错误。测试账户请参考下方提示。"
-          : "Invalid credentials. Please refer to test accounts below."
-      );
+    } catch {
+      setError(language === "zh" ? "登录失败，请稍后再试" : "Login failed, please try again");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -138,37 +141,11 @@ export function AdminLogin() {
           </form>
 
           <div className="mt-6 p-4 bg-[#F5EFE6] rounded-lg text-sm text-gray-700">
-            <p className="mb-3">
-              <strong>
-                {language === "zh" ? "测试账户：" : "Test Accounts:"}
-              </strong>
+            <p className="mb-2 text-gray-800">
+              {language === "zh"
+                ? "账号将通过后台数据库校验。若登录失败，请检查用户名/密码或联系管理员重置。"
+                : "Credentials are verified against the backend database. If login fails, check your username/password or contact an admin to reset."}
             </p>
-            <div className="space-y-3">
-              <div className="border-b border-[#EB8C3A]/30 pb-2">
-                <p className="text-[#EB8C3A] mb-1">
-                  👑 {language === "zh" ? "站长账户" : "Owner Account"}
-                </p>
-                <p className="ml-4 text-xs">
-                  {t("admin.login.username")}: <strong>owner_admin</strong>
-                </p>
-                <p className="ml-4 text-xs">
-                  {t("admin.login.password")}: <strong>Owner@123</strong>
-                </p>
-              </div>
-              <div>
-                <p className="text-[#6BA868] mb-1">
-                  👤 {language === "zh" ? "管理员账户" : "Admin Account"}
-                </p>
-                <p className="ml-4 text-xs">
-                  {t("admin.login.username")}: <strong>zhang_admin</strong>{" "}
-                  {language === "zh" ? "或" : "or"} <strong>admin</strong>
-                </p>
-                <p className="ml-4 text-xs">
-                  {t("admin.login.password")}: <strong>Admin@123</strong>{" "}
-                  {language === "zh" ? "或" : "or"} <strong>demo123</strong>
-                </p>
-              </div>
-            </div>
           </div>
         </motion.div>
       </motion.div>

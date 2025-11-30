@@ -428,7 +428,7 @@ export function AdminEvents() {
                   </div>
                   <div>
                     <label className="text-sm text-gray-700">
-                      {t("admin.events.form.descriptionZh")}
+                      中文简介
                     </label>
                     <textarea
                       className="w-full border rounded-xl px-4 py-3 shadow-sm"
@@ -440,7 +440,7 @@ export function AdminEvents() {
                   </div>
                   <div>
                     <label className="text-sm text-gray-700">
-                      {t("admin.events.form.descriptionEn")}
+                      英文简介
                     </label>
                     <textarea
                       className="w-full border rounded-xl px-4 py-3 shadow-sm"
