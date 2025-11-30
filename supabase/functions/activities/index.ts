@@ -25,6 +25,28 @@ type Activity = {
   metadata: Record<string, unknown>;
 };
 
+type RegistrationWithEvent = {
+  id: string;
+  name: string | null;
+  created_at: string;
+  event_id: string;
+  events: {
+    title_zh: string | null;
+    title_en: string | null;
+  } | null;
+};
+
+type NewsWithAuthor = {
+  id: string;
+  title_zh: string | null;
+  title_en: string | null;
+  published_at: string | null;
+  published: boolean;
+  admin_accounts: {
+    username: string | null;
+  } | null;
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -87,8 +109,8 @@ Deno.serve(async (req) => {
     }
 
     const registrations: Activity[] =
-      regData?.map((r) => {
-        const event = (r as any).events ?? {};
+      regData?.map((r: RegistrationWithEvent) => {
+        const event = r.events ?? { title_zh: null, title_en: null };
         const titleZh = event.title_zh ?? "";
         const titleEn = event.title_en ?? "";
         return {
@@ -126,8 +148,8 @@ Deno.serve(async (req) => {
       })) ?? [];
 
     const news: Activity[] =
-      newsData?.map((n) => {
-        const author = (n as any).admin_accounts?.username || "Admin";
+      newsData?.map((n: NewsWithAuthor) => {
+        const author = n.admin_accounts?.username || "Admin";
         return {
           id: `news-${n.id}`,
           type: "news",

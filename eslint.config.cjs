@@ -33,7 +33,7 @@ module.exports = [
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
-        project: ['./tsconfig.json', './tsconfig.node.json'],
+        project: ['./tsconfig.eslint.json', './tsconfig.node.json'],
         tsconfigRootDir: __dirname,
         jsx: true,
       },
@@ -59,6 +59,31 @@ module.exports = [
       react: {
         version: 'detect',
       },
+    },
+  },
+  {
+    files: ['supabase/functions/**/*.ts'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: {
+        Deno: 'readonly',
+      },
+      parser: typescriptParser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        // 不使用 project 选项，因为这些文件不在 TypeScript 项目中
+      },
+    },
+    plugins: {
+      '@typescript-eslint': typescript,
+    },
+    rules: {
+      ...js.configs.recommended.rules,
+      ...typescript.configs.recommended.rules,
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/explicit-module-boundary-types': 'off',
     },
   },
 ];

@@ -379,7 +379,7 @@ const translations: Record<Language, Record<string, string>> = {
     "footer.phone": "电话",
     "footer.address": "地址",
     "footer.follow": "关注我们",
-    "footer.rights": "© 2025 澳洲万年市华人互助会 版权所有",
+    "footer.rights": "© 2025 澳洲万年市华人互助会。本网站的所有内容、图片、设计和品牌标识均保留所有权利。",
   },
   en: {
     // Navigation
@@ -768,7 +768,7 @@ const translations: Record<Language, Record<string, string>> = {
     "footer.address": "Address",
     "footer.follow": "Follow Us",
     "footer.rights":
-      "© 2025 Manningham Australian Chinese Mutual Aid Association. All rights reserved.",
+      "© 2025 Manningham Australian Chinese Mutual Aid Association. All rights to the website's content, images, design, and branding reserved.",
   },
 };
 
