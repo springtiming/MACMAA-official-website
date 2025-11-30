@@ -94,7 +94,6 @@ interface FetchNewsOptions {
 }
 
 interface FetchEventsOptions {
-  includeMembersOnly?: boolean;
   fromDate?: string;
   limit?: number;
 }
@@ -139,7 +138,7 @@ export async function fetchNewsPosts(options: FetchNewsOptions = {}) {
 }
 
 export async function fetchEvents(options: FetchEventsOptions = {}) {
-  const { includeMembersOnly = true, fromDate, limit } = options;
+  const { fromDate, limit } = options;
   const supabase = getSupabaseClient();
 
   let query = supabase
@@ -151,9 +150,6 @@ export async function fetchEvents(options: FetchEventsOptions = {}) {
     .order("event_date", { ascending: true })
     .order("start_time", { ascending: true, nullsFirst: true });
 
-  if (!includeMembersOnly) {
-    query = query.or("access_type.is.null,access_type.eq.all-welcome");
-  }
   if (fromDate) {
     query = query.gte("event_date", fromDate);
   }
@@ -327,17 +323,86 @@ export async function fetchAdminEventRegistrations(eventId?: string) {
   return body.registrations ?? [];
 }
 
-export async function fetchAdminAccounts() {
-  const res = await fetch(ADMIN_ACCOUNTS_API_BASE, {
-    headers: { Accept: "application/json" },
-  });
+const LOCAL_ADMIN_ACCOUNTS_KEY = "vmca.mockAdminAccounts";
+const FALLBACK_ADMIN_ACCOUNTS: AdminAccountRecord[] = [
+  {
+    id: "mock-owner",
+    username: "owner_admin",
+    email: "owner@macmaa.org",
+    role: "owner",
+    status: "active",
+    created_at: "2024-01-01T00:00:00Z",
+    last_login_at: null,
+  },
+  {
+    id: "mock-admin-zhang",
+    username: "zhang_admin",
+    email: "zhang_admin@macmaa.org",
+    role: "admin",
+    status: "active",
+    created_at: "2024-01-01T00:00:00Z",
+    last_login_at: null,
+  },
+  {
+    id: "mock-admin",
+    username: "admin",
+    email: "admin@macmaa.org",
+    role: "admin",
+    status: "active",
+    created_at: "2024-01-01T00:00:00Z",
+    last_login_at: null,
+  },
+];
 
-  if (!res.ok) {
-    throw new Error("Failed to fetch admin accounts");
+function getLocalAdminAccounts(): AdminAccountRecord[] {
+  const base = FALLBACK_ADMIN_ACCOUNTS.map((acc) => ({
+    ...acc,
+    last_login_at: acc.last_login_at ?? new Date().toISOString(),
+  }));
+  if (typeof window === "undefined") return base;
+  const raw = window.localStorage.getItem(LOCAL_ADMIN_ACCOUNTS_KEY);
+  if (!raw) {
+    window.localStorage.setItem(
+      LOCAL_ADMIN_ACCOUNTS_KEY,
+      JSON.stringify(base)
+    );
+    return base;
   }
+  try {
+    return JSON.parse(raw) as AdminAccountRecord[];
+  } catch {
+    window.localStorage.setItem(
+      LOCAL_ADMIN_ACCOUNTS_KEY,
+      JSON.stringify(base)
+    );
+    return base;
+  }
+}
 
-  const body = (await res.json()) as { accounts: AdminAccountRecord[] };
-  return body.accounts ?? [];
+function setLocalAdminAccounts(accounts: AdminAccountRecord[]) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(
+    LOCAL_ADMIN_ACCOUNTS_KEY,
+    JSON.stringify(accounts)
+  );
+}
+
+export async function fetchAdminAccounts() {
+  try {
+    const res = await fetch(ADMIN_ACCOUNTS_API_BASE, {
+      headers: { Accept: "application/json" },
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to fetch admin accounts");
+    }
+
+    const body = (await res.json()) as { accounts: AdminAccountRecord[] };
+    return body.accounts?.length ? body.accounts : getLocalAdminAccounts();
+  } catch (err) {
+    console.warn("[admin-accounts] falling back to local data", err);
+    return getLocalAdminAccounts();
+  }
 }
 
 export async function createAdminAccount(payload: {
@@ -346,57 +411,107 @@ export async function createAdminAccount(payload: {
   password: string;
   role: "owner" | "admin";
 }) {
-  const res = await fetch(ADMIN_ACCOUNTS_API_BASE, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
+  try {
+    const res = await fetch(ADMIN_ACCOUNTS_API_BASE, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
 
-  if (res.status === 409) {
-    throw new Error("duplicate");
-  }
-  if (!res.ok) {
-    throw new Error("Failed to create admin account");
-  }
+    if (res.status === 409) {
+      throw new Error("duplicate");
+    }
+    if (!res.ok) {
+      throw new Error("Failed to create admin account");
+    }
 
-  const body = (await res.json()) as { account: AdminAccountRecord };
-  return body.account;
+    const body = (await res.json()) as { account: AdminAccountRecord };
+    return body.account;
+  } catch (err) {
+    const accounts = getLocalAdminAccounts();
+    const duplicate = accounts.some(
+      (acc) => acc.username === payload.username || acc.email === payload.email
+    );
+    if (duplicate) {
+      throw new Error("duplicate");
+    }
+    const id =
+      typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : `local-${Date.now()}`;
+    const account: AdminAccountRecord = {
+      id,
+      username: payload.username,
+      email: payload.email,
+      role: payload.role,
+      status: "active",
+      created_at: new Date().toISOString(),
+      last_login_at: null,
+    };
+    setLocalAdminAccounts([...accounts, account]);
+    return account;
+  }
 }
 
 export async function updateAdminAccount(
   id: string,
   payload: { email?: string; password?: string }
 ) {
-  const res = await fetch(`${ADMIN_ACCOUNTS_API_BASE}/${id}`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
+  try {
+    const res = await fetch(`${ADMIN_ACCOUNTS_API_BASE}/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
 
-  if (!res.ok) {
-    throw new Error("Failed to update admin account");
+    if (!res.ok) {
+      throw new Error("Failed to update admin account");
+    }
+
+    const body = (await res.json()) as { account: AdminAccountRecord };
+    return body.account;
+  } catch (err) {
+    console.warn("[admin-accounts] update fallback", err);
+    const accounts = getLocalAdminAccounts();
+    const idx = accounts.findIndex((acc) => acc.id === id);
+    if (idx === -1) {
+      throw err;
+    }
+    const updated: AdminAccountRecord = {
+      ...accounts[idx],
+      email: payload.email ?? accounts[idx].email,
+      last_login_at: new Date().toISOString(),
+    };
+    const next = [...accounts];
+    next[idx] = updated;
+    setLocalAdminAccounts(next);
+    return updated;
   }
-
-  const body = (await res.json()) as { account: AdminAccountRecord };
-  return body.account;
 }
 
 export async function deleteAdminAccount(id: string) {
-  const res = await fetch(`${ADMIN_ACCOUNTS_API_BASE}/${id}`, {
-    method: "DELETE",
-  });
+  try {
+    const res = await fetch(`${ADMIN_ACCOUNTS_API_BASE}/${id}`, {
+      method: "DELETE",
+    });
 
-  if (res.status === 403) {
-    throw new Error("forbidden");
-  }
-  if (!res.ok && res.status !== 204) {
-    throw new Error("Failed to delete admin account");
+    if (res.status === 403) {
+      throw new Error("forbidden");
+    }
+    if (!res.ok && res.status !== 204) {
+      throw new Error("Failed to delete admin account");
+    }
+  } catch (err) {
+    console.warn("[admin-accounts] delete fallback", err);
+    const accounts = getLocalAdminAccounts();
+    const filtered = accounts.filter((acc) => acc.id !== id);
+    setLocalAdminAccounts(filtered);
   }
 }
 

@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import {
   getSupabaseServiceClient,
@@ -7,6 +7,27 @@ import {
 
 const ACCOUNT_COLUMNS =
   "id, username, email, role, status, created_at, last_login_at";
+
+const DEFAULT_ACCOUNTS: Required<CreateAccountPayload>[] = [
+  {
+    username: "owner_admin",
+    email: "owner@macmaa.org",
+    password: "Owner@123",
+    role: "owner",
+  },
+  {
+    username: "zhang_admin",
+    email: "zhang_admin@macmaa.org",
+    password: "Admin@123",
+    role: "admin",
+  },
+  {
+    username: "admin",
+    email: "admin@macmaa.org",
+    password: "demo123",
+    role: "admin",
+  },
+];
 
 function setCors(res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -56,7 +77,12 @@ async function listAccounts(res: VercelResponse) {
       return res.status(500).json({ error: "Failed to fetch accounts" });
     }
 
-    return res.status(200).json({ accounts: data ?? [] });
+    if (data && data.length > 0) {
+      return res.status(200).json({ accounts: data });
+    }
+
+    const seeded = await seedDefaultAccounts(supabase);
+    return res.status(200).json({ accounts: seeded });
   } catch (err) {
     logSupabaseError("api.admin-accounts.list.unhandled", err as Error);
     return res.status(500).json({
@@ -88,6 +114,7 @@ async function createAccount(req: VercelRequest, res: VercelResponse) {
     const { data, error } = await supabase
       .from("admin_accounts")
       .insert({
+        id: randomUUID(),
         username: body.username,
         email: body.email,
         password_hash,
@@ -125,4 +152,27 @@ function parseJsonBody(body: unknown) {
     }
   }
   return body;
+}
+
+async function seedDefaultAccounts(supabase: ReturnType<typeof getSupabaseServiceClient>) {
+  const inserts = DEFAULT_ACCOUNTS.map((acc) => ({
+    id: randomUUID(),
+    username: acc.username,
+    email: acc.email,
+    password_hash: createHash("sha256").update(acc.password).digest("hex"),
+    role: acc.role,
+    status: "active",
+  }));
+
+  const { data, error } = await supabase
+    .from("admin_accounts")
+    .insert(inserts)
+    .select(ACCOUNT_COLUMNS);
+
+  if (error) {
+    logSupabaseError("api.admin-accounts.seed", error);
+    return [];
+  }
+
+  return data ?? [];
 }

@@ -47,7 +47,6 @@ export function EventList() {
     const loadEvents = async () => {
       try {
         const data = await fetchEvents({
-          includeMembersOnly: true,
           fromDate: new Date().toISOString().slice(0, 10),
         });
         if (!active) return;

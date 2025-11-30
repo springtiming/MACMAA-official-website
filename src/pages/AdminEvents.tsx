@@ -82,6 +82,7 @@ export function AdminEvents() {
   const [search, setSearch] = useState("");
   const [form, setForm] = useState<FormState>(emptyForm);
   const [showForm, setShowForm] = useState(false);
+  const isUnlimited = form.capacity === "";
 
   useEffect(() => {
     let active = true;
@@ -307,27 +308,35 @@ export function AdminEvents() {
             }}
           >
             <div
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6"
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col"
               onMouseDown={(e) => e.stopPropagation()}
             >
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl text-[#2B5F9E]">
-                  {form.id ? t("admin.events.edit") : t("admin.events.add")}
-                </h2>
+              <div className="bg-gradient-to-r from-[#2B5F9E] to-[#6BA868] text-white p-6 flex items-center justify-between">
+                <div>
+                  <p className="text-sm opacity-80">
+                    {form.id ? t("admin.events.edit") : t("admin.events.add")}
+                  </p>
+                  <h2 className="text-xl sm:text-2xl font-semibold">
+                    {language === "zh"
+                      ? "活动信息填写"
+                      : "Event Content & Settings"}
+                  </h2>
+                </div>
                 <button
                   onClick={() => setShowForm(false)}
-                  className="text-gray-600"
+                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm text-gray-700">
-                    {t("admin.events.form.titleZh")}
-                  </label>
-                  <input
+              <div className="p-6 overflow-y-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm text-gray-700">
+                      {t("admin.events.form.titleZh")}
+                    </label>
+                    <input
                     className="w-full border rounded px-3 py-2"
                     value={form.titleZh}
                     onChange={(e) =>
@@ -373,146 +382,166 @@ export function AdminEvents() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                <div>
-                  <label className="text-sm text-gray-700">
-                    {t("admin.events.form.date")}
-                  </label>
-                  <input
-                    type="date"
-                    className="w-full border rounded px-3 py-2"
-                    value={form.date}
-                    onChange={(e) => setForm({ ...form, date: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm text-gray-700">
-                    {t("admin.events.form.time")}
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="time"
-                      className="w-full border rounded px-3 py-2"
-                      value={form.start}
-                      onChange={(e) =>
-                        setForm({ ...form, start: e.target.value })
-                      }
-                    />
-                    <input
-                      type="time"
-                      className="w-full border rounded px-3 py-2"
-                      value={form.end}
-                      onChange={(e) =>
-                        setForm({ ...form, end: e.target.value })
-                      }
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-sm text-gray-700">
-                    {t("admin.events.form.capacity")}
-                  </label>
-                  <input
-                    type="number"
-                    className="w-full border rounded px-3 py-2"
-                    value={form.capacity}
-                    onChange={(e) =>
-                      setForm({ ...form, capacity: e.target.value })
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                <div>
-                  <label className="text-sm text-gray-700">
-                    {t("admin.events.form.location")}
-                  </label>
-                  <input
-                    className="w-full border rounded px-3 py-2"
-                    value={form.location}
-                    onChange={(e) =>
-                      setForm({ ...form, location: e.target.value })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="text-sm text-gray-700">
-                    {t("admin.events.form.accessType")}
-                  </label>
-                  <div className="flex gap-3 mt-2 text-sm text-gray-700">
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        checked={form.access === "all-welcome"}
-                        onChange={() =>
-                          setForm({ ...form, access: "all-welcome" })
-                        }
-                      />
-                      {t("admin.events.form.allWelcome")}
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        checked={form.access === "members-only"}
-                        onChange={() =>
-                          setForm({
-                            ...form,
-                            access: "members-only",
-                            memberFee: "",
-                          })
-                        }
-                      />
-                      {t("admin.events.form.membersOnly")}
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                <div>
-                  <label className="text-sm text-gray-700">
-                    {t("admin.events.form.nonMemberPrice")}
-                  </label>
-                  <input
-                    type="number"
-                    className="w-full border rounded px-3 py-2"
-                    value={form.fee}
-                    onChange={(e) => setForm({ ...form, fee: e.target.value })}
-                  />
-                </div>
-                {form.access === "all-welcome" && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                   <div>
                     <label className="text-sm text-gray-700">
-                      {t("admin.events.form.memberPrice")}
+                      {t("admin.events.form.date")}
+                    </label>
+                    <input
+                      type="date"
+                      className="w-full border rounded px-3 py-2"
+                      value={form.date}
+                      onChange={(e) =>
+                        setForm({ ...form, date: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-700">
+                      {t("admin.events.form.time")}
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="time"
+                        className="w-full border rounded px-3 py-2"
+                        value={form.start}
+                        onChange={(e) =>
+                          setForm({ ...form, start: e.target.value })
+                        }
+                      />
+                      <input
+                        type="time"
+                        className="w-full border rounded px-3 py-2"
+                        value={form.end}
+                        onChange={(e) =>
+                          setForm({ ...form, end: e.target.value })
+                        }
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-700 flex items-center justify-between">
+                      <span>{t("admin.events.form.capacity")}</span>
+                      <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={isUnlimited}
+                          onChange={(e) =>
+                            setForm({
+                              ...form,
+                              capacity: e.target.checked ? "" : "0",
+                            })
+                          }
+                        />
+                        {t("admin.events.form.unlimited")}
+                      </label>
                     </label>
                     <input
                       type="number"
                       className="w-full border rounded px-3 py-2"
-                      value={form.memberFee}
+                      value={form.capacity}
                       onChange={(e) =>
-                        setForm({ ...form, memberFee: e.target.value })
+                        setForm({ ...form, capacity: e.target.value })
+                      }
+                      disabled={isUnlimited}
+                      placeholder={t("admin.events.form.unlimited")}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <label className="text-sm text-gray-700">
+                      {t("admin.events.form.location")}
+                    </label>
+                    <input
+                      className="w-full border rounded px-3 py-2"
+                      value={form.location}
+                      onChange={(e) =>
+                        setForm({ ...form, location: e.target.value })
                       }
                     />
                   </div>
-                )}
-              </div>
+                  <div>
+                    <label className="text-sm text-gray-700">
+                      {t("admin.events.form.accessType")}
+                    </label>
+                    <div className="flex gap-3 mt-2 text-sm text-gray-700">
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          checked={form.access === "all-welcome"}
+                          onChange={() =>
+                            setForm({ ...form, access: "all-welcome" })
+                          }
+                        />
+                        {t("admin.events.form.allWelcome")}
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          checked={form.access === "members-only"}
+                          onChange={() =>
+                            setForm({
+                              ...form,
+                              access: "members-only",
+                              memberFee: "",
+                            })
+                          }
+                        />
+                        {t("admin.events.form.membersOnly")}
+                      </label>
+                    </div>
+                  </div>
+                </div>
 
-              <div className="flex justify-end gap-3 mt-6">
-                <button
-                  onClick={() => setShowForm(false)}
-                  type="button"
-                  className="px-4 py-2 border rounded-lg"
-                >
-                  {t("common.cancel")}
-                </button>
-                <button
-                  onClick={handleSave}
-                  type="button"
-                  className="px-4 py-2 bg-[#6BA868] text-white rounded-lg"
-                >
-                  {form.id ? t("admin.events.save") : t("admin.events.add")}
-                </button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <label className="text-sm text-gray-700">
+                      {t("admin.events.form.nonMemberPrice")}
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full border rounded px-3 py-2"
+                      value={form.fee}
+                      onChange={(e) =>
+                        setForm({ ...form, fee: e.target.value })
+                      }
+                    />
+                  </div>
+                  {form.access === "all-welcome" && (
+                    <div>
+                      <label className="text-sm text-gray-700">
+                        {t("admin.events.form.memberPrice")}
+                      </label>
+                      <input
+                        type="number"
+                        className="w-full border rounded px-3 py-2"
+                        value={form.memberFee}
+                        onChange={(e) =>
+                          setForm({ ...form, memberFee: e.target.value })
+                        }
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-end gap-3 mt-6">
+                  <button
+                    onClick={() => setShowForm(false)}
+                    type="button"
+                    className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                  >
+                    {t("common.cancel")}
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    type="button"
+                    className="px-5 py-2.5 bg-gradient-to-r from-[#2B5F9E] to-[#6BA868] text-white rounded-lg shadow-md hover:shadow-lg transition-all"
+                  >
+                    {form.id ? t("admin.events.save") : t("admin.events.add")}
+                  </button>
+                </div>
               </div>
             </div>
           </div>

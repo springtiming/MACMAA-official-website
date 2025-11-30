@@ -370,6 +370,7 @@ const translations: Record<Language, Record<string, string>> = {
     "common.submit": "提交",
     "common.cancel": "取消",
     "common.back": "返回",
+    "common.error": "出错了，请稍后重试",
     "common.loading": "加载中...",
     "common.free": "免费",
 
@@ -759,6 +760,7 @@ const translations: Record<Language, Record<string, string>> = {
     "common.submit": "Submit",
     "common.cancel": "Cancel",
     "common.back": "Back",
+    "common.error": "Something went wrong. Please try again.",
     "common.loading": "Loading...",
     "common.free": "Free",
 

@@ -46,7 +46,7 @@ export function AdminDashboard() {
     let active = true;
     setStatsLoading(true);
     Promise.all([
-      fetchEvents({ includeMembersOnly: true }),
+      fetchEvents(),
       fetchNewsPosts({ publishedOnly: false }),
     ])
       .then(([events, news]) => {
