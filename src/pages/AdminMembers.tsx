@@ -26,6 +26,7 @@ import {
   ProcessingOverlay,
   type ProcessingState,
 } from "../components/ProcessingOverlay";
+import * as XLSX from "xlsx";
 
 type MemberFilter = "all" | "pending" | "approved" | "rejected";
 const FILTER_OPTIONS: MemberFilter[] = [
@@ -279,19 +280,39 @@ export function AdminMembers() {
       m.apply_date ?? "",
       t(`admin.members.${m.status}`),
     ]);
-    const csvContent = [
-      headers.join(","),
-      ...rows.map((r) => r.map((c) => `"${c}"`).join(",")),
-    ].join("\n");
-    const blob = new Blob(["\uFEFF" + csvContent], {
-      type: "text/csv;charset=utf-8;",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `MACMAA_Members_${new Date().toISOString().split("T")[0]}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
+
+    // 创建工作簿
+    const wb = XLSX.utils.book_new();
+    
+    // 创建工作表数据（包含表头和数据行）
+    const wsData = [headers, ...rows];
+    
+    // 创建工作表
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    
+    // 设置列宽
+    const colWidths = [
+      { wch: 15 }, // 中文姓名
+      { wch: 15 }, // 英文姓名
+      { wch: 10 }, // 性别
+      { wch: 12 }, // 出生日期
+      { wch: 15 }, // 电话
+      { wch: 25 }, // 邮箱
+      { wch: 30 }, // 地址
+      { wch: 15 }, // 紧急联系人
+      { wch: 15 }, // 紧急联系电话
+      { wch: 15 }, // 紧急联系人关系
+      { wch: 12 }, // 申请日期
+      { wch: 12 }, // 状态
+    ];
+    ws["!cols"] = colWidths;
+    
+    // 将工作表添加到工作簿
+    XLSX.utils.book_append_sheet(wb, ws, "会员列表");
+    
+    // 生成 Excel 文件并下载
+    const fileName = `MACMAA_Members_${new Date().toISOString().split("T")[0]}.xlsx`;
+    XLSX.writeFile(wb, fileName);
   };
 
   const getStatusColor = (status: string) => {
@@ -566,7 +587,11 @@ export function AdminMembers() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.1 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+              className="fixed inset-0 flex items-center justify-center p-4 z-50"
+              style={{
+                backgroundColor: "rgba(0,0,0,0.6)",
+                backdropFilter: "blur(8px)",
+              }}
               onClick={() => setConfirmDialog(null)}
             >
               <motion.div
@@ -586,9 +611,7 @@ export function AdminMembers() {
                       confirmDialog.type === "revoke" ||
                       confirmDialog.type === "reject";
                     return (
-                      <div
-                        className="w-20 h-20 rounded-full flex items-center justify-center bg-orange-50"
-                      >
+                      <div className="w-20 h-20 rounded-full flex items-center justify-center bg-gray-100">
                         <AlertTriangle className="w-10 h-10 text-orange-500" />
                       </div>
                     );

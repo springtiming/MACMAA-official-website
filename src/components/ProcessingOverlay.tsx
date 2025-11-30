@@ -128,7 +128,11 @@ export function ProcessingOverlay({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.15 }}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+        className="fixed inset-0 flex items-center justify-center p-4 z-50"
+        style={{
+          backgroundColor: "rgba(0,0,0,0.6)",
+          backdropFilter: "blur(8px)",
+        }}
       >
         <motion.div
           initial={
@@ -163,14 +167,14 @@ export function ProcessingOverlay({
           style={{ maxWidth: "24rem" }}
         >
           <div
-            className="rounded-[30px] p-[1.5px]"
+            className="rounded-[32px] p-[1.5px] overflow-hidden"
             style={{
               background: config.borderGradient,
               boxShadow: config.cardShadow,
             }}
           >
             <div
-              className="rounded-[28px] px-8 py-8"
+              className="rounded-[30px] px-8 py-8"
               style={{ background: config.cardBackground }}
             >
               {/* 图标 / 动画 */}
