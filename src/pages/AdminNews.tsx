@@ -327,70 +327,84 @@ export function AdminNews() {
               </div>
             </div>
           )}
-          {filteredNews.map((news, index) => (
-            <motion.div
-              key={news.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow"
-            >
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1">
-                  <h3 className="text-[#2B5F9E] text-lg sm:text-xl mb-2">
-                    {pickLocalized(news.title_zh, news.title_en, language)}
-                  </h3>
-                  <p className="text-gray-600 mb-3">
-                    {pickLocalized(news.summary_zh, news.summary_en, language)}
-                  </p>
-                  <div className="text-sm text-gray-500 flex items-center gap-2">
-                    <span>{news.published_at?.slice(0, 10) || ""}</span>
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs ${
-                        news.published
-                          ? "bg-green-100 text-green-700"
-                          : "bg-yellow-100 text-yellow-700"
-                      }`}
-                    >
-                      {news.published
-                        ? language === "zh"
-                          ? "已发布"
-                          : "Published"
-                        : language === "zh"
-                          ? "草稿中"
-                          : "Unpublished"}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex md:flex-col gap-2">
-                  <button
-                    onClick={() => handleEdit(news)}
-                    className="flex items-center justify-center gap-2 px-4 py-2 bg-[#6BA868] text-white rounded-lg hover:bg-[#5a9157] transition-colors flex-1 md:flex-initial"
-                  >
-                    <Edit className="w-4 h-4" />
-                    <span className="hidden sm:inline">
-                      {t("admin.news.edit")}
-                    </span>
-                  </button>
-                  <button
-                    onClick={() => handleDelete(news.id)}
-                    className="flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex-1 md:flex-initial"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    <span className="hidden sm:inline">
-                      {t("admin.news.delete")}
-                    </span>
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-
-          {filteredNews.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
-              {language === "zh" ? "没有找到新闻" : "No news found"}
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-[#2B5F9E] text-lg">
+                {language === "zh" ? "已发布新闻" : "Published News"}
+              </h3>
+              <span className="text-sm text-gray-500">
+                {language === "zh" ? "共" : "Total"} {filteredNews.length}
+              </span>
             </div>
-          )}
+            <div className="space-y-4">
+              {filteredNews.map((news, index) => (
+                <motion.div
+                  key={news.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow"
+                >
+                  <div className="flex flex-col md:flex-row gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="text-[#2B5F9E] text-lg sm:text-xl">
+                          {pickLocalized(news.title_zh, news.title_en, language)}
+                        </h3>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs ${
+                            news.published
+                              ? "bg-green-100 text-green-700"
+                              : "bg-yellow-100 text-yellow-700"
+                          }`}
+                        >
+                          {news.published
+                            ? language === "zh"
+                              ? "已发布"
+                              : "Published"
+                            : language === "zh"
+                              ? "草稿中"
+                              : "Unpublished"}
+                        </span>
+                      </div>
+                      <p className="text-gray-600 mb-3">
+                        {pickLocalized(news.summary_zh, news.summary_en, language)}
+                      </p>
+                      <div className="text-sm text-gray-500 flex items-center gap-2">
+                        <span>{news.published_at?.slice(0, 10) || ""}</span>
+                      </div>
+                    </div>
+                    <div className="flex md:flex-col gap-2">
+                      <button
+                        onClick={() => handleEdit(news)}
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-[#6BA868] text-white rounded-lg hover:bg-[#5a9157] transition-colors flex-1 md:flex-initial"
+                      >
+                        <Edit className="w-4 h-4" />
+                        <span className="hidden sm:inline">
+                          {t("admin.news.edit")}
+                        </span>
+                      </button>
+                      <button
+                        onClick={() => handleDelete(news.id)}
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex-1 md:flex-initial"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span className="hidden sm:inline">
+                          {t("admin.news.delete")}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+
+              {filteredNews.length === 0 && (
+                <div className="text-center py-12 text-gray-500">
+                  {language === "zh" ? "没有找到新闻" : "No news found"}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* News Form Modal */}
