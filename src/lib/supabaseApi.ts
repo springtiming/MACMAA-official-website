@@ -265,7 +265,6 @@ async function callEdgeFunction(path: string, init?: RequestInit) {
   return fetch(url, { ...init, headers });
 }
 
-
 export async function fetchAdminEvents() {
   const res = await callEdgeFunction("events-admin", {
     headers: { Accept: "application/json" },
@@ -298,9 +297,12 @@ export async function saveEvent(payload: UpsertEventInput) {
 }
 
 export async function deleteEvent(id: string) {
-  const res = await callEdgeFunction(`events-admin?id=${encodeURIComponent(id)}`, {
-    method: "DELETE",
-  });
+  const res = await callEdgeFunction(
+    `events-admin?id=${encodeURIComponent(id)}`,
+    {
+      method: "DELETE",
+    }
+  );
 
   if (!res.ok && res.status !== 204) {
     throw new Error("Failed to delete event");

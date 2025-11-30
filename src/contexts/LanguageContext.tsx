@@ -379,7 +379,8 @@ const translations: Record<Language, Record<string, string>> = {
     "footer.phone": "电话",
     "footer.address": "地址",
     "footer.follow": "关注我们",
-    "footer.rights": "© 2025 澳洲万年市华人互助会。本网站的所有内容、图片、设计和品牌标识均保留所有权利。",
+    "footer.rights":
+      "© 2025 澳洲万年市华人互助会。本网站的所有内容、图片、设计和品牌标识均保留所有权利。",
   },
   en: {
     // Navigation

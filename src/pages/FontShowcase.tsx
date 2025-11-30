@@ -13,57 +13,73 @@ const fonts: FontOption[] = [
   {
     name: "Inter",
     family: "'Inter', sans-serif",
-    googleFontUrl: "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap",
-    description: "Modern, professional, highly readable. Perfect for corporate and institutional websites.",
+    googleFontUrl:
+      "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap",
+    description:
+      "Modern, professional, highly readable. Perfect for corporate and institutional websites.",
     zhDescription: "现代、专业、易读性强。适合企业和机构网站。",
   },
   {
     name: "Poppins",
     family: "'Poppins', sans-serif",
-    googleFontUrl: "https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap",
-    description: "Friendly and modern, with excellent readability. Great for community organizations.",
+    googleFontUrl:
+      "https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap",
+    description:
+      "Friendly and modern, with excellent readability. Great for community organizations.",
     zhDescription: "友好现代，可读性极佳。适合社区组织。",
   },
   {
     name: "Roboto",
     family: "'Roboto', sans-serif",
-    googleFontUrl: "https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap",
-    description: "Professional and reliable, widely used. Excellent for formal content.",
+    googleFontUrl:
+      "https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap",
+    description:
+      "Professional and reliable, widely used. Excellent for formal content.",
     zhDescription: "专业可靠，使用广泛。适合正式内容。",
   },
   {
     name: "Source Sans Pro",
     family: "'Source Sans Pro', sans-serif",
-    googleFontUrl: "https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700&display=swap",
-    description: "Clear and professional, designed for user interfaces. Great for readability.",
+    googleFontUrl:
+      "https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700&display=swap",
+    description:
+      "Clear and professional, designed for user interfaces. Great for readability.",
     zhDescription: "清晰专业，专为界面设计。可读性极佳。",
   },
   {
     name: "Work Sans",
     family: "'Work Sans', sans-serif",
-    googleFontUrl: "https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&display=swap",
-    description: "Modern and friendly, designed for screens. Perfect balance of professionalism and warmth.",
+    googleFontUrl:
+      "https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&display=swap",
+    description:
+      "Modern and friendly, designed for screens. Perfect balance of professionalism and warmth.",
     zhDescription: "现代友好，专为屏幕设计。专业与温暖的完美平衡。",
   },
   {
     name: "Lato",
     family: "'Lato', sans-serif",
-    googleFontUrl: "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap",
-    description: "Elegant and professional, with a warm character. Ideal for community associations.",
+    googleFontUrl:
+      "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap",
+    description:
+      "Elegant and professional, with a warm character. Ideal for community associations.",
     zhDescription: "优雅专业，带有温暖特质。适合社区协会。",
   },
   {
     name: "Noto Sans SC",
     family: "'Noto Sans SC', sans-serif",
-    googleFontUrl: "https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap",
-    description: "Modern Chinese font with excellent readability. Perfect for bilingual content.",
+    googleFontUrl:
+      "https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap",
+    description:
+      "Modern Chinese font with excellent readability. Perfect for bilingual content.",
     zhDescription: "现代中文字体，可读性极佳。适合双语内容。",
   },
   {
     name: "Inter + Noto Sans SC",
     family: "'Inter', 'Noto Sans SC', sans-serif",
-    googleFontUrl: "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap",
-    description: "Combination of Inter (English) and Noto Sans SC (Chinese). Best for bilingual websites.",
+    googleFontUrl:
+      "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap",
+    description:
+      "Combination of Inter (English) and Noto Sans SC (Chinese). Best for bilingual websites.",
     zhDescription: "Inter（英文）与思源黑体（中文）的组合。最适合双语网站。",
   },
 ];
@@ -75,14 +91,15 @@ export function FontShowcase() {
   useEffect(() => {
     const loadFonts = async () => {
       // 检查是否已经加载过
-      const existingLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
-        .map(link => (link as HTMLLinkElement).href);
-      
+      const existingLinks = Array.from(
+        document.querySelectorAll('link[rel="stylesheet"]')
+      ).map((link) => (link as HTMLLinkElement).href);
+
       const promises = fonts.map((font) => {
         return new Promise<void>((resolve) => {
           // 如果已经加载过，直接返回
-          const fontNameForUrl = font.name.replace(/\s+/g, '+');
-          if (existingLinks.some(url => url.includes(fontNameForUrl))) {
+          const fontNameForUrl = font.name.replace(/\s+/g, "+");
+          if (existingLinks.some((url) => url.includes(fontNameForUrl))) {
             resolve();
             return;
           }
@@ -94,10 +111,16 @@ export function FontShowcase() {
           link.onload = () => {
             // 检查字体是否真的可用
             if (document.fonts && document.fonts.check) {
-              const fontName = font.family.split(',')[0].replace(/'/g, '').trim();
+              const fontName = font.family
+                .split(",")[0]
+                .replace(/'/g, "")
+                .trim();
               const fontSpec = '16px "' + fontName + '"';
               const isLoaded = document.fonts.check(fontSpec);
-              console.log('Font ' + font.name + ' (' + fontName + ') loaded:', isLoaded);
+              console.log(
+                "Font " + font.name + " (" + fontName + ") loaded:",
+                isLoaded
+              );
             }
             resolve();
           };
@@ -110,27 +133,34 @@ export function FontShowcase() {
       });
 
       await Promise.all(promises);
-      
+
       // 等待字体真正加载完成
       if (document.fonts && document.fonts.ready) {
         try {
           await document.fonts.ready;
           // 检查所有字体
-          fonts.forEach(font => {
-            const fontName = font.family.split(',')[0].replace(/'/g, '').trim();
+          fonts.forEach((font) => {
+            const fontName = font.family.split(",")[0].replace(/'/g, "").trim();
             const fontSpec = '16px "' + fontName + '"';
             const isAvailable = document.fonts.check(fontSpec);
-            console.log('Font ' + font.name + ' available:', isAvailable, 'Family:', font.family);
+            console.log(
+              "Font " + font.name + " available:",
+              isAvailable,
+              "Family:",
+              font.family
+            );
           });
         } catch (e) {
-          console.warn('Font loading check failed:', e);
+          console.warn("Font loading check failed:", e);
         }
       }
-      
+
       // 额外等待确保字体渲染
       setTimeout(() => {
         setFontsReady(true);
-        console.log('All fonts loaded. Check browser DevTools > Elements > Computed to see applied fonts.');
+        console.log(
+          "All fonts loaded. Check browser DevTools > Elements > Computed to see applied fonts."
+        );
       }, 1000);
     };
 
@@ -204,7 +234,9 @@ export function FontShowcase() {
               onClick={() => handleSelectFont(font)}
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-2xl font-bold text-[#2B5F9E]">{font.name}</h3>
+                <h3 className="text-2xl font-bold text-[#2B5F9E]">
+                  {font.name}
+                </h3>
                 {selectedFont?.name === font.name && (
                   <span className="px-3 py-1 bg-[#2B5F9E] text-white rounded-full text-sm">
                     已选择
@@ -212,25 +244,60 @@ export function FontShowcase() {
                 )}
               </div>
               <p className="text-sm text-gray-600 mb-4">{font.zhDescription}</p>
-              <div className="space-y-3 border-t pt-4" style={{ fontFamily: font.family, isolation: 'isolate' } as React.CSSProperties}>
+              <div
+                className="space-y-3 border-t pt-4"
+                style={
+                  {
+                    fontFamily: font.family,
+                    isolation: "isolate",
+                  } as React.CSSProperties
+                }
+              >
                 <div style={{ fontFamily: font.family } as React.CSSProperties}>
-                  <p className="text-xs text-gray-500 mb-1" style={{ fontFamily: font.family } as React.CSSProperties}>标题示例</p>
-                  <h4 className="text-xl font-bold text-[#2B5F9E]" style={{ fontFamily: font.family } as React.CSSProperties}>
+                  <p
+                    className="text-xs text-gray-500 mb-1"
+                    style={{ fontFamily: font.family } as React.CSSProperties}
+                  >
+                    标题示例
+                  </p>
+                  <h4
+                    className="text-xl font-bold text-[#2B5F9E]"
+                    style={{ fontFamily: font.family } as React.CSSProperties}
+                  >
                     {sampleTexts.title.zh}
                   </h4>
-                  <h4 className="text-lg font-semibold text-gray-700 mt-1" style={{ fontFamily: font.family } as React.CSSProperties}>
+                  <h4
+                    className="text-lg font-semibold text-gray-700 mt-1"
+                    style={{ fontFamily: font.family } as React.CSSProperties}
+                  >
                     {sampleTexts.title.en}
                   </h4>
                 </div>
                 <div style={{ fontFamily: font.family } as React.CSSProperties}>
-                  <p className="text-xs text-gray-500 mb-1" style={{ fontFamily: font.family } as React.CSSProperties}>副标题示例</p>
-                  <p className="text-base text-gray-600" style={{ fontFamily: font.family } as React.CSSProperties}>
+                  <p
+                    className="text-xs text-gray-500 mb-1"
+                    style={{ fontFamily: font.family } as React.CSSProperties}
+                  >
+                    副标题示例
+                  </p>
+                  <p
+                    className="text-base text-gray-600"
+                    style={{ fontFamily: font.family } as React.CSSProperties}
+                  >
                     {sampleTexts.subtitle.zh} / {sampleTexts.subtitle.en}
                   </p>
                 </div>
                 <div style={{ fontFamily: font.family } as React.CSSProperties}>
-                  <p className="text-xs text-gray-500 mb-1" style={{ fontFamily: font.family } as React.CSSProperties}>正文示例</p>
-                  <p className="text-sm text-gray-700 leading-relaxed" style={{ fontFamily: font.family } as React.CSSProperties}>
+                  <p
+                    className="text-xs text-gray-500 mb-1"
+                    style={{ fontFamily: font.family } as React.CSSProperties}
+                  >
+                    正文示例
+                  </p>
+                  <p
+                    className="text-sm text-gray-700 leading-relaxed"
+                    style={{ fontFamily: font.family } as React.CSSProperties}
+                  >
                     {sampleTexts.paragraph.zh}
                   </p>
                 </div>
@@ -257,60 +324,162 @@ export function FontShowcase() {
               </button>
             </div>
 
-            <div className="space-y-8" style={{ fontFamily: selectedFont.family }}>
-              <div className="border-b pb-6" style={{ fontFamily: selectedFont.family }}>
-                <h1 className="text-5xl font-bold text-[#2B5F9E] mb-3" style={{ fontFamily: selectedFont.family }}>
+            <div
+              className="space-y-8"
+              style={{ fontFamily: selectedFont.family }}
+            >
+              <div
+                className="border-b pb-6"
+                style={{ fontFamily: selectedFont.family }}
+              >
+                <h1
+                  className="text-5xl font-bold text-[#2B5F9E] mb-3"
+                  style={{ fontFamily: selectedFont.family }}
+                >
                   {sampleTexts.title.zh}
                 </h1>
-                <h2 className="text-3xl font-semibold text-gray-700 mb-4" style={{ fontFamily: selectedFont.family }}>
+                <h2
+                  className="text-3xl font-semibold text-gray-700 mb-4"
+                  style={{ fontFamily: selectedFont.family }}
+                >
                   {sampleTexts.title.en}
                 </h2>
-                <p className="text-xl text-gray-600" style={{ fontFamily: selectedFont.family }}>
+                <p
+                  className="text-xl text-gray-600"
+                  style={{ fontFamily: selectedFont.family }}
+                >
                   {sampleTexts.subtitle.zh} / {sampleTexts.subtitle.en}
                 </p>
               </div>
 
               <div style={{ fontFamily: selectedFont.family }}>
-                <h3 className="text-2xl font-bold text-[#2B5F9E] mb-4" style={{ fontFamily: selectedFont.family }}>
+                <h3
+                  className="text-2xl font-bold text-[#2B5F9E] mb-4"
+                  style={{ fontFamily: selectedFont.family }}
+                >
                   {sampleTexts.heading.zh}
                 </h3>
-                <p className="text-lg text-gray-700 leading-relaxed mb-4" style={{ fontFamily: selectedFont.family }}>
+                <p
+                  className="text-lg text-gray-700 leading-relaxed mb-4"
+                  style={{ fontFamily: selectedFont.family }}
+                >
                   {sampleTexts.paragraph.zh}
                 </p>
-                <p className="text-base text-gray-600 leading-relaxed" style={{ fontFamily: selectedFont.family }}>
+                <p
+                  className="text-base text-gray-600 leading-relaxed"
+                  style={{ fontFamily: selectedFont.family }}
+                >
                   {sampleTexts.paragraph.en}
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6 border-t" style={{ fontFamily: selectedFont.family }}>
+              <div
+                className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6 border-t"
+                style={{ fontFamily: selectedFont.family }}
+              >
                 <div>
-                  <p className="text-xs text-gray-500 mb-2" style={{ fontFamily: selectedFont.family }}>字体粗细</p>
+                  <p
+                    className="text-xs text-gray-500 mb-2"
+                    style={{ fontFamily: selectedFont.family }}
+                  >
+                    字体粗细
+                  </p>
                   <div className="space-y-2">
-                    <p className="font-light" style={{ fontFamily: selectedFont.family }}>Light (300)</p>
-                    <p className="font-normal" style={{ fontFamily: selectedFont.family }}>Regular (400)</p>
-                    <p className="font-medium" style={{ fontFamily: selectedFont.family }}>Medium (500)</p>
-                    <p className="font-semibold" style={{ fontFamily: selectedFont.family }}>Semibold (600)</p>
-                    <p className="font-bold" style={{ fontFamily: selectedFont.family }}>Bold (700)</p>
+                    <p
+                      className="font-light"
+                      style={{ fontFamily: selectedFont.family }}
+                    >
+                      Light (300)
+                    </p>
+                    <p
+                      className="font-normal"
+                      style={{ fontFamily: selectedFont.family }}
+                    >
+                      Regular (400)
+                    </p>
+                    <p
+                      className="font-medium"
+                      style={{ fontFamily: selectedFont.family }}
+                    >
+                      Medium (500)
+                    </p>
+                    <p
+                      className="font-semibold"
+                      style={{ fontFamily: selectedFont.family }}
+                    >
+                      Semibold (600)
+                    </p>
+                    <p
+                      className="font-bold"
+                      style={{ fontFamily: selectedFont.family }}
+                    >
+                      Bold (700)
+                    </p>
                   </div>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 mb-2" style={{ fontFamily: selectedFont.family }}>字号大小</p>
+                  <p
+                    className="text-xs text-gray-500 mb-2"
+                    style={{ fontFamily: selectedFont.family }}
+                  >
+                    字号大小
+                  </p>
                   <div className="space-y-2">
-                    <p className="text-xs" style={{ fontFamily: selectedFont.family }}>Extra Small (12px)</p>
-                    <p className="text-sm" style={{ fontFamily: selectedFont.family }}>Small (14px)</p>
-                    <p className="text-base" style={{ fontFamily: selectedFont.family }}>Base (16px)</p>
-                    <p className="text-lg" style={{ fontFamily: selectedFont.family }}>Large (18px)</p>
-                    <p className="text-xl" style={{ fontFamily: selectedFont.family }}>Extra Large (20px)</p>
+                    <p
+                      className="text-xs"
+                      style={{ fontFamily: selectedFont.family }}
+                    >
+                      Extra Small (12px)
+                    </p>
+                    <p
+                      className="text-sm"
+                      style={{ fontFamily: selectedFont.family }}
+                    >
+                      Small (14px)
+                    </p>
+                    <p
+                      className="text-base"
+                      style={{ fontFamily: selectedFont.family }}
+                    >
+                      Base (16px)
+                    </p>
+                    <p
+                      className="text-lg"
+                      style={{ fontFamily: selectedFont.family }}
+                    >
+                      Large (18px)
+                    </p>
+                    <p
+                      className="text-xl"
+                      style={{ fontFamily: selectedFont.family }}
+                    >
+                      Extra Large (20px)
+                    </p>
                   </div>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 mb-2" style={{ fontFamily: selectedFont.family }}>应用场景</p>
+                  <p
+                    className="text-xs text-gray-500 mb-2"
+                    style={{ fontFamily: selectedFont.family }}
+                  >
+                    应用场景
+                  </p>
                   <div className="space-y-2 text-sm">
-                    <p style={{ fontFamily: selectedFont.family }}>✓ 网站标题</p>
-                    <p style={{ fontFamily: selectedFont.family }}>✓ 正文内容</p>
-                    <p style={{ fontFamily: selectedFont.family }}>✓ 按钮文字</p>
-                    <p style={{ fontFamily: selectedFont.family }}>✓ 导航菜单</p>
-                    <p style={{ fontFamily: selectedFont.family }}>✓ 表单输入</p>
+                    <p style={{ fontFamily: selectedFont.family }}>
+                      ✓ 网站标题
+                    </p>
+                    <p style={{ fontFamily: selectedFont.family }}>
+                      ✓ 正文内容
+                    </p>
+                    <p style={{ fontFamily: selectedFont.family }}>
+                      ✓ 按钮文字
+                    </p>
+                    <p style={{ fontFamily: selectedFont.family }}>
+                      ✓ 导航菜单
+                    </p>
+                    <p style={{ fontFamily: selectedFont.family }}>
+                      ✓ 表单输入
+                    </p>
                   </div>
                 </div>
               </div>
@@ -330,7 +499,9 @@ export function FontShowcase() {
               <strong>最佳选择：</strong>Inter + Noto Sans SC 组合
             </p>
             <p>
-              Inter 是专为屏幕设计的现代无衬线字体，在英文内容上表现优秀；Noto Sans SC 是 Google 开发的中文字体，与 Inter 风格协调，适合双语网站。
+              Inter 是专为屏幕设计的现代无衬线字体，在英文内容上表现优秀；Noto
+              Sans SC 是 Google 开发的中文字体，与 Inter
+              风格协调，适合双语网站。
             </p>
             <p>
               <strong>备选方案：</strong>Work Sans 或 Lato
@@ -350,22 +521,33 @@ export function FontShowcase() {
             <h3 className="text-xl font-bold mb-4 text-white">应用方法</h3>
             <div className="space-y-4 text-sm">
               <div>
-                <p className="text-gray-300 mb-2">1. 在 index.html 中添加字体链接：</p>
+                <p className="text-gray-300 mb-2">
+                  1. 在 index.html 中添加字体链接：
+                </p>
                 <pre className="bg-gray-900 p-4 rounded-lg overflow-x-auto text-xs">
-                  {'<link rel="stylesheet" href="' + selectedFont.googleFontUrl + '" />'}
+                  {'<link rel="stylesheet" href="' +
+                    selectedFont.googleFontUrl +
+                    '" />'}
                 </pre>
               </div>
               <div>
-                <p className="text-gray-300 mb-2">2. 在 src/index.css 中更新字体变量：</p>
+                <p className="text-gray-300 mb-2">
+                  2. 在 src/index.css 中更新字体变量：
+                </p>
                 <pre className="bg-gray-900 p-4 rounded-lg overflow-x-auto text-xs">
-                  {'--font-sans: ' + selectedFont.family + ';'}
+                  {"--font-sans: " + selectedFont.family + ";"}
                 </pre>
               </div>
               <div>
-                <p className="text-gray-300 mb-2">3. 或者在 Tailwind 配置中设置：</p>
+                <p className="text-gray-300 mb-2">
+                  3. 或者在 Tailwind 配置中设置：
+                </p>
                 <pre className="bg-gray-900 p-4 rounded-lg overflow-x-auto text-xs">
                   {`fontFamily: {
-  sans: [${selectedFont.family.split(',').map(f => f.trim()).join(', ')}],
+  sans: [${selectedFont.family
+    .split(",")
+    .map((f) => f.trim())
+    .join(", ")}],
 }`}
                 </pre>
               </div>
@@ -376,4 +558,3 @@ export function FontShowcase() {
     </div>
   );
 }
-

@@ -29,39 +29,39 @@ export function Home() {
 
   const activityImages = useMemo(
     () => [
-    {
-      url: groupPhoto,
+      {
+        url: groupPhoto,
         caption: language === "zh" ? "社区大合影" : "Community Group Photo",
-    },
-    {
-      url: consulPhoto,
+      },
+      {
+        url: consulPhoto,
         caption:
           language === "zh"
             ? "中国驻墨尔本总领馆房新文总领事出席端午节活动"
             : "Consul General Fang Xinwen attended Dragon Boat Festival",
-    },
-    {
-      url: leadershipPhoto,
+      },
+      {
+        url: leadershipPhoto,
         caption:
           language === "zh"
             ? "陈雅会长、Gabriel Ng MP议员与维州多元文化社区的理事团和会员合照"
             : "President Chen Ya, MP Gabriel Ng with Victorian multicultural community board and members",
-    },
-    {
-      url: performancePhoto,
+      },
+      {
+        url: performancePhoto,
         caption:
           language === "zh" ? "会员太极演出" : "Member Tai Chi Performance",
-    },
-    {
-      url: gatheringPhoto,
+      },
+      {
+        url: gatheringPhoto,
         caption:
           language === "zh" ? "社区节日聚会" : "Community Festival Gathering",
-    },
-    {
-      url: calligraphyPhoto,
+      },
+      {
+        url: calligraphyPhoto,
         caption:
           language === "zh" ? "书法文化活动" : "Calligraphy Cultural Activity",
-    },
+      },
     ],
     [language]
   );
@@ -84,7 +84,7 @@ export function Home() {
 
   // Manual navigation functions
   const handlePrevImage = () => {
-    setCurrentImageIndex((prevIndex) => 
+    setCurrentImageIndex((prevIndex) =>
       prevIndex === 0 ? activityImages.length - 1 : prevIndex - 1
     );
   };
@@ -157,66 +157,66 @@ export function Home() {
             style={{ backgroundColor: "rgba(245, 239, 230, 0.85)" }}
             aria-hidden="true"
           />
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-28">
-          <div className="text-center">
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-[#2B5F9E] mb-4 sm:mb-6 text-3xl sm:text-4xl md:text-5xl lg:text-6xl px-2"
-              style={{ fontWeight: 700 }}
-            >
+          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-28">
+            <div className="text-center">
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="text-[#2B5F9E] mb-4 sm:mb-6 text-3xl sm:text-4xl md:text-5xl lg:text-6xl px-2"
+                style={{ fontWeight: 700 }}
+              >
                 {t("home.hero.title")}
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-gray-700 mb-6 sm:mb-8 max-w-2xl mx-auto text-base sm:text-lg md:text-xl px-4"
-            >
+              </motion.h1>
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="text-gray-700 mb-6 sm:mb-8 max-w-2xl mx-auto text-base sm:text-lg md:text-xl px-4"
+              >
                 {t("home.hero.subtitle")}
-            </motion.p>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4"
-            >
-              <Link to="/news" className="w-full sm:w-auto">
-                <motion.button
-                  className="w-full sm:w-auto px-6 sm:px-8 py-3 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors flex items-center justify-center gap-2"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
+              </motion.p>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4"
+              >
+                <Link to="/news" className="w-full sm:w-auto">
+                  <motion.button
+                    className="w-full sm:w-auto px-6 sm:px-8 py-3 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors flex items-center justify-center gap-2"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
                     {t("home.hero.cta.news")}
-                  <ArrowRight className="w-4 h-4" />
-                </motion.button>
-              </Link>
-              <Link to="/membership" className="w-full sm:w-auto">
-                <motion.button
-                  className="w-full sm:w-auto px-6 sm:px-8 py-3 bg-white text-[#2B5F9E] rounded-lg border-2 border-[#2B5F9E] hover:bg-[#2B5F9E] hover:text-white transition-colors"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
+                    <ArrowRight className="w-4 h-4" />
+                  </motion.button>
+                </Link>
+                <Link to="/membership" className="w-full sm:w-auto">
+                  <motion.button
+                    className="w-full sm:w-auto px-6 sm:px-8 py-3 bg-white text-[#2B5F9E] rounded-lg border-2 border-[#2B5F9E] hover:bg-[#2B5F9E] hover:text-white transition-colors"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
                     {t("home.hero.cta.join")}
-                </motion.button>
-              </Link>
-            </motion.div>
+                  </motion.button>
+                </Link>
+              </motion.div>
+            </div>
           </div>
-        </div>
-        
-        {/* Decorative Elements */}
-        <motion.div
-          className="hidden sm:block absolute top-10 left-10 w-20 h-20 rounded-full bg-[#6BA868]/20"
-          animate={{ y: [0, 20, 0] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="hidden sm:block absolute bottom-10 right-10 w-32 h-32 rounded-full bg-[#EB8C3A]/20"
-          animate={{ y: [0, -30, 0] }}
-          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-        />
-      </section>
+
+          {/* Decorative Elements */}
+          <motion.div
+            className="hidden sm:block absolute top-10 left-10 w-20 h-20 rounded-full bg-[#6BA868]/20"
+            animate={{ y: [0, 20, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div
+            className="hidden sm:block absolute bottom-10 right-10 w-32 h-32 rounded-full bg-[#EB8C3A]/20"
+            animate={{ y: [0, -30, 0] }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </section>
       </ParallaxBackground>
 
       {/* About Section */}

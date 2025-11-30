@@ -327,20 +327,22 @@ export function AdminDashboard() {
             >
               <div className="space-y-4">
                 {activitiesLoading && (
-                  <p className="text-gray-600 text-sm">
-                    {t("common.loading")}
-                  </p>
+                  <p className="text-gray-600 text-sm">{t("common.loading")}</p>
                 )}
                 {activitiesError && (
                   <p className="text-red-600 text-sm" role="alert">
                     {activitiesError}
                   </p>
                 )}
-                {!activitiesLoading && !activitiesError && activities.length === 0 && (
-                  <p className="text-gray-500 text-sm">
-                    {language === "zh" ? "暂无最近活动" : "No recent activity"}
-                  </p>
-                )}
+                {!activitiesLoading &&
+                  !activitiesError &&
+                  activities.length === 0 && (
+                    <p className="text-gray-500 text-sm">
+                      {language === "zh"
+                        ? "暂无最近活动"
+                        : "No recent activity"}
+                    </p>
+                  )}
                 {activities.map((activity) => {
                   const Icon =
                     activity.type === "registration"

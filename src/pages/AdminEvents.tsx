@@ -97,11 +97,12 @@ export function AdminEvents() {
 
   const filtered = useMemo(() => {
     const term = search.toLowerCase();
-    return events.filter((e) =>
-      (e.title_zh ?? "").toLowerCase().includes(term) ||
-      (e.title_en ?? "").toLowerCase().includes(term) ||
-      (e.description_zh ?? "").toLowerCase().includes(term) ||
-      (e.description_en ?? "").toLowerCase().includes(term),
+    return events.filter(
+      (e) =>
+        (e.title_zh ?? "").toLowerCase().includes(term) ||
+        (e.title_en ?? "").toLowerCase().includes(term) ||
+        (e.description_zh ?? "").toLowerCase().includes(term) ||
+        (e.description_en ?? "").toLowerCase().includes(term)
     );
   }, [events, search]);
 
@@ -118,7 +119,10 @@ export function AdminEvents() {
         end_time: form.end ? `${form.end}:00` : null,
         location: form.location,
         fee: Number(form.fee) || 0,
-        member_fee: form.access === "all-welcome" && form.memberFee ? Number(form.memberFee) : null,
+        member_fee:
+          form.access === "all-welcome" && form.memberFee
+            ? Number(form.memberFee)
+            : null,
         capacity: form.capacity ? Number(form.capacity) : null,
         access_type: form.access,
         image_type: null,
@@ -129,7 +133,9 @@ export function AdminEvents() {
       const saved = await saveEvent(payload);
       setEvents((prev) => {
         const exists = prev.some((e) => e.id === saved.id);
-        return exists ? prev.map((e) => (e.id === saved.id ? saved : e)) : [saved, ...prev];
+        return exists
+          ? prev.map((e) => (e.id === saved.id ? saved : e))
+          : [saved, ...prev];
       });
       setShowForm(false);
       setForm(emptyForm);
@@ -171,7 +177,9 @@ export function AdminEvents() {
               <div className="w-12 h-12 bg-gradient-to-br from-[#2B5F9E] to-[#6BA868] rounded-xl flex items-center justify-center">
                 <Calendar className="w-6 h-6 text-white" />
               </div>
-              <h1 className="text-[#2B5F9E] text-2xl">{t("admin.events.title")}</h1>
+              <h1 className="text-[#2B5F9E] text-2xl">
+                {t("admin.events.title")}
+              </h1>
             </div>
             <motion.button
               onClick={() => {
@@ -231,15 +239,20 @@ export function AdminEvents() {
                     </span>
                   </div>
                   <p className="text-gray-700">
-                    {pickLocalized(event.description_zh, event.description_en, language)}
+                    {pickLocalized(
+                      event.description_zh,
+                      event.description_en,
+                      language
+                    )}
                   </p>
                   <div className="space-y-2 text-sm text-gray-700">
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-[#EB8C3A]" />
                       <span>
-                        {event.event_date}{" "}
-                        {event.start_time?.slice(0, 5) ?? ""}{" "}
-                        {event.end_time ? `- ${event.end_time.slice(0, 5)}` : ""}
+                        {event.event_date} {event.start_time?.slice(0, 5) ?? ""}{" "}
+                        {event.end_time
+                          ? `- ${event.end_time.slice(0, 5)}`
+                          : ""}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -249,10 +262,10 @@ export function AdminEvents() {
                     <div className="flex items-center gap-2">
                       <DollarSign className="w-4 h-4 text-[#2B5F9E]" />
                       <span>
-                        {event.fee === 0
-                          ? t("common.free")
-                          : `$${event.fee}` }
-                        {event.member_fee != null ? ` (${t("events.memberFee")}: $${event.member_fee})` : ""}
+                        {event.fee === 0 ? t("common.free") : `$${event.fee}`}
+                        {event.member_fee != null
+                          ? ` (${t("events.memberFee")}: $${event.member_fee})`
+                          : ""}
                       </span>
                     </div>
                   </div>
@@ -301,62 +314,155 @@ export function AdminEvents() {
                 <h2 className="text-xl text-[#2B5F9E]">
                   {form.id ? t("admin.events.edit") : t("admin.events.add")}
                 </h2>
-                <button onClick={() => setShowForm(false)} className="text-gray-600">
+                <button
+                  onClick={() => setShowForm(false)}
+                  className="text-gray-600"
+                >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm text-gray-700">{t("admin.events.form.titleZh")}</label>
-                  <input className="w-full border rounded px-3 py-2" value={form.titleZh} onChange={(e) => setForm({ ...form, titleZh: e.target.value })} />
+                  <label className="text-sm text-gray-700">
+                    {t("admin.events.form.titleZh")}
+                  </label>
+                  <input
+                    className="w-full border rounded px-3 py-2"
+                    value={form.titleZh}
+                    onChange={(e) =>
+                      setForm({ ...form, titleZh: e.target.value })
+                    }
+                  />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-700">{t("admin.events.form.titleEn")}</label>
-                  <input className="w-full border rounded px-3 py-2" value={form.titleEn} onChange={(e) => setForm({ ...form, titleEn: e.target.value })} />
+                  <label className="text-sm text-gray-700">
+                    {t("admin.events.form.titleEn")}
+                  </label>
+                  <input
+                    className="w-full border rounded px-3 py-2"
+                    value={form.titleEn}
+                    onChange={(e) =>
+                      setForm({ ...form, titleEn: e.target.value })
+                    }
+                  />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-700">{t("admin.events.form.descriptionZh")}</label>
-                  <textarea className="w-full border rounded px-3 py-2" value={form.descZh} onChange={(e) => setForm({ ...form, descZh: e.target.value })} />
+                  <label className="text-sm text-gray-700">
+                    {t("admin.events.form.descriptionZh")}
+                  </label>
+                  <textarea
+                    className="w-full border rounded px-3 py-2"
+                    value={form.descZh}
+                    onChange={(e) =>
+                      setForm({ ...form, descZh: e.target.value })
+                    }
+                  />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-700">{t("admin.events.form.descriptionEn")}</label>
-                  <textarea className="w-full border rounded px-3 py-2" value={form.descEn} onChange={(e) => setForm({ ...form, descEn: e.target.value })} />
+                  <label className="text-sm text-gray-700">
+                    {t("admin.events.form.descriptionEn")}
+                  </label>
+                  <textarea
+                    className="w-full border rounded px-3 py-2"
+                    value={form.descEn}
+                    onChange={(e) =>
+                      setForm({ ...form, descEn: e.target.value })
+                    }
+                  />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                 <div>
-                  <label className="text-sm text-gray-700">{t("admin.events.form.date")}</label>
-                  <input type="date" className="w-full border rounded px-3 py-2" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
+                  <label className="text-sm text-gray-700">
+                    {t("admin.events.form.date")}
+                  </label>
+                  <input
+                    type="date"
+                    className="w-full border rounded px-3 py-2"
+                    value={form.date}
+                    onChange={(e) => setForm({ ...form, date: e.target.value })}
+                  />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-700">{t("admin.events.form.time")}</label>
+                  <label className="text-sm text-gray-700">
+                    {t("admin.events.form.time")}
+                  </label>
                   <div className="flex gap-2">
-                    <input type="time" className="w-full border rounded px-3 py-2" value={form.start} onChange={(e) => setForm({ ...form, start: e.target.value })} />
-                    <input type="time" className="w-full border rounded px-3 py-2" value={form.end} onChange={(e) => setForm({ ...form, end: e.target.value })} />
+                    <input
+                      type="time"
+                      className="w-full border rounded px-3 py-2"
+                      value={form.start}
+                      onChange={(e) =>
+                        setForm({ ...form, start: e.target.value })
+                      }
+                    />
+                    <input
+                      type="time"
+                      className="w-full border rounded px-3 py-2"
+                      value={form.end}
+                      onChange={(e) =>
+                        setForm({ ...form, end: e.target.value })
+                      }
+                    />
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm text-gray-700">{t("admin.events.form.capacity")}</label>
-                  <input type="number" className="w-full border rounded px-3 py-2" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: e.target.value })} />
+                  <label className="text-sm text-gray-700">
+                    {t("admin.events.form.capacity")}
+                  </label>
+                  <input
+                    type="number"
+                    className="w-full border rounded px-3 py-2"
+                    value={form.capacity}
+                    onChange={(e) =>
+                      setForm({ ...form, capacity: e.target.value })
+                    }
+                  />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div>
-                  <label className="text-sm text-gray-700">{t("admin.events.form.location")}</label>
-                  <input className="w-full border rounded px-3 py-2" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
+                  <label className="text-sm text-gray-700">
+                    {t("admin.events.form.location")}
+                  </label>
+                  <input
+                    className="w-full border rounded px-3 py-2"
+                    value={form.location}
+                    onChange={(e) =>
+                      setForm({ ...form, location: e.target.value })
+                    }
+                  />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-700">{t("admin.events.form.accessType")}</label>
+                  <label className="text-sm text-gray-700">
+                    {t("admin.events.form.accessType")}
+                  </label>
                   <div className="flex gap-3 mt-2 text-sm text-gray-700">
                     <label className="flex items-center gap-2">
-                      <input type="radio" checked={form.access === "all-welcome"} onChange={() => setForm({ ...form, access: "all-welcome" })} />
+                      <input
+                        type="radio"
+                        checked={form.access === "all-welcome"}
+                        onChange={() =>
+                          setForm({ ...form, access: "all-welcome" })
+                        }
+                      />
                       {t("admin.events.form.allWelcome")}
                     </label>
                     <label className="flex items-center gap-2">
-                      <input type="radio" checked={form.access === "members-only"} onChange={() => setForm({ ...form, access: "members-only", memberFee: "" })} />
+                      <input
+                        type="radio"
+                        checked={form.access === "members-only"}
+                        onChange={() =>
+                          setForm({
+                            ...form,
+                            access: "members-only",
+                            memberFee: "",
+                          })
+                        }
+                      />
                       {t("admin.events.form.membersOnly")}
                     </label>
                   </div>
@@ -365,22 +471,46 @@ export function AdminEvents() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div>
-                  <label className="text-sm text-gray-700">{t("admin.events.form.nonMemberPrice")}</label>
-                  <input type="number" className="w-full border rounded px-3 py-2" value={form.fee} onChange={(e) => setForm({ ...form, fee: e.target.value })} />
+                  <label className="text-sm text-gray-700">
+                    {t("admin.events.form.nonMemberPrice")}
+                  </label>
+                  <input
+                    type="number"
+                    className="w-full border rounded px-3 py-2"
+                    value={form.fee}
+                    onChange={(e) => setForm({ ...form, fee: e.target.value })}
+                  />
                 </div>
                 {form.access === "all-welcome" && (
                   <div>
-                    <label className="text-sm text-gray-700">{t("admin.events.form.memberPrice")}</label>
-                    <input type="number" className="w-full border rounded px-3 py-2" value={form.memberFee} onChange={(e) => setForm({ ...form, memberFee: e.target.value })} />
+                    <label className="text-sm text-gray-700">
+                      {t("admin.events.form.memberPrice")}
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full border rounded px-3 py-2"
+                      value={form.memberFee}
+                      onChange={(e) =>
+                        setForm({ ...form, memberFee: e.target.value })
+                      }
+                    />
                   </div>
                 )}
               </div>
 
               <div className="flex justify-end gap-3 mt-6">
-                <button onClick={() => setShowForm(false)} type="button" className="px-4 py-2 border rounded-lg">
+                <button
+                  onClick={() => setShowForm(false)}
+                  type="button"
+                  className="px-4 py-2 border rounded-lg"
+                >
                   {t("common.cancel")}
                 </button>
-                <button onClick={handleSave} type="button" className="px-4 py-2 bg-[#6BA868] text-white rounded-lg">
+                <button
+                  onClick={handleSave}
+                  type="button"
+                  className="px-4 py-2 bg-[#6BA868] text-white rounded-lg"
+                >
                   {form.id ? t("admin.events.save") : t("admin.events.add")}
                 </button>
               </div>
