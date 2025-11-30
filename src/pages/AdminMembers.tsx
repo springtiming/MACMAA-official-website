@@ -566,7 +566,7 @@ export function AdminMembers() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.1 }}
-              className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
               onClick={() => setConfirmDialog(null)}
             >
               <motion.div
@@ -587,15 +587,9 @@ export function AdminMembers() {
                       confirmDialog.type === "reject";
                     return (
                       <div
-                        className={`w-20 h-20 rounded-full flex items-center justify-center ${
-                          isDestructive ? "bg-red-50" : "bg-blue-50"
-                        }`}
+                        className="w-20 h-20 rounded-full flex items-center justify-center bg-orange-50"
                       >
-                        <AlertTriangle
-                          className={`w-10 h-10 ${
-                            isDestructive ? "text-red-500" : "text-amber-500"
-                          }`}
-                        />
+                        <AlertTriangle className="w-10 h-10 text-orange-500" />
                       </div>
                     );
                   })()}

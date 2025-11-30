@@ -43,7 +43,7 @@ function AppLayout() {
     <div className="flex flex-col min-h-screen">
       <Header />
       <main className="flex-1">
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait" initial={false}>
           <Routes location={location} key={location.pathname}>
             <Route
               path="/"
