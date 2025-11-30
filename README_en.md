@@ -1,4 +1,4 @@
-# VMCA Official Website
+# MACMAA Official Website
 
 [中文](README.md)
 
