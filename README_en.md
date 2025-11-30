@@ -1,5 +1,7 @@
 # VMCA Official Website
 
+[中文](README.md)
+
 ## Project Overview
 
 This is the official website project for Manningham Australian Chinese Mutual Aid Association (MACMAA). Built with modern React + TypeScript technology stack, the website provides comprehensive community services including news publishing, event management, membership application system, and other core features.
