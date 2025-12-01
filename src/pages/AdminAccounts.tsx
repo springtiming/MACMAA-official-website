@@ -56,8 +56,9 @@ export function AdminAccounts() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [confirmDialog, setConfirmDialog] =
-    useState<AdminAccountRecord | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<AdminAccountRecord | null>(
+    null
+  );
   const {
     state: processingState,
     title: processingTitle,
@@ -80,9 +81,7 @@ export function AdminAccounts() {
 
   const getFeedbackMessages = (action: "create" | "delete") => ({
     processingTitle: t(`admin.accounts.feedback.${action}.processingTitle`),
-    processingMessage: t(
-      `admin.accounts.feedback.${action}.processingMessage`
-    ),
+    processingMessage: t(`admin.accounts.feedback.${action}.processingMessage`),
     successTitle: t(`admin.accounts.feedback.${action}.successTitle`),
     successMessage: t(`admin.accounts.feedback.${action}.successMessage`),
     errorTitle: t(`admin.accounts.feedback.${action}.errorTitle`),
@@ -418,7 +417,7 @@ export function AdminAccounts() {
                             size="sm"
                             onClick={() => {
                               setSelectedAccount(account);
-                            setConfirmDialog(account);
+                              setConfirmDialog(account);
                             }}
                             className="text-red-600 hover:text-red-700 hover:bg-red-50"
                           >

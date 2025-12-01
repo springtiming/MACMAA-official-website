@@ -156,11 +156,8 @@ export function NewsDetail() {
           <div
             className="text-gray-700"
             dangerouslySetInnerHTML={{
-              __html: pickLocalized(
-                news.content_zh,
-                news.content_en,
-                language
-              ) || "",
+              __html:
+                pickLocalized(news.content_zh, news.content_en, language) || "",
             }}
           />
         </div>

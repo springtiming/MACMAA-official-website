@@ -362,19 +362,13 @@ function getLocalAdminAccounts(): AdminAccountRecord[] {
   if (typeof window === "undefined") return base;
   const raw = window.localStorage.getItem(LOCAL_ADMIN_ACCOUNTS_KEY);
   if (!raw) {
-    window.localStorage.setItem(
-      LOCAL_ADMIN_ACCOUNTS_KEY,
-      JSON.stringify(base)
-    );
+    window.localStorage.setItem(LOCAL_ADMIN_ACCOUNTS_KEY, JSON.stringify(base));
     return base;
   }
   try {
     return JSON.parse(raw) as AdminAccountRecord[];
   } catch {
-    window.localStorage.setItem(
-      LOCAL_ADMIN_ACCOUNTS_KEY,
-      JSON.stringify(base)
-    );
+    window.localStorage.setItem(LOCAL_ADMIN_ACCOUNTS_KEY, JSON.stringify(base));
     return base;
   }
 }

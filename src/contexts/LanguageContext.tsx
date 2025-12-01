@@ -199,7 +199,8 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.events.payment.cash": "现金",
     "admin.events.payment.transfer": "银行转账",
     "admin.events.confirm.delete.title": "确认删除活动",
-    "admin.events.confirm.delete.message": "确定要删除该活动吗？此操作无法撤销。",
+    "admin.events.confirm.delete.message":
+      "确定要删除该活动吗？此操作无法撤销。",
     "admin.events.feedback.save.processingTitle": "正在保存活动...",
     "admin.events.feedback.save.processingMessage": "正在提交活动信息",
     "admin.events.feedback.save.successTitle": "保存成功",
@@ -255,7 +256,8 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.news.confirm.delete.title": "确认删除新闻",
     "admin.news.confirm.delete.message": "确定要删除该新闻吗？此操作无法撤销。",
     "admin.news.confirm.deleteDraft.title": "确认删除草稿",
-    "admin.news.confirm.deleteDraft.message": "确定要删除该草稿吗？此操作无法撤销。",
+    "admin.news.confirm.deleteDraft.message":
+      "确定要删除该草稿吗？此操作无法撤销。",
     "admin.news.feedback.save.processingTitle": "正在保存草稿...",
     "admin.news.feedback.save.processingMessage": "正在保存当前新闻内容",
     "admin.news.feedback.save.successTitle": "草稿已保存",
@@ -355,17 +357,22 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.settings.feedback.email.errorTitle": "保存失败",
     "admin.settings.feedback.email.errorMessage": "无法保存邮箱，请稍后再试",
     "admin.settings.feedback.password.processingTitle": "正在更新密码...",
-    "admin.settings.feedback.password.processingMessage": "正在重置管理员登录密码",
+    "admin.settings.feedback.password.processingMessage":
+      "正在重置管理员登录密码",
     "admin.settings.feedback.password.successTitle": "密码已更新",
     "admin.settings.feedback.password.successMessage": "新的登录密码已生效",
     "admin.settings.feedback.password.errorTitle": "更新失败",
     "admin.settings.feedback.password.errorMessage": "无法更新密码，请稍后再试",
-    "admin.settings.feedback.notifications.processingTitle": "正在保存通知设置...",
-    "admin.settings.feedback.notifications.processingMessage": "正在应用最新通知偏好",
+    "admin.settings.feedback.notifications.processingTitle":
+      "正在保存通知设置...",
+    "admin.settings.feedback.notifications.processingMessage":
+      "正在应用最新通知偏好",
     "admin.settings.feedback.notifications.successTitle": "通知设置已保存",
-    "admin.settings.feedback.notifications.successMessage": "最新通知偏好已生效",
+    "admin.settings.feedback.notifications.successMessage":
+      "最新通知偏好已生效",
     "admin.settings.feedback.notifications.errorTitle": "保存失败",
-    "admin.settings.feedback.notifications.errorMessage": "无法保存通知设置，请稍后再试",
+    "admin.settings.feedback.notifications.errorMessage":
+      "无法保存通知设置，请稍后再试",
     "admin.settings.emailNotifications": "接收所有邮件通知",
     "admin.settings.emailNotificationsDesc":
       "会员申请和活动报名的邮件通知总开关",
@@ -401,15 +408,18 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.accounts.table.lastLogin": "最后登录",
     "admin.accounts.table.actions": "操作",
     "admin.accounts.confirm.delete.title": "确认删除管理员",
-    "admin.accounts.confirm.delete.message": "确定要删除该管理员账号吗？此操作无法撤销。",
+    "admin.accounts.confirm.delete.message":
+      "确定要删除该管理员账号吗？此操作无法撤销。",
     "admin.accounts.feedback.create.processingTitle": "正在创建账号...",
-    "admin.accounts.feedback.create.processingMessage": "正在创建新的管理员账号",
+    "admin.accounts.feedback.create.processingMessage":
+      "正在创建新的管理员账号",
     "admin.accounts.feedback.create.successTitle": "创建成功",
     "admin.accounts.feedback.create.successMessage": "管理员账号已创建",
     "admin.accounts.feedback.create.errorTitle": "创建失败",
     "admin.accounts.feedback.create.errorMessage": "无法创建账号，请稍后再试",
     "admin.accounts.feedback.delete.processingTitle": "正在删除账号...",
-    "admin.accounts.feedback.delete.processingMessage": "正在删除所选管理员账号",
+    "admin.accounts.feedback.delete.processingMessage":
+      "正在删除所选管理员账号",
     "admin.accounts.feedback.delete.successTitle": "删除成功",
     "admin.accounts.feedback.delete.successMessage": "管理员账号已删除",
     "admin.accounts.feedback.delete.errorTitle": "删除失败",
@@ -585,6 +595,7 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.login.username": "Username",
     "admin.login.password": "Password",
     "admin.login.submit": "Login",
+    "admin.login.processing": "Verifying...",
     "admin.dashboard.title": "Admin Dashboard",
     "admin.dashboard.welcome": "Welcome Back",
     "admin.dashboard.stats.events": "Total Events",
@@ -665,7 +676,8 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.events.feedback.save.errorMessage":
       "Unable to save the event. Please try again later.",
     "admin.events.feedback.delete.processingTitle": "Deleting event...",
-    "admin.events.feedback.delete.processingMessage": "Removing the selected event",
+    "admin.events.feedback.delete.processingMessage":
+      "Removing the selected event",
     "admin.events.feedback.delete.successTitle": "Event deleted",
     "admin.events.feedback.delete.successMessage": "The event has been removed",
     "admin.events.feedback.delete.errorTitle": "Deletion failed",
@@ -742,7 +754,8 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.news.feedback.delete.errorMessage":
       "Unable to delete the news. Please try again later.",
     "admin.news.feedback.deleteDraft.processingTitle": "Deleting draft...",
-    "admin.news.feedback.deleteDraft.processingMessage": "Removing selected draft",
+    "admin.news.feedback.deleteDraft.processingMessage":
+      "Removing selected draft",
     "admin.news.feedback.deleteDraft.successTitle": "Draft deleted",
     "admin.news.feedback.deleteDraft.successMessage":
       "The draft has been removed",

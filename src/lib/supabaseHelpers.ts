@@ -42,7 +42,7 @@ export function resolveNewsCover(
 }
 
 export function resolveEventImage(
-  imageType: "unsplash" | "upload" | null,
+  _imageType: "unsplash" | "upload" | null,
   imageKeyword: string | null,
   imageUrl: string | null,
   size: "thumb" | "hero" = "thumb"

@@ -268,13 +268,13 @@ export function AdminMembers() {
 
     // 创建工作簿
     const wb = XLSX.utils.book_new();
-    
+
     // 创建工作表数据（包含表头和数据行）
     const wsData = [headers, ...rows];
-    
+
     // 创建工作表
     const ws = XLSX.utils.aoa_to_sheet(wsData);
-    
+
     // 设置列宽
     const colWidths = [
       { wch: 15 }, // 中文姓名
@@ -291,10 +291,10 @@ export function AdminMembers() {
       { wch: 12 }, // 状态
     ];
     ws["!cols"] = colWidths;
-    
+
     // 将工作表添加到工作簿
     XLSX.utils.book_append_sheet(wb, ws, "会员列表");
-    
+
     // 生成 Excel 文件并下载
     const fileName = `MACMAA_Members_${new Date().toISOString().split("T")[0]}.xlsx`;
     XLSX.writeFile(wb, fileName);

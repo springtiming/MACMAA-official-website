@@ -68,8 +68,8 @@ export function Home() {
     [language]
   );
 
-  const [loadedImages, setLoadedImages] = useState<boolean[]>(
-    () => activityImages.map(() => false)
+  const [loadedImages, setLoadedImages] = useState<boolean[]>(() =>
+    activityImages.map(() => false)
   );
 
   useEffect(() => {

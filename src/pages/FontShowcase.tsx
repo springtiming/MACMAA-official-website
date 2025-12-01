@@ -15,7 +15,8 @@ const fonts: FontOption[] = [
   {
     name: "Inter",
     // 优先使用本地 VMCA Inter，回退到系统无衬线
-    family: '"VMCA Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    family:
+      '"VMCA Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     originalFamily: "'Inter', sans-serif",
     googleFontUrl:
       "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap",
@@ -253,12 +254,13 @@ export function FontShowcase() {
               </code>
               ，确保在当前环境下能看出差异。
             </p>
-            <p className="mt-2">
-              如果某些卡片看起来仍然相同，可以：
-            </p>
+            <p className="mt-2">如果某些卡片看起来仍然相同，可以：</p>
             <ol className="list-decimal list-inside mt-2 space-y-1">
               <li>查看卡片底部的“配置 font-family”与“实际生效”对比</li>
-              <li>打开开发者工具（F12），在 Elements &gt; Computed 中查看 font-family</li>
+              <li>
+                打开开发者工具（F12），在 Elements &gt; Computed 中查看
+                font-family
+              </li>
               <li>检查控制台中的字体加载日志（document.fonts.check 结果）</li>
             </ol>
           </div>

@@ -22,7 +22,9 @@ export function AdminLogin() {
     setError("");
 
     if (!credentials.username || !credentials.password) {
-      setError(language === "zh" ? "请输入用户名和密码" : "Enter username and password");
+      setError(
+        language === "zh" ? "请输入用户名和密码" : "Enter username and password"
+      );
       setIsSubmitting(false);
       return;
     }
@@ -35,18 +37,29 @@ export function AdminLogin() {
       });
 
       if (!res.ok) {
-        setError(language === "zh" ? "用户名或密码错误" : "Invalid username or password");
+        setError(
+          language === "zh"
+            ? "用户名或密码错误"
+            : "Invalid username or password"
+        );
         setIsSubmitting(false);
         return;
       }
 
-      const body = (await res.json()) as { role: "owner" | "admin"; username: string };
+      const body = (await res.json()) as {
+        role: "owner" | "admin";
+        username: string;
+      };
       sessionStorage.setItem("adminAuth", "true");
       sessionStorage.setItem("adminRole", body.role);
       sessionStorage.setItem("adminUsername", body.username);
       navigate("/admin/dashboard");
     } catch {
-      setError(language === "zh" ? "登录失败，请稍后再试" : "Login failed, please try again");
+      setError(
+        language === "zh"
+          ? "登录失败，请稍后再试"
+          : "Login failed, please try again"
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -138,13 +151,15 @@ export function AdminLogin() {
               disabled={isSubmitting}
               className={`w-full px-6 py-3 rounded-lg text-white transition-colors ${
                 isSubmitting
-                  ? "bg-[#2B5F9E] opacity-60 cursor-not-allowed"
+                  ? "bg-gray-400 cursor-not-allowed"
                   : "bg-[#2B5F9E] hover:bg-[#234a7e]"
               }`}
               whileHover={isSubmitting ? undefined : { scale: 1.02 }}
               whileTap={isSubmitting ? undefined : { scale: 0.98 }}
             >
-              {isSubmitting ? t("admin.login.processing") : t("admin.login.submit")}
+              {isSubmitting
+                ? t("admin.login.processing")
+                : t("admin.login.submit")}
             </motion.button>
           </form>
 

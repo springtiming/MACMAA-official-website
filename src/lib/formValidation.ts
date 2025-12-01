@@ -44,7 +44,7 @@ export function validateField<T extends Record<string, unknown>>(
   const isRequired =
     rule.required !== undefined
       ? rule.required
-      : requiredFields?.includes(fieldName) ?? false;
+      : (requiredFields?.includes(fieldName) ?? false);
 
   // 处理空值
   const isEmpty =
@@ -124,7 +124,11 @@ export function getErrorMessage(
   errorMessages: ErrorMessages,
   language: "zh" | "en" = "zh"
 ): string {
-  return errorMessages[errorType]?.[language] || errorMessages["required"]?.[language] || "";
+  return (
+    errorMessages[errorType]?.[language] ||
+    errorMessages["required"]?.[language] ||
+    ""
+  );
 }
 
 /**
@@ -144,6 +148,3 @@ export function scrollToFirstError(errors: FormErrors): void {
     element?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 }
-
-
-

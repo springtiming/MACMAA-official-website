@@ -219,7 +219,6 @@ export function EventDetail() {
             {t("events.register")}
           </motion.button>
         </div>
-
       </motion.div>
     </div>
   );

@@ -59,7 +59,12 @@ export function useProcessingFeedback() {
   }, []);
 
   const showProcessing = useCallback(
-    (processing: Pick<FeedbackMessages, "processingTitle" | "processingMessage">) =>
+    (
+      processing: Pick<
+        FeedbackMessages,
+        "processingTitle" | "processingMessage"
+      >
+    ) =>
       setFeedback(
         "processing",
         processing.processingTitle,
@@ -91,4 +96,3 @@ export function useProcessingFeedback() {
     reset,
   };
 }
-

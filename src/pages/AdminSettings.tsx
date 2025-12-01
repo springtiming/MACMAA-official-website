@@ -64,13 +64,9 @@ export function AdminSettings() {
     action: "email" | "password" | "notifications"
   ) => ({
     processingTitle: t(`admin.settings.feedback.${action}.processingTitle`),
-    processingMessage: t(
-      `admin.settings.feedback.${action}.processingMessage`
-    ),
+    processingMessage: t(`admin.settings.feedback.${action}.processingMessage`),
     successTitle: t(`admin.settings.feedback.${action}.successTitle`),
-    successMessage: t(
-      `admin.settings.feedback.${action}.successMessage`
-    ),
+    successMessage: t(`admin.settings.feedback.${action}.successMessage`),
     errorTitle: t(`admin.settings.feedback.${action}.errorTitle`),
     errorMessage: t(`admin.settings.feedback.${action}.errorMessage`),
   });

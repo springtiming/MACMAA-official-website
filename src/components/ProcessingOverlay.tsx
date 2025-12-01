@@ -179,7 +179,10 @@ export function ProcessingOverlay({
           >
             <div
               className="px-8 py-8"
-              style={{ background: config.cardBackground, borderRadius: CARD_RADIUS }}
+              style={{
+                background: config.cardBackground,
+                borderRadius: CARD_RADIUS,
+              }}
             >
               {/* 图标 / 动画 */}
               <motion.div

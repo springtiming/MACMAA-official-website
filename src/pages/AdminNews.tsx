@@ -437,16 +437,17 @@ export function AdminNews() {
                           language
                         )}
                       </p>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {language === "zh" ? "新闻编号：" : "News ID: "}
-                      <span className="font-mono break-all">
-                        {draft.article_id || (language === "zh" ? "（未关联）" : "(unlinked)")}
-                      </span>
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      {language === "zh" ? "草稿版本" : "Draft version"} #
-                      {draft.version_number}
-                    </p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {language === "zh" ? "新闻编号：" : "News ID: "}
+                        <span className="font-mono break-all">
+                          {draft.article_id ||
+                            (language === "zh" ? "（未关联）" : "(unlinked)")}
+                        </span>
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {language === "zh" ? "草稿版本" : "Draft version"} #
+                        {draft.version_number}
+                      </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
@@ -496,7 +497,11 @@ export function AdminNews() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <h3 className="text-[#2B5F9E] text-lg sm:text-xl">
-                          {pickLocalized(news.title_zh, news.title_en, language)}
+                          {pickLocalized(
+                            news.title_zh,
+                            news.title_en,
+                            language
+                          )}
                         </h3>
                         <span
                           className={`px-2 py-1 rounded-full text-xs ${
@@ -515,7 +520,11 @@ export function AdminNews() {
                         </span>
                       </div>
                       <p className="text-gray-600 mb-3">
-                        {pickLocalized(news.summary_zh, news.summary_en, language)}
+                        {pickLocalized(
+                          news.summary_zh,
+                          news.summary_en,
+                          language
+                        )}
                       </p>
                       <div className="text-sm text-gray-500 flex flex-col gap-1">
                         <span>
@@ -739,7 +748,7 @@ function NewsFormModal({
 }) {
   const { language, t } = useLanguage();
   const initialCover = draft?.cover_source || news?.cover_source || "";
-  
+
   // 辅助函数：判断字符串是否为图片 URL
   const isImageUrl = (str: string): boolean => {
     return (
@@ -749,7 +758,7 @@ function NewsFormModal({
       str.startsWith("blob:")
     );
   };
-  
+
   const [imageSource, setImageSource] = useState<"unsplash" | "upload">(() => {
     if (!initialCover) return "upload";
     if (isImageUrl(initialCover)) {
@@ -757,7 +766,7 @@ function NewsFormModal({
     }
     return "unsplash";
   });
-  
+
   // 状态：保存上传的图片 URL（用于在模式切换时恢复）
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>(() => {
     if (initialCover && isImageUrl(initialCover)) {
@@ -771,7 +780,7 @@ function NewsFormModal({
   const [formData, setFormData] = useState<NewsFormState>(() => {
     const coverSource = draft?.cover_source || news?.cover_source || "";
     const isCoverImageUrl = coverSource && isImageUrl(coverSource);
-    
+
     if (draft) {
       return {
         id: draft.article_id ?? "",
@@ -1039,7 +1048,10 @@ function NewsFormModal({
                     setImageSource("upload");
                     // 如果之前保存了上传的图片 URL，恢复它
                     if (uploadedImageUrl) {
-                      setFormData((prev) => ({ ...prev, image: uploadedImageUrl }));
+                      setFormData((prev) => ({
+                        ...prev,
+                        image: uploadedImageUrl,
+                      }));
                     } else if (formData.image && !isImageUrl(formData.image)) {
                       // 如果 uploadedImageUrl 不存在，且当前 formData.image 是关键词（不是图片 URL），则清空
                       setFormData((prev) => ({ ...prev, image: "" }));
@@ -1117,18 +1129,18 @@ function NewsFormModal({
                   {/* Show uploaded image preview */}
                   {imageSource === "upload" &&
                     (uploadedImage || formData.image) && (
-                    <div className="mt-3 p-3 bg-white border border-gray-200 rounded-lg">
-                      <div className="flex items-center gap-2 text-sm text-green-600 mb-2">
-                        <ImageIcon className="w-4 h-4" />
-                        <span>{t("admin.news.form.imagePreview")}</span>
+                      <div className="mt-3 p-3 bg-white border border-gray-200 rounded-lg">
+                        <div className="flex items-center gap-2 text-sm text-green-600 mb-2">
+                          <ImageIcon className="w-4 h-4" />
+                          <span>{t("admin.news.form.imagePreview")}</span>
+                        </div>
+                        <img
+                          src={uploadedImage || formData.image}
+                          alt="Preview"
+                          className="w-full h-48 object-cover rounded-lg"
+                        />
                       </div>
-                      <img
-                        src={uploadedImage || formData.image}
-                        alt="Preview"
-                        className="w-full h-48 object-cover rounded-lg"
-                      />
-                    </div>
-                  )}
+                    )}
                 </div>
               )}
             </div>

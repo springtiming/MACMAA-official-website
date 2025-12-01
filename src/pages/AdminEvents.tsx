@@ -232,9 +232,9 @@ export function AdminEvents() {
   const [search, setSearch] = useState("");
   const [form, setForm] = useState<FormState>(emptyForm);
   const [showForm, setShowForm] = useState(false);
-  const [registrations, setRegistrations] = useState<
-    EventRegistrationRecord[]
-  >([]);
+  const [registrations, setRegistrations] = useState<EventRegistrationRecord[]>(
+    []
+  );
   const [regsLoading, setRegsLoading] = useState(false);
   const [regsError, setRegsError] = useState<string | null>(null);
   const [activeRegEvent, setActiveRegEvent] = useState<EventRecord | null>(
@@ -503,7 +503,9 @@ export function AdminEvents() {
       r.registration_date,
     ]);
     const csv = [header, ...rows]
-      .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+      .map((row) =>
+        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
+      )
       .join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -759,12 +761,12 @@ export function AdminEvents() {
         </div>
 
         {showForm && (
-            <div
-              className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
-              onMouseDown={(e) => {
-                if (e.target === e.currentTarget) setShowForm(false);
-              }}
-            >
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+            onMouseDown={(e) => {
+              if (e.target === e.currentTarget) setShowForm(false);
+            }}
+          >
             <div
               className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col"
               onMouseDown={(e) => e.stopPropagation()}
@@ -839,9 +841,7 @@ export function AdminEvents() {
                     )}
                   </div>
                   <div>
-                    <label className="text-sm text-gray-700">
-                      中文简介
-                    </label>
+                    <label className="text-sm text-gray-700">中文简介</label>
                     <textarea
                       id="descZh"
                       className="w-full border rounded-xl px-4 py-3 shadow-sm"
@@ -863,9 +863,7 @@ export function AdminEvents() {
                     )}
                   </div>
                   <div>
-                    <label className="text-sm text-gray-700">
-                      英文简介
-                    </label>
+                    <label className="text-sm text-gray-700">英文简介</label>
                     <textarea
                       id="descEn"
                       className="w-full border rounded-xl px-4 py-3 shadow-sm"
@@ -983,7 +981,9 @@ export function AdminEvents() {
                           <div className="flex items-center gap-2 text-sm text-green-600 mb-2">
                             <ImageIcon className="w-4 h-4" />
                             <span>
-                              {language === "zh" ? "已选图片预览" : "Selected image"}
+                              {language === "zh"
+                                ? "已选图片预览"
+                                : "Selected image"}
                             </span>
                           </div>
                           <img
@@ -1015,7 +1015,11 @@ export function AdminEvents() {
                                     photo.urls?.regular ??
                                     ""
                                   }
-                                  alt={photo.alt_description ?? photo.description ?? ""}
+                                  alt={
+                                    photo.alt_description ??
+                                    photo.description ??
+                                    ""
+                                  }
                                   className="w-full h-36 object-cover"
                                 />
                                 <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -1039,7 +1043,9 @@ export function AdminEvents() {
                   {imageSource === "upload" && (
                     <div>
                       <label className="block text-gray-700 mb-2">
-                        {language === "zh" ? "上传封面图片" : "Upload Cover Image"}
+                        {language === "zh"
+                          ? "上传封面图片"
+                          : "Upload Cover Image"}
                       </label>
                       <button
                         type="button"
@@ -1159,7 +1165,7 @@ export function AdminEvents() {
                     </label>
                     <input
                       type="number"
-                    className="w-full border rounded-xl px-4 py-3 shadow-sm"
+                      className="w-full border rounded-xl px-4 py-3 shadow-sm"
                       value={form.capacity}
                       onChange={(e) =>
                         setForm({ ...form, capacity: e.target.value })
@@ -1261,7 +1267,7 @@ export function AdminEvents() {
                       </label>
                       <input
                         type="number"
-                      className="w-full border rounded-xl px-4 py-3 shadow-sm"
+                        className="w-full border rounded-xl px-4 py-3 shadow-sm"
                         value={form.memberFee}
                         onChange={(e) =>
                           setForm({ ...form, memberFee: e.target.value })
