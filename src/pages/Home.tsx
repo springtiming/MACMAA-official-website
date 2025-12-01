@@ -159,7 +159,7 @@ export function Home() {
         speed={0.3}
         overlay={true}
         overlayOpacity={0.85}
-        className="relative overflow-hidden"
+        className="relative overflow-hidden md:min-h-[70vh] lg:min-h-[80vh]"
       >
         <section className="relative overflow-hidden">
           <div
