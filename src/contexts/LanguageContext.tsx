@@ -196,6 +196,20 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.events.payment.card": "信用卡/借记卡",
     "admin.events.payment.cash": "现金",
     "admin.events.payment.transfer": "银行转账",
+    "admin.events.confirm.delete.title": "确认删除活动",
+    "admin.events.confirm.delete.message": "确定要删除该活动吗？此操作无法撤销。",
+    "admin.events.feedback.save.processingTitle": "正在保存活动...",
+    "admin.events.feedback.save.processingMessage": "正在提交活动信息",
+    "admin.events.feedback.save.successTitle": "保存成功",
+    "admin.events.feedback.save.successMessage": "活动信息已更新",
+    "admin.events.feedback.save.errorTitle": "保存失败",
+    "admin.events.feedback.save.errorMessage": "无法保存活动，请稍后再试",
+    "admin.events.feedback.delete.processingTitle": "正在删除活动...",
+    "admin.events.feedback.delete.processingMessage": "正在移除所选活动",
+    "admin.events.feedback.delete.successTitle": "删除成功",
+    "admin.events.feedback.delete.successMessage": "活动已被删除",
+    "admin.events.feedback.delete.errorTitle": "删除失败",
+    "admin.events.feedback.delete.errorMessage": "无法删除活动，请稍后再试",
 
     // Admin - News Management
     "admin.news.title": "新闻管理",
@@ -236,6 +250,34 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.news.form.saveDraft": "保存成草稿",
     "admin.news.form.save": "保存新闻",
     "admin.news.deleteConfirm": "确定要删除这条新闻吗？",
+    "admin.news.confirm.delete.title": "确认删除新闻",
+    "admin.news.confirm.delete.message": "确定要删除该新闻吗？此操作无法撤销。",
+    "admin.news.confirm.deleteDraft.title": "确认删除草稿",
+    "admin.news.confirm.deleteDraft.message": "确定要删除该草稿吗？此操作无法撤销。",
+    "admin.news.feedback.save.processingTitle": "正在保存草稿...",
+    "admin.news.feedback.save.processingMessage": "正在保存当前新闻内容",
+    "admin.news.feedback.save.successTitle": "草稿已保存",
+    "admin.news.feedback.save.successMessage": "新闻草稿保存成功",
+    "admin.news.feedback.save.errorTitle": "保存失败",
+    "admin.news.feedback.save.errorMessage": "无法保存草稿，请稍后再试",
+    "admin.news.feedback.publish.processingTitle": "正在发布新闻...",
+    "admin.news.feedback.publish.processingMessage": "正在推送最新新闻内容",
+    "admin.news.feedback.publish.successTitle": "发布成功",
+    "admin.news.feedback.publish.successMessage": "新闻内容已成功发布",
+    "admin.news.feedback.publish.errorTitle": "发布失败",
+    "admin.news.feedback.publish.errorMessage": "无法发布新闻，请稍后再试",
+    "admin.news.feedback.delete.processingTitle": "正在删除新闻...",
+    "admin.news.feedback.delete.processingMessage": "正在移除所选新闻",
+    "admin.news.feedback.delete.successTitle": "删除成功",
+    "admin.news.feedback.delete.successMessage": "新闻已被删除",
+    "admin.news.feedback.delete.errorTitle": "删除失败",
+    "admin.news.feedback.delete.errorMessage": "无法删除新闻，请稍后再试",
+    "admin.news.feedback.deleteDraft.processingTitle": "正在删除草稿...",
+    "admin.news.feedback.deleteDraft.processingMessage": "正在移除所选草稿",
+    "admin.news.feedback.deleteDraft.successTitle": "草稿已删除",
+    "admin.news.feedback.deleteDraft.successMessage": "草稿记录已移除",
+    "admin.news.feedback.deleteDraft.errorTitle": "删除草稿失败",
+    "admin.news.feedback.deleteDraft.errorMessage": "无法删除草稿，请稍后再试",
 
     // Admin - Member Management
     "admin.members.title": "会员审核",
@@ -304,6 +346,24 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.settings.passwordMismatch": "新密码和确认密码不匹配",
     "admin.settings.notificationsSection": "邮件通知",
     "admin.settings.notificationsDesc": "管理邮件通知设置",
+    "admin.settings.feedback.email.processingTitle": "正在保存邮箱...",
+    "admin.settings.feedback.email.processingMessage": "正在更新管理员邮箱信息",
+    "admin.settings.feedback.email.successTitle": "邮箱已更新",
+    "admin.settings.feedback.email.successMessage": "管理员邮箱保存成功",
+    "admin.settings.feedback.email.errorTitle": "保存失败",
+    "admin.settings.feedback.email.errorMessage": "无法保存邮箱，请稍后再试",
+    "admin.settings.feedback.password.processingTitle": "正在更新密码...",
+    "admin.settings.feedback.password.processingMessage": "正在重置管理员登录密码",
+    "admin.settings.feedback.password.successTitle": "密码已更新",
+    "admin.settings.feedback.password.successMessage": "新的登录密码已生效",
+    "admin.settings.feedback.password.errorTitle": "更新失败",
+    "admin.settings.feedback.password.errorMessage": "无法更新密码，请稍后再试",
+    "admin.settings.feedback.notifications.processingTitle": "正在保存通知设置...",
+    "admin.settings.feedback.notifications.processingMessage": "正在应用最新通知偏好",
+    "admin.settings.feedback.notifications.successTitle": "通知设置已保存",
+    "admin.settings.feedback.notifications.successMessage": "最新通知偏好已生效",
+    "admin.settings.feedback.notifications.errorTitle": "保存失败",
+    "admin.settings.feedback.notifications.errorMessage": "无法保存通知设置，请稍后再试",
     "admin.settings.emailNotifications": "接收所有邮件通知",
     "admin.settings.emailNotificationsDesc":
       "会员申请和活动报名的邮件通知总开关",
@@ -338,6 +398,20 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.accounts.table.createdAt": "创建时间",
     "admin.accounts.table.lastLogin": "最后登录",
     "admin.accounts.table.actions": "操作",
+    "admin.accounts.confirm.delete.title": "确认删除管理员",
+    "admin.accounts.confirm.delete.message": "确定要删除该管理员账号吗？此操作无法撤销。",
+    "admin.accounts.feedback.create.processingTitle": "正在创建账号...",
+    "admin.accounts.feedback.create.processingMessage": "正在创建新的管理员账号",
+    "admin.accounts.feedback.create.successTitle": "创建成功",
+    "admin.accounts.feedback.create.successMessage": "管理员账号已创建",
+    "admin.accounts.feedback.create.errorTitle": "创建失败",
+    "admin.accounts.feedback.create.errorMessage": "无法创建账号，请稍后再试",
+    "admin.accounts.feedback.delete.processingTitle": "正在删除账号...",
+    "admin.accounts.feedback.delete.processingMessage": "正在删除所选管理员账号",
+    "admin.accounts.feedback.delete.successTitle": "删除成功",
+    "admin.accounts.feedback.delete.successMessage": "管理员账号已删除",
+    "admin.accounts.feedback.delete.errorTitle": "删除失败",
+    "admin.accounts.feedback.delete.errorMessage": "无法删除账号，请稍后再试",
     "admin.accounts.role.owner": "站长",
     "admin.accounts.role.admin": "管理员",
     "admin.accounts.deleteDialog.title": "确认删除账户",
@@ -577,6 +651,23 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.events.payment.card": "Credit Card/Debit Card",
     "admin.events.payment.cash": "Cash",
     "admin.events.payment.transfer": "Bank Transfer",
+    "admin.events.confirm.delete.title": "Confirm Event Deletion",
+    "admin.events.confirm.delete.message":
+      "This action will permanently delete the event. Continue?",
+    "admin.events.feedback.save.processingTitle": "Saving event...",
+    "admin.events.feedback.save.processingMessage": "Submitting event details",
+    "admin.events.feedback.save.successTitle": "Event saved",
+    "admin.events.feedback.save.successMessage": "Event details updated",
+    "admin.events.feedback.save.errorTitle": "Save failed",
+    "admin.events.feedback.save.errorMessage":
+      "Unable to save the event. Please try again later.",
+    "admin.events.feedback.delete.processingTitle": "Deleting event...",
+    "admin.events.feedback.delete.processingMessage": "Removing the selected event",
+    "admin.events.feedback.delete.successTitle": "Event deleted",
+    "admin.events.feedback.delete.successMessage": "The event has been removed",
+    "admin.events.feedback.delete.errorTitle": "Deletion failed",
+    "admin.events.feedback.delete.errorMessage":
+      "Unable to delete the event. Please try again later.",
 
     // Admin - News Management
     "admin.news.title": "News Management",
@@ -619,6 +710,42 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.news.form.save": "Save News",
     "admin.news.deleteConfirm":
       "Are you sure you want to delete this news item?",
+    "admin.news.confirm.delete.title": "Confirm News Deletion",
+    "admin.news.confirm.delete.message":
+      "This action will permanently delete the news. Continue?",
+    "admin.news.confirm.deleteDraft.title": "Confirm Draft Deletion",
+    "admin.news.confirm.deleteDraft.message":
+      "This action will permanently delete the draft. Continue?",
+    "admin.news.feedback.save.processingTitle": "Saving draft...",
+    "admin.news.feedback.save.processingMessage": "Saving current news content",
+    "admin.news.feedback.save.successTitle": "Draft saved",
+    "admin.news.feedback.save.successMessage": "News draft saved successfully",
+    "admin.news.feedback.save.errorTitle": "Save failed",
+    "admin.news.feedback.save.errorMessage":
+      "Unable to save the draft. Please try again later.",
+    "admin.news.feedback.publish.processingTitle": "Publishing news...",
+    "admin.news.feedback.publish.processingMessage": "Publishing latest news",
+    "admin.news.feedback.publish.successTitle": "Published",
+    "admin.news.feedback.publish.successMessage": "News has been published",
+    "admin.news.feedback.publish.errorTitle": "Publish failed",
+    "admin.news.feedback.publish.errorMessage":
+      "Unable to publish the news. Please try again later.",
+    "admin.news.feedback.delete.processingTitle": "Deleting news...",
+    "admin.news.feedback.delete.processingMessage": "Removing selected news",
+    "admin.news.feedback.delete.successTitle": "News deleted",
+    "admin.news.feedback.delete.successMessage":
+      "The selected news item was removed",
+    "admin.news.feedback.delete.errorTitle": "Deletion failed",
+    "admin.news.feedback.delete.errorMessage":
+      "Unable to delete the news. Please try again later.",
+    "admin.news.feedback.deleteDraft.processingTitle": "Deleting draft...",
+    "admin.news.feedback.deleteDraft.processingMessage": "Removing selected draft",
+    "admin.news.feedback.deleteDraft.successTitle": "Draft deleted",
+    "admin.news.feedback.deleteDraft.successMessage":
+      "The draft has been removed",
+    "admin.news.feedback.deleteDraft.errorTitle": "Draft deletion failed",
+    "admin.news.feedback.deleteDraft.errorMessage":
+      "Unable to delete the draft. Please try again later.",
 
     // Admin - Member Management
     "admin.members.title": "Member Management",
@@ -691,6 +818,34 @@ const translations: Record<Language, Record<string, string>> = {
       "New password and confirm password do not match",
     "admin.settings.notificationsSection": "Email Notifications",
     "admin.settings.notificationsDesc": "Manage email notification settings",
+    "admin.settings.feedback.email.processingTitle": "Saving email...",
+    "admin.settings.feedback.email.processingMessage":
+      "Updating the admin email address",
+    "admin.settings.feedback.email.successTitle": "Email updated",
+    "admin.settings.feedback.email.successMessage": "Email preferences saved",
+    "admin.settings.feedback.email.errorTitle": "Save failed",
+    "admin.settings.feedback.email.errorMessage":
+      "Unable to update the email. Please try again later.",
+    "admin.settings.feedback.password.processingTitle": "Updating password...",
+    "admin.settings.feedback.password.processingMessage":
+      "Applying the new administrator password",
+    "admin.settings.feedback.password.successTitle": "Password updated",
+    "admin.settings.feedback.password.successMessage":
+      "The new password is now active",
+    "admin.settings.feedback.password.errorTitle": "Update failed",
+    "admin.settings.feedback.password.errorMessage":
+      "Unable to update the password. Please try again later.",
+    "admin.settings.feedback.notifications.processingTitle":
+      "Saving notification preferences...",
+    "admin.settings.feedback.notifications.processingMessage":
+      "Applying the latest notification settings",
+    "admin.settings.feedback.notifications.successTitle":
+      "Notification settings saved",
+    "admin.settings.feedback.notifications.successMessage":
+      "Notification preferences are up to date",
+    "admin.settings.feedback.notifications.errorTitle": "Save failed",
+    "admin.settings.feedback.notifications.errorMessage":
+      "Unable to save notifications. Please try again later.",
     "admin.settings.emailNotifications": "Receive all email notifications",
     "admin.settings.emailNotificationsDesc":
       "Master switch for member applications and event registrations email notifications",
@@ -728,6 +883,27 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.accounts.table.createdAt": "Created At",
     "admin.accounts.table.lastLogin": "Last Login",
     "admin.accounts.table.actions": "Actions",
+    "admin.accounts.confirm.delete.title": "Confirm Admin Removal",
+    "admin.accounts.confirm.delete.message":
+      "This action will permanently delete the admin account. Continue?",
+    "admin.accounts.feedback.create.processingTitle": "Creating account...",
+    "admin.accounts.feedback.create.processingMessage":
+      "Provisioning the new admin account",
+    "admin.accounts.feedback.create.successTitle": "Account created",
+    "admin.accounts.feedback.create.successMessage":
+      "The new admin account is ready",
+    "admin.accounts.feedback.create.errorTitle": "Creation failed",
+    "admin.accounts.feedback.create.errorMessage":
+      "Unable to create the account. Please try again later.",
+    "admin.accounts.feedback.delete.processingTitle": "Deleting account...",
+    "admin.accounts.feedback.delete.processingMessage":
+      "Removing the selected admin",
+    "admin.accounts.feedback.delete.successTitle": "Account deleted",
+    "admin.accounts.feedback.delete.successMessage":
+      "The admin account has been removed",
+    "admin.accounts.feedback.delete.errorTitle": "Deletion failed",
+    "admin.accounts.feedback.delete.errorMessage":
+      "Unable to delete the account. Please try again later.",
     "admin.accounts.role.owner": "Owner",
     "admin.accounts.role.admin": "Admin",
     "admin.accounts.deleteDialog.title": "Confirm Account Deletion",

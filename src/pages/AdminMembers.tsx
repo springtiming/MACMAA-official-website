@@ -22,10 +22,9 @@ import {
   type MemberRecord,
 } from "../lib/supabaseApi";
 import { useLanguage } from "../contexts/LanguageContext";
-import {
-  ProcessingOverlay,
-  type ProcessingState,
-} from "../components/ProcessingOverlay";
+import { ProcessingOverlay } from "../components/ProcessingOverlay";
+import { useProcessingFeedback } from "../hooks/useProcessingFeedback";
+import { AdminConfirmDialog } from "../components/AdminConfirmDialog";
 import * as XLSX from "xlsx";
 
 type MemberFilter = "all" | "pending" | "approved" | "rejected";
@@ -52,12 +51,13 @@ export function AdminMembers() {
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [processingState, setProcessingState] =
-    useState<ProcessingState>("idle");
-  const [processingMessage, setProcessingMessage] = useState({
-    title: "",
-    message: "",
-  });
+  const {
+    state: processingState,
+    title: processingTitle,
+    message: processingMessage,
+    runWithFeedback,
+    reset: resetProcessing,
+  } = useProcessingFeedback();
 
   const loadMembers = useCallback(async () => {
     setLoading(true);
@@ -195,42 +195,32 @@ export function AdminMembers() {
     setConfirmDialog(null);
 
     const messages = getProcessingMessages(type, member);
-    setProcessingState("processing");
-    setProcessingMessage({
-      title: messages.processingTitle,
-      message: messages.processingMessage,
-    });
-
     try {
-      if (type === "delete") {
-        await deleteMember(member.id);
-        setMembers((prev) => prev.filter((m) => m.id !== member.id));
-        if (selectedMember?.id === member.id) setSelectedMember(null);
-      } else {
-        const nextStatus =
-          type === "approve"
-            ? "approved"
-            : type === "reject" || type === "revoke"
-              ? "rejected"
-              : "pending";
-        const updated = await updateMemberStatus(
-          member.id,
-          nextStatus as MemberRecord["status"],
-          {
-            expectedStatus: member.status,
-            expectedUpdatedAt: member.updated_at,
-          }
-        );
-        setMembers((prev) =>
-          prev.map((m) => (m.id === member.id ? updated : m))
-        );
-        if (selectedMember?.id === member.id) setSelectedMember(updated);
-      }
-
-      setProcessingState("success");
-      setProcessingMessage({
-        title: messages.successTitle,
-        message: messages.successMessage,
+      await runWithFeedback(messages, async () => {
+        if (type === "delete") {
+          await deleteMember(member.id);
+          setMembers((prev) => prev.filter((m) => m.id !== member.id));
+          if (selectedMember?.id === member.id) setSelectedMember(null);
+        } else {
+          const nextStatus =
+            type === "approve"
+              ? "approved"
+              : type === "reject" || type === "revoke"
+                ? "rejected"
+                : "pending";
+          const updated = await updateMemberStatus(
+            member.id,
+            nextStatus as MemberRecord["status"],
+            {
+              expectedStatus: member.status,
+              expectedUpdatedAt: member.updated_at,
+            }
+          );
+          setMembers((prev) =>
+            prev.map((m) => (m.id === member.id ? updated : m))
+          );
+          if (selectedMember?.id === member.id) setSelectedMember(updated);
+        }
       });
     } catch (err) {
       if (err instanceof ConcurrencyError) {
@@ -243,11 +233,6 @@ export function AdminMembers() {
       } else {
         setError(t("common.error"));
       }
-      setProcessingState("error");
-      setProcessingMessage({
-        title: messages.errorTitle,
-        message: messages.errorMessage,
-      });
     }
   };
 
@@ -334,9 +319,9 @@ export function AdminMembers() {
     <div className="min-h-screen bg-[#F5EFE6] px-4 sm:px-6 lg:px-8 py-8">
       <ProcessingOverlay
         state={processingState}
-        title={processingMessage.title}
-        message={processingMessage.message}
-        onComplete={() => setProcessingState("idle")}
+        title={processingTitle}
+        message={processingMessage}
+        onComplete={resetProcessing}
       />
       <div className="max-w-7xl mx-auto">
         <motion.div
@@ -579,84 +564,29 @@ export function AdminMembers() {
           </div>
         </motion.div>
 
-        {/* Confirm Dialog */}
-        <AnimatePresence>
-          {confirmDialog && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.1 }}
-              className="fixed inset-0 flex items-center justify-center p-4 z-50"
-              style={{
-                backgroundColor: "rgba(0,0,0,0.6)",
-                backdropFilter: "blur(8px)",
-              }}
-              onClick={() => setConfirmDialog(null)}
-            >
-              <motion.div
-                initial={{ scale: 0.92, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.92, opacity: 0 }}
-                transition={{ duration: 0.15, ease: [0.34, 1.56, 0.64, 1] }}
-                onClick={(e) => e.stopPropagation()}
-                className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8"
-                style={{ borderRadius: "1.75rem" }}
-              >
-                {/* Icon */}
-                <div className="flex justify-center mb-6">
-                  {(() => {
-                    const isDestructive =
-                      confirmDialog.type === "delete" ||
-                      confirmDialog.type === "revoke" ||
-                      confirmDialog.type === "reject";
-                    return (
-                      <div className="w-20 h-20 rounded-full flex items-center justify-center bg-gray-100">
-                        <AlertTriangle className="w-10 h-10 text-orange-500" />
-                      </div>
-                    );
-                  })()}
-                </div>
-
-                {/* Title */}
-                <h3 className="text-gray-900 text-center mb-3">
-                  {t(`admin.members.confirm.${confirmDialog.type}.title`)}
-                </h3>
-
-                {/* Message */}
-                <p className="text-gray-600 text-center mb-8 text-sm leading-relaxed">
-                  {t(`admin.members.confirm.${confirmDialog.type}.message`)}
-                </p>
-
-                {/* Buttons */}
-                <div className="flex gap-3">
-                  <motion.button
-                    onClick={() => setConfirmDialog(null)}
-                    className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    {t("admin.members.confirm.cancel")}
-                  </motion.button>
-                  <motion.button
-                    onClick={handleConfirm}
-                    className={`flex-1 px-6 py-3 rounded-xl transition-colors ${
-                      confirmDialog.type === "delete" ||
-                      confirmDialog.type === "revoke" ||
-                      confirmDialog.type === "reject"
-                        ? "bg-red-500 text-white hover:bg-red-600"
-                        : "bg-[#6BA868] text-white hover:bg-[#5a9157]"
-                    }`}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    {t("admin.members.confirm.confirm")}
-                  </motion.button>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <AdminConfirmDialog
+          open={Boolean(confirmDialog)}
+          title={
+            confirmDialog
+              ? t(`admin.members.confirm.${confirmDialog.type}.title`)
+              : ""
+          }
+          message={
+            confirmDialog
+              ? t(`admin.members.confirm.${confirmDialog.type}.message`)
+              : ""
+          }
+          confirmLabel={t("admin.members.confirm.confirm")}
+          cancelLabel={t("admin.members.confirm.cancel")}
+          tone={
+            confirmDialog &&
+            ["delete", "revoke", "reject"].includes(confirmDialog.type)
+              ? "danger"
+              : "default"
+          }
+          onCancel={() => setConfirmDialog(null)}
+          onConfirm={handleConfirm}
+        />
 
         {/* Member Detail Modal */}
         <AnimatePresence>

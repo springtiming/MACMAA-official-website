@@ -19,6 +19,8 @@ import {
   updateAdminAccount,
   type AdminAccountRecord,
 } from "../lib/supabaseApi";
+import { ProcessingOverlay } from "../components/ProcessingOverlay";
+import { useProcessingFeedback } from "../hooks/useProcessingFeedback";
 
 export function AdminSettings() {
   const { t } = useLanguage();
@@ -50,6 +52,28 @@ export function AdminSettings() {
 
   // Email language preference
   const [emailLanguage, setEmailLanguage] = useState<"zh" | "en">("zh");
+  const {
+    state: processingState,
+    title: processingTitle,
+    message: processingMessage,
+    runWithFeedback,
+    reset: resetProcessing,
+  } = useProcessingFeedback();
+
+  const getFeedbackMessages = (
+    action: "email" | "password" | "notifications"
+  ) => ({
+    processingTitle: t(`admin.settings.feedback.${action}.processingTitle`),
+    processingMessage: t(
+      `admin.settings.feedback.${action}.processingMessage`
+    ),
+    successTitle: t(`admin.settings.feedback.${action}.successTitle`),
+    successMessage: t(
+      `admin.settings.feedback.${action}.successMessage`
+    ),
+    errorTitle: t(`admin.settings.feedback.${action}.errorTitle`),
+    errorMessage: t(`admin.settings.feedback.${action}.errorMessage`),
+  });
 
   useEffect(() => {
     let active = true;
@@ -85,11 +109,14 @@ export function AdminSettings() {
     if (!currentAccount) return;
     setSavingEmail(true);
     setError(null);
+    const messages = getFeedbackMessages("email");
     try {
-      const updated = await updateAdminAccount(currentAccount.id, { email });
-      setCurrentAccount(updated);
-      setSuccessMessage(t("admin.settings.emailUpdated"));
-      setTimeout(() => setSuccessMessage(""), 3000);
+      await runWithFeedback(messages, async () => {
+        const updated = await updateAdminAccount(currentAccount.id, { email });
+        setCurrentAccount(updated);
+        setSuccessMessage(t("admin.settings.emailUpdated"));
+        setTimeout(() => setSuccessMessage(""), 3000);
+      });
     } catch {
       setError(t("common.error"));
     } finally {
@@ -106,13 +133,16 @@ export function AdminSettings() {
     }
     setSavingPassword(true);
     setError(null);
+    const messages = getFeedbackMessages("password");
     try {
-      await updateAdminAccount(currentAccount.id, { password: newPassword });
-      setSuccessMessage(t("admin.settings.passwordUpdated"));
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-      setTimeout(() => setSuccessMessage(""), 3000);
+      await runWithFeedback(messages, async () => {
+        await updateAdminAccount(currentAccount.id, { password: newPassword });
+        setSuccessMessage(t("admin.settings.passwordUpdated"));
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+        setTimeout(() => setSuccessMessage(""), 3000);
+      });
     } catch {
       setError(t("common.error"));
     } finally {
@@ -120,14 +150,23 @@ export function AdminSettings() {
     }
   };
 
-  const handleSaveNotifications = (e: React.FormEvent) => {
+  const handleSaveNotifications = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSuccessMessage(t("admin.settings.notificationsUpdated"));
-    setTimeout(() => setSuccessMessage(""), 3000);
+    const messages = getFeedbackMessages("notifications");
+    await runWithFeedback(messages, async () => {
+      setSuccessMessage(t("admin.settings.notificationsUpdated"));
+      setTimeout(() => setSuccessMessage(""), 3000);
+    });
   };
 
   return (
     <div className="min-h-screen bg-[#F5EFE6] px-4 sm:px-6 lg:px-8 py-8">
+      <ProcessingOverlay
+        state={processingState}
+        title={processingTitle}
+        message={processingMessage}
+        onComplete={resetProcessing}
+      />
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <motion.div

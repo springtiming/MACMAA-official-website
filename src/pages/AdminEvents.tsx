@@ -28,6 +28,19 @@ import {
 } from "../lib/supabaseApi";
 import { pickLocalized } from "../lib/supabaseHelpers";
 import { ImageUploadModal } from "../components/ImageUploadModal";
+import { ProcessingOverlay } from "../components/ProcessingOverlay";
+import { useProcessingFeedback } from "../hooks/useProcessingFeedback";
+import { AdminConfirmDialog } from "../components/AdminConfirmDialog";
+import {
+  type ErrorMessages,
+  type FormErrors,
+  type ValidationConfig,
+  type ValidationRules,
+  getErrorMessage,
+  scrollToFirstError,
+  validateField as validateFieldUtil,
+  validateForm as validateFormUtil,
+} from "../lib/formValidation";
 
 type FormState = {
   id: string;
@@ -66,6 +79,125 @@ const emptyForm: FormState = {
   imageKeyword: "",
   imageUrl: "",
 };
+
+type EventValidationFields = {
+  titleZh: string;
+  titleEn: string;
+  descZh: string;
+  descEn: string;
+  date: string;
+  start: string;
+  location: string;
+  fee: string;
+  imageUrl: string;
+};
+
+const eventValidationRules: ValidationRules<EventValidationFields> = {
+  titleZh: {
+    pattern: /^.{2,120}$/,
+    errorType: "invalidEventTitleZh",
+    required: true,
+  },
+  titleEn: {
+    pattern: /^.{2,120}$/,
+    errorType: "invalidEventTitleEn",
+    required: true,
+  },
+  descZh: {
+    pattern: /^.{10,2000}$/,
+    errorType: "invalidEventDescZh",
+    required: true,
+  },
+  descEn: {
+    pattern: /^.{10,2000}$/,
+    errorType: "invalidEventDescEn",
+    required: true,
+  },
+  date: {
+    pattern: /^\d{4}-\d{2}-\d{2}$/,
+    errorType: "invalidEventDate",
+    required: true,
+  },
+  start: {
+    pattern: /^\d{2}:\d{2}$/,
+    errorType: "invalidEventStart",
+    required: true,
+  },
+  location: {
+    pattern: /^.{2,200}$/,
+    errorType: "invalidEventLocation",
+    required: true,
+  },
+  fee: {
+    pattern: /^\d+(\.\d{1,2})?$/,
+    errorType: "invalidEventFee",
+    required: true,
+  },
+  imageUrl: {
+    validate: (value: string) => value.trim().length > 0,
+    errorType: "invalidEventImage",
+    required: true,
+  },
+};
+
+const eventErrorMessages: ErrorMessages = {
+  required: {
+    zh: "此字段为必填项",
+    en: "This field is required",
+  },
+  invalidEventTitleZh: {
+    zh: "请输入中文标题（至少2个字符）",
+    en: "Chinese title must contain at least 2 characters",
+  },
+  invalidEventTitleEn: {
+    zh: "请输入英文标题（至少2个字符）",
+    en: "English title must contain at least 2 characters",
+  },
+  invalidEventDescZh: {
+    zh: "请输入10字以上的中文简介",
+    en: "Chinese description must be at least 10 characters",
+  },
+  invalidEventDescEn: {
+    zh: "请输入10字以上的英文简介",
+    en: "English description must be at least 10 characters",
+  },
+  invalidEventDate: {
+    zh: "请选择活动日期",
+    en: "Please select the event date",
+  },
+  invalidEventStart: {
+    zh: "请输入开始时间（HH:mm）",
+    en: "Please enter a start time (HH:mm)",
+  },
+  invalidEventLocation: {
+    zh: "请输入活动地点",
+    en: "Please enter the event location",
+  },
+  invalidEventFee: {
+    zh: "请输入合法的票价（可含两位小数）",
+    en: "Enter a valid price (allows up to two decimals)",
+  },
+  invalidEventImage: {
+    zh: "请选择或上传封面图片",
+    en: "Please select or upload a cover image",
+  },
+};
+
+const eventRequiredFields = Object.keys(
+  eventValidationRules
+) as (keyof EventValidationFields)[];
+
+const mapEventFormToValidation = (form: FormState): EventValidationFields => ({
+  titleZh: form.titleZh.trim(),
+  titleEn: form.titleEn.trim(),
+  descZh: form.descZh.trim(),
+  descEn: form.descEn.trim(),
+  date: form.date,
+  start: form.start.trim(),
+  location: form.location.trim(),
+  fee: form.fee.trim(),
+  imageUrl: form.imageUrl.trim(),
+});
 
 function toForm(e: EventRecord | null): FormState {
   if (!e) return emptyForm;
@@ -119,7 +251,119 @@ export function AdminEvents() {
   const [selectedUnsplashId, setSelectedUnsplashId] = useState<string | null>(
     null
   );
+  const [confirmDialog, setConfirmDialog] = useState<{
+    type: "delete";
+    targetId: string;
+  } | null>(null);
+  const {
+    state: processingState,
+    title: processingTitle,
+    message: processingMessage,
+    runWithFeedback,
+    reset: resetProcessing,
+  } = useProcessingFeedback();
   const isUnlimited = form.capacity === "";
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
+  const [formTouched, setFormTouched] = useState<Record<string, boolean>>({});
+  const eventValidationConfig = useMemo<
+    ValidationConfig<EventValidationFields>
+  >(
+    () => ({
+      rules: eventValidationRules,
+      requiredFields: eventRequiredFields,
+      errorMessages: eventErrorMessages,
+      language,
+    }),
+    [language]
+  );
+
+  useEffect(() => {
+    if (!showForm) return;
+    setFormErrors({});
+    setFormTouched({});
+  }, [showForm, form.id]);
+
+  const normalizeEventFieldValue = (
+    field: keyof EventValidationFields,
+    value: string
+  ) => {
+    if (field === "date" || field === "start") {
+      return value;
+    }
+    return value.trim();
+  };
+
+  const clearEventFieldError = (field: keyof EventValidationFields) => {
+    setFormErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
+
+  const runEventFieldValidation = (
+    field: keyof EventValidationFields,
+    value?: string
+  ) => {
+    const fallbackValues = mapEventFormToValidation(form);
+    const result = validateFieldUtil(
+      field,
+      value ?? fallbackValues[field],
+      eventValidationConfig
+    );
+    setFormErrors((prev) => {
+      if (result) {
+        return { ...prev, [field]: result };
+      }
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+    return result;
+  };
+
+  const handleEventFieldBlur = (field: keyof EventValidationFields) => {
+    setFormTouched((prev) => ({ ...prev, [field]: true }));
+    runEventFieldValidation(field);
+  };
+
+  const handleEventFieldChange = (
+    field: keyof EventValidationFields,
+    value: string
+  ) => {
+    if (formTouched[field]) {
+      runEventFieldValidation(field, normalizeEventFieldValue(field, value));
+    } else if (formErrors[field]) {
+      clearEventFieldError(field);
+    }
+  };
+
+  const touchAllEventFields = () => {
+    const touchedMap = eventRequiredFields.reduce<Record<string, boolean>>(
+      (acc, field) => {
+        acc[field] = true;
+        return acc;
+      },
+      {}
+    );
+    setFormTouched((prev) => ({ ...prev, ...touchedMap }));
+  };
+
+  const validateEventBeforeSave = () => {
+    const validationErrors = validateFormUtil(
+      mapEventFormToValidation(form),
+      eventValidationConfig
+    );
+    if (Object.keys(validationErrors).length > 0) {
+      setFormErrors(validationErrors);
+      touchAllEventFields();
+      scrollToFirstError(validationErrors);
+      return false;
+    }
+    return true;
+  };
 
   useEffect(() => {
     let active = true;
@@ -169,9 +413,19 @@ export function AdminEvents() {
   const handleImageUploadSuccess = (url: string) => {
     setUploadedImage(url);
     setForm((prev) => ({ ...prev, imageUrl: url, imageType: "upload" }));
+    handleEventFieldChange("imageUrl", url);
     setImageSource("upload");
     setShowImageUploadModal(false);
   };
+
+  const getFeedbackMessages = (action: "save" | "delete") => ({
+    processingTitle: t(`admin.events.feedback.${action}.processingTitle`),
+    processingMessage: t(`admin.events.feedback.${action}.processingMessage`),
+    successTitle: t(`admin.events.feedback.${action}.successTitle`),
+    successMessage: t(`admin.events.feedback.${action}.successMessage`),
+    errorTitle: t(`admin.events.feedback.${action}.errorTitle`),
+    errorMessage: t(`admin.events.feedback.${action}.errorMessage`),
+  });
 
   const handleUnsplashSearch = async () => {
     const keyword = form.imageKeyword.trim();
@@ -218,6 +472,7 @@ export function AdminEvents() {
       imageUrl: url,
       imageKeyword: prev.imageKeyword || photo.alt_description || "",
     }));
+    handleEventFieldChange("imageUrl", url);
     setImageSource("unsplash");
     setUploadedImage("");
     setSelectedUnsplashId(photo.id);
@@ -260,58 +515,84 @@ export function AdminEvents() {
   };
 
   const handleSave = async () => {
+    if (!validateEventBeforeSave()) return;
+    const messages = getFeedbackMessages("save");
     try {
-      const payload: UpsertEventInput = {
-        id: form.id || undefined,
-        title_zh: form.titleZh,
-        title_en: form.titleEn,
-        description_zh: form.descZh,
-        description_en: form.descEn,
-        event_date: form.date,
-        start_time: form.start ? `${form.start}:00` : null,
-        end_time: form.end ? `${form.end}:00` : null,
-        location: form.location,
-        fee: Number(form.fee) || 0,
-        member_fee:
-          form.access === "all-welcome" && form.memberFee
-            ? Number(form.memberFee)
-            : null,
-        capacity: form.capacity ? Number(form.capacity) : null,
-        access_type: form.access,
-        image_type: form.imageType,
-        image_keyword:
-          form.imageType === "unsplash" ? form.imageKeyword || null : null,
-        image_url: form.imageUrl ? form.imageUrl : null,
-        published: true,
-      };
-      const saved = await saveEvent(payload);
-      setEvents((prev) => {
-        const exists = prev.some((e) => e.id === saved.id);
-        return exists
-          ? prev.map((e) => (e.id === saved.id ? saved : e))
-          : [saved, ...prev];
+      await runWithFeedback(messages, async () => {
+        const payload: UpsertEventInput = {
+          id: form.id || undefined,
+          title_zh: form.titleZh,
+          title_en: form.titleEn,
+          description_zh: form.descZh,
+          description_en: form.descEn,
+          event_date: form.date,
+          start_time: form.start ? `${form.start}:00` : null,
+          end_time: form.end ? `${form.end}:00` : null,
+          location: form.location,
+          fee: Number(form.fee) || 0,
+          member_fee:
+            form.access === "all-welcome" && form.memberFee
+              ? Number(form.memberFee)
+              : null,
+          capacity: form.capacity ? Number(form.capacity) : null,
+          access_type: form.access,
+          image_type: form.imageType,
+          image_keyword:
+            form.imageType === "unsplash" ? form.imageKeyword || null : null,
+          image_url: form.imageUrl ? form.imageUrl : null,
+          published: true,
+        };
+        const saved = await saveEvent(payload);
+        setEvents((prev) => {
+          const exists = prev.some((e) => e.id === saved.id);
+          return exists
+            ? prev.map((e) => (e.id === saved.id ? saved : e))
+            : [saved, ...prev];
+        });
+        setShowForm(false);
+        setForm(emptyForm);
+        setImageSource(emptyForm.imageType);
+        setUploadedImage("");
       });
-      setShowForm(false);
-      setForm(emptyForm);
-      setImageSource(emptyForm.imageType);
-      setUploadedImage("");
     } catch {
       setError(t("common.error"));
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm(t("admin.events.deleteConfirm"))) return;
+  const handleDelete = (id: string) => {
+    setConfirmDialog({ type: "delete", targetId: id });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!confirmDialog) return;
+    const { targetId } = confirmDialog;
+    setConfirmDialog(null);
+    const messages = getFeedbackMessages("delete");
     try {
-      await deleteEvent(id);
-      setEvents((prev) => prev.filter((e) => e.id !== id));
+      await runWithFeedback(messages, async () => {
+        await deleteEvent(targetId);
+        setEvents((prev) => prev.filter((e) => e.id !== targetId));
+      });
     } catch {
       setError(t("common.error"));
     }
   };
+
+  const confirmCopy = confirmDialog
+    ? {
+        title: t("admin.events.confirm.delete.title"),
+        message: t("admin.events.confirm.delete.message"),
+      }
+    : { title: "", message: "" };
 
   return (
     <div className="min-h-screen bg-[#F5EFE6] px-4 sm:px-6 lg:px-8 py-8">
+      <ProcessingOverlay
+        state={processingState}
+        title={processingTitle}
+        message={processingMessage}
+        onComplete={resetProcessing}
+      />
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
@@ -514,53 +795,104 @@ export function AdminEvents() {
                       {t("admin.events.form.titleZh")}
                     </label>
                     <input
+                      id="titleZh"
                       className="w-full border rounded-xl px-4 py-3 shadow-sm"
                       value={form.titleZh}
-                      onChange={(e) =>
-                        setForm({ ...form, titleZh: e.target.value })
-                      }
+                      onChange={(e) => {
+                        setForm({ ...form, titleZh: e.target.value });
+                        handleEventFieldChange("titleZh", e.target.value);
+                      }}
+                      onBlur={() => handleEventFieldBlur("titleZh")}
                     />
+                    {formTouched.titleZh && formErrors.titleZh && (
+                      <p className="text-xs text-red-600 mt-1" role="alert">
+                        {getErrorMessage(
+                          formErrors.titleZh,
+                          eventValidationConfig.errorMessages,
+                          language
+                        )}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm text-gray-700">
                       {t("admin.events.form.titleEn")}
                     </label>
                     <input
+                      id="titleEn"
                       className="w-full border rounded-xl px-4 py-3 shadow-sm"
                       value={form.titleEn}
-                      onChange={(e) =>
-                        setForm({ ...form, titleEn: e.target.value })
-                      }
+                      onChange={(e) => {
+                        setForm({ ...form, titleEn: e.target.value });
+                        handleEventFieldChange("titleEn", e.target.value);
+                      }}
+                      onBlur={() => handleEventFieldBlur("titleEn")}
                     />
+                    {formTouched.titleEn && formErrors.titleEn && (
+                      <p className="text-xs text-red-600 mt-1" role="alert">
+                        {getErrorMessage(
+                          formErrors.titleEn,
+                          eventValidationConfig.errorMessages,
+                          language
+                        )}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm text-gray-700">
                       中文简介
                     </label>
                     <textarea
+                      id="descZh"
                       className="w-full border rounded-xl px-4 py-3 shadow-sm"
                       value={form.descZh}
-                      onChange={(e) =>
-                        setForm({ ...form, descZh: e.target.value })
-                      }
+                      onChange={(e) => {
+                        setForm({ ...form, descZh: e.target.value });
+                        handleEventFieldChange("descZh", e.target.value);
+                      }}
+                      onBlur={() => handleEventFieldBlur("descZh")}
                     />
+                    {formTouched.descZh && formErrors.descZh && (
+                      <p className="text-xs text-red-600 mt-1" role="alert">
+                        {getErrorMessage(
+                          formErrors.descZh,
+                          eventValidationConfig.errorMessages,
+                          language
+                        )}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm text-gray-700">
                       英文简介
                     </label>
                     <textarea
+                      id="descEn"
                       className="w-full border rounded-xl px-4 py-3 shadow-sm"
                       value={form.descEn}
-                      onChange={(e) =>
-                        setForm({ ...form, descEn: e.target.value })
-                      }
+                      onChange={(e) => {
+                        setForm({ ...form, descEn: e.target.value });
+                        handleEventFieldChange("descEn", e.target.value);
+                      }}
+                      onBlur={() => handleEventFieldBlur("descEn")}
                     />
+                    {formTouched.descEn && formErrors.descEn && (
+                      <p className="text-xs text-red-600 mt-1" role="alert">
+                        {getErrorMessage(
+                          formErrors.descEn,
+                          eventValidationConfig.errorMessages,
+                          language
+                        )}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 {/* Cover Image (Unsplash / Upload) */}
-                <div className="mt-4 border border-gray-200 rounded-xl p-4 bg-gray-50">
+                <div
+                  id="imageUrl"
+                  className="mt-4 border border-gray-200 rounded-xl p-4 bg-gray-50"
+                >
                   <h3 className="text-gray-700 mb-3">
                     {t("admin.news.form.coverImageSettings")}
                   </h3>
@@ -736,6 +1068,15 @@ export function AdminEvents() {
                       )}
                     </div>
                   )}
+                  {formTouched.imageUrl && formErrors.imageUrl && (
+                    <p className="text-xs text-red-600 mt-2" role="alert">
+                      {getErrorMessage(
+                        formErrors.imageUrl,
+                        eventValidationConfig.errorMessages,
+                        language
+                      )}
+                    </p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
@@ -744,13 +1085,25 @@ export function AdminEvents() {
                       {t("admin.events.form.date")}
                     </label>
                     <input
+                      id="date"
                       type="date"
                       className="w-full border rounded-xl px-4 py-3 shadow-sm"
                       value={form.date}
-                      onChange={(e) =>
-                        setForm({ ...form, date: e.target.value })
-                      }
+                      onChange={(e) => {
+                        setForm({ ...form, date: e.target.value });
+                        handleEventFieldChange("date", e.target.value);
+                      }}
+                      onBlur={() => handleEventFieldBlur("date")}
                     />
+                    {formTouched.date && formErrors.date && (
+                      <p className="text-xs text-red-600 mt-1" role="alert">
+                        {getErrorMessage(
+                          formErrors.date,
+                          eventValidationConfig.errorMessages,
+                          language
+                        )}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm text-gray-700">
@@ -758,12 +1111,15 @@ export function AdminEvents() {
                     </label>
                     <div className="flex gap-2">
                       <input
+                        id="start"
                         type="time"
                         className="w-full border rounded-xl px-4 py-3 shadow-sm"
                         value={form.start}
-                        onChange={(e) =>
-                          setForm({ ...form, start: e.target.value })
-                        }
+                        onChange={(e) => {
+                          setForm({ ...form, start: e.target.value });
+                          handleEventFieldChange("start", e.target.value);
+                        }}
+                        onBlur={() => handleEventFieldBlur("start")}
                       />
                       <input
                         type="time"
@@ -774,6 +1130,15 @@ export function AdminEvents() {
                         }
                       />
                     </div>
+                    {formTouched.start && formErrors.start && (
+                      <p className="text-xs text-red-600 mt-1" role="alert">
+                        {getErrorMessage(
+                          formErrors.start,
+                          eventValidationConfig.errorMessages,
+                          language
+                        )}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm text-gray-700 flex items-center justify-between">
@@ -811,12 +1176,24 @@ export function AdminEvents() {
                       {t("admin.events.form.location")}
                     </label>
                     <input
+                      id="location"
                       className="w-full border rounded-xl px-4 py-3 shadow-sm"
                       value={form.location}
-                      onChange={(e) =>
-                        setForm({ ...form, location: e.target.value })
-                      }
+                      onChange={(e) => {
+                        setForm({ ...form, location: e.target.value });
+                        handleEventFieldChange("location", e.target.value);
+                      }}
+                      onBlur={() => handleEventFieldBlur("location")}
                     />
+                    {formTouched.location && formErrors.location && (
+                      <p className="text-xs text-red-600 mt-1" role="alert">
+                        {getErrorMessage(
+                          formErrors.location,
+                          eventValidationConfig.errorMessages,
+                          language
+                        )}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm text-gray-700">
@@ -857,13 +1234,25 @@ export function AdminEvents() {
                       {t("admin.events.form.nonMemberPrice")}
                     </label>
                     <input
+                      id="fee"
                       type="number"
                       className="w-full border rounded-xl px-4 py-3 shadow-sm"
                       value={form.fee}
-                      onChange={(e) =>
-                        setForm({ ...form, fee: e.target.value })
-                      }
+                      onChange={(e) => {
+                        setForm({ ...form, fee: e.target.value });
+                        handleEventFieldChange("fee", e.target.value);
+                      }}
+                      onBlur={() => handleEventFieldBlur("fee")}
                     />
+                    {formTouched.fee && formErrors.fee && (
+                      <p className="text-xs text-red-600 mt-1" role="alert">
+                        {getErrorMessage(
+                          formErrors.fee,
+                          eventValidationConfig.errorMessages,
+                          language
+                        )}
+                      </p>
+                    )}
                   </div>
                   {form.access === "all-welcome" && (
                     <div>
@@ -1015,6 +1404,17 @@ export function AdminEvents() {
             </div>
           </div>
         )}
+
+        <AdminConfirmDialog
+          open={Boolean(confirmDialog)}
+          title={confirmCopy.title}
+          message={confirmCopy.message}
+          confirmLabel={t("admin.members.confirm.confirm")}
+          cancelLabel={t("admin.members.confirm.cancel")}
+          tone="danger"
+          onCancel={() => setConfirmDialog(null)}
+          onConfirm={handleConfirmDelete}
+        />
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
@@ -20,6 +20,9 @@ import ReactQuill from "react-quill@2.0.0-beta.2";
 import type { ReactQuillProps } from "react-quill@2.0.0-beta.2";
 import "react-quill@2.0.0-beta.2/dist/quill.snow.css";
 import { ImageUploadModal } from "../components/ImageUploadModal";
+import { ProcessingOverlay } from "../components/ProcessingOverlay";
+import { useProcessingFeedback } from "../hooks/useProcessingFeedback";
+import { AdminConfirmDialog } from "../components/AdminConfirmDialog";
 import {
   fetchAdminNewsPosts,
   fetchMyDrafts,
@@ -31,6 +34,16 @@ import {
   type ArticleVersionRecord,
 } from "../lib/supabaseApi";
 import { pickLocalized } from "../lib/supabaseHelpers";
+import {
+  type ErrorMessages,
+  type FormErrors,
+  type ValidationConfig,
+  type ValidationRules,
+  getErrorMessage,
+  scrollToFirstError,
+  validateField as validateFieldUtil,
+  validateForm as validateFormUtil,
+} from "../lib/formValidation";
 
 export function AdminNews() {
   const { language, t } = useLanguage();
@@ -52,6 +65,33 @@ export function AdminNews() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [formLoading, setFormLoading] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    type: "delete" | "deleteDraft";
+    targetId: string;
+  } | null>(null);
+  const {
+    state: processingState,
+    title: processingTitle,
+    message: processingMessage,
+    runWithFeedback,
+    reset: resetProcessing,
+  } = useProcessingFeedback();
+
+  const getFeedbackMessages = (
+    action: "save" | "publish" | "delete" | "deleteDraft"
+  ) => ({
+    processingTitle: t(`admin.news.feedback.${action}.processingTitle`),
+    processingMessage: t(`admin.news.feedback.${action}.processingMessage`),
+    successTitle: t(`admin.news.feedback.${action}.successTitle`),
+    successMessage: t(`admin.news.feedback.${action}.successMessage`),
+    errorTitle: t(`admin.news.feedback.${action}.errorTitle`),
+    errorMessage: t(`admin.news.feedback.${action}.errorMessage`),
+  });
+
+  const getConfirmCopy = (type: "delete" | "deleteDraft") => ({
+    title: t(`admin.news.confirm.${type}.title`),
+    message: t(`admin.news.confirm.${type}.message`),
+  });
 
   useEffect(() => {
     let active = true;
@@ -96,17 +136,8 @@ export function AdminNews() {
     setDraftVersionId(null);
     setShowForm(true);
   };
-  const handleDelete = async (id: string) => {
-    if (!confirm(t("admin.news.deleteConfirm"))) return;
-    try {
-      await deleteArticle(id);
-      setNewsList((prev) => prev.filter((n) => n.id !== id));
-      const drafts = await fetchMyDrafts();
-      setDraftList(drafts);
-      setSuccess(language === "zh" ? "已删除" : "Deleted");
-    } catch {
-      setError(t("common.error"));
-    }
+  const handleDelete = (id: string) => {
+    setConfirmDialog({ type: "delete", targetId: id });
   };
 
   const handleEdit = (news: NewsPostRecord) => {
@@ -125,124 +156,167 @@ export function AdminNews() {
     setShowForm(true);
   };
 
+  const handleConfirmDelete = async () => {
+    if (!confirmDialog) return;
+    const { type, targetId } = confirmDialog;
+    setConfirmDialog(null);
+    const action = type === "delete" ? "delete" : "deleteDraft";
+    const messages = getFeedbackMessages(action);
+    try {
+      await runWithFeedback(messages, async () => {
+        if (type === "delete") {
+          await deleteArticle(targetId);
+          setNewsList((prev) => prev.filter((n) => n.id !== targetId));
+          const drafts = await fetchMyDrafts();
+          setDraftList(drafts);
+          setSuccess(language === "zh" ? "已删除" : "Deleted");
+        } else {
+          await deleteDraft(targetId);
+          setDraftList((prev) => prev.filter((d) => d.id !== targetId));
+          setSuccess(language === "zh" ? "草稿已删除" : "Draft deleted");
+        }
+      });
+    } catch {
+      setError(t("common.error"));
+    }
+  };
+
   const handleSave = async (news: NewsFormState) => {
     setFormLoading(true);
+    const messages = getFeedbackMessages("save");
     try {
-      const draft = await saveNewsDraft({
-        id: news.id || editingArticle?.id || editingDraft?.article_id,
-        title_zh: news.title.zh,
-        title_en: news.title.en,
-        summary_zh: news.summary.zh,
-        summary_en: news.summary.en,
-        content_zh: news.content.zh,
-        content_en: news.content.en,
-        cover_source: news.image || null,
+      await runWithFeedback(messages, async () => {
+        try {
+          const draft = await saveNewsDraft({
+            id: news.id || editingArticle?.id || editingDraft?.article_id,
+            title_zh: news.title.zh,
+            title_en: news.title.en,
+            summary_zh: news.summary.zh,
+            summary_en: news.summary.en,
+            content_zh: news.content.zh,
+            content_en: news.content.en,
+            cover_source: news.image || null,
+          });
+          setDraftVersionId(draft.id);
+          setSuccess(language === "zh" ? "草稿已保存" : "Draft saved");
+          const drafts = await fetchMyDrafts();
+          setDraftList(drafts);
+        } catch (err) {
+          setError(t("common.error"));
+          const localDraft: ArticleVersionRecord = {
+            id: `local-${Date.now()}`,
+            article_id:
+              news.id ||
+              editingArticle?.id ||
+              editingDraft?.article_id ||
+              `local-article-${Date.now()}`,
+            title_zh: news.title.zh,
+            title_en: news.title.en,
+            summary_zh: news.summary.zh,
+            summary_en: news.summary.en,
+            content_zh: news.content.zh,
+            content_en: news.content.en,
+            cover_source: news.image || null,
+            status: "draft",
+            version_number: (draftList[0]?.version_number ?? 0) + 1,
+            created_by: null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+          setDraftList((prev) => [localDraft, ...prev]);
+          setSuccess(
+            language === "zh"
+              ? "草稿已保存（离线）"
+              : "Draft saved locally (offline)"
+          );
+          console.warn("[AdminNews] save draft fallback", err);
+        }
       });
-      setDraftVersionId(draft.id);
-      setSuccess(language === "zh" ? "草稿已保存" : "Draft saved");
-      const drafts = await fetchMyDrafts();
-      setDraftList(drafts);
     } catch (err) {
-      setError(t("common.error"));
-      // Fallback: create a local draft so the UI responds even if API fails
-      const localDraft: ArticleVersionRecord = {
-        id: `local-${Date.now()}`,
-        article_id: news.id || editingArticle?.id || editingDraft?.article_id || `local-article-${Date.now()}`,
-        title_zh: news.title.zh,
-        title_en: news.title.en,
-        summary_zh: news.summary.zh,
-        summary_en: news.summary.en,
-        content_zh: news.content.zh,
-        content_en: news.content.en,
-        cover_source: news.image || null,
-        status: "draft",
-        version_number: (draftList[0]?.version_number ?? 0) + 1,
-        created_by: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      setDraftList((prev) => [localDraft, ...prev]);
-      setSuccess(
-        language === "zh"
-          ? "草稿已保存（离线）"
-          : "Draft saved locally (offline)"
-      );
-      console.warn("[AdminNews] save draft fallback", err);
+      console.error("[AdminNews] save draft", err);
+    } finally {
+      setFormLoading(false);
     }
-    setFormLoading(false);
   };
   const handlePublish = async (news: NewsFormState) => {
     setFormLoading(true);
+    const messages = getFeedbackMessages("publish");
     try {
-      let versionId = draftVersionId;
-      if (!versionId) {
-        const draft = await saveNewsDraft({
-          id: news.id || editingArticle?.id || editingDraft?.article_id,
-          title_zh: news.title.zh,
-          title_en: news.title.en,
-          summary_zh: news.summary.zh,
-          summary_en: news.summary.en,
-          content_zh: news.content.zh,
-          content_en: news.content.en,
-          cover_source: news.image || null,
-        });
-        versionId = draft.id;
-      }
+      await runWithFeedback(messages, async () => {
+        try {
+          let versionId = draftVersionId;
+          if (!versionId) {
+            const draft = await saveNewsDraft({
+              id: news.id || editingArticle?.id || editingDraft?.article_id,
+              title_zh: news.title.zh,
+              title_en: news.title.en,
+              summary_zh: news.summary.zh,
+              summary_en: news.summary.en,
+              content_zh: news.content.zh,
+              content_en: news.content.en,
+              cover_source: news.image || null,
+            });
+            versionId = draft.id;
+          }
 
-      const result = await publishNewsFromDraft(versionId);
-      setNewsList((prev) => {
-        const exists = prev.some((n) => n.id === result.article.id);
-        if (exists) {
-          return prev.map((n) =>
-            n.id === result.article.id ? result.article : n
+          const result = await publishNewsFromDraft(versionId!);
+          setNewsList((prev) => {
+            const exists = prev.some((n) => n.id === result.article.id);
+            if (exists) {
+              return prev.map((n) =>
+                n.id === result.article.id ? result.article : n
+              );
+            }
+            return [result.article, ...prev];
+          });
+          setShowForm(false);
+          setEditingArticle(null);
+          setDraftVersionId(null);
+          setEditingDraft(null);
+          setSuccess(language === "zh" ? "发布成功" : "Published");
+          const drafts = await fetchMyDrafts();
+          setDraftList(drafts);
+        } catch (err) {
+          setError(t("common.error"));
+          const localArticle: NewsPostRecord = {
+            id: news.id || editingArticle?.id || `local-article-${Date.now()}`,
+            title_zh: news.title.zh,
+            title_en: news.title.en,
+            summary_zh: news.summary.zh,
+            summary_en: news.summary.en,
+            content_zh: news.content.zh,
+            content_en: news.content.en,
+            cover_source: news.image || null,
+            published_at: new Date().toISOString(),
+            published: true,
+            author_id: null,
+          };
+          setNewsList((prev) => {
+            const exists = prev.some((n) => n.id === localArticle.id);
+            return exists
+              ? prev.map((n) => (n.id === localArticle.id ? localArticle : n))
+              : [localArticle, ...prev];
+          });
+          setDraftList((prev) =>
+            prev.filter((d) => d.article_id !== localArticle.id)
           );
+          setShowForm(false);
+          setEditingArticle(null);
+          setDraftVersionId(null);
+          setEditingDraft(null);
+          setSuccess(
+            language === "zh"
+              ? "已本地发布（网络异常）"
+              : "Published locally (offline fallback)"
+          );
+          console.warn("[AdminNews] publish fallback", err);
         }
-        return [result.article, ...prev];
       });
-      setShowForm(false);
-      setEditingArticle(null);
-      setDraftVersionId(null);
-      setEditingDraft(null);
-      setSuccess(language === "zh" ? "发布成功" : "Published");
-      const drafts = await fetchMyDrafts();
-      setDraftList(drafts);
     } catch (err) {
-      setError(t("common.error"));
-      // Fallback: publish locally so the UI updates even if API fails
-      const localArticle: NewsPostRecord = {
-        id: news.id || editingArticle?.id || `local-article-${Date.now()}`,
-        title_zh: news.title.zh,
-        title_en: news.title.en,
-        summary_zh: news.summary.zh,
-        summary_en: news.summary.en,
-        content_zh: news.content.zh,
-        content_en: news.content.en,
-        cover_source: news.image || null,
-        published_at: new Date().toISOString(),
-        published: true,
-        author_id: null,
-      };
-      setNewsList((prev) => {
-        const exists = prev.some((n) => n.id === localArticle.id);
-        return exists
-          ? prev.map((n) => (n.id === localArticle.id ? localArticle : n))
-          : [localArticle, ...prev];
-      });
-      setDraftList((prev) =>
-        prev.filter((d) => d.article_id !== localArticle.id)
-      );
-      setShowForm(false);
-      setEditingArticle(null);
-      setDraftVersionId(null);
-      setEditingDraft(null);
-      setSuccess(
-        language === "zh"
-          ? "已本地发布（网络异常）"
-          : "Published locally (offline fallback)"
-      );
-      console.warn("[AdminNews] publish fallback", err);
+      console.error("[AdminNews] publish news", err);
+    } finally {
+      setFormLoading(false);
     }
-    setFormLoading(false);
   };
 
   const handleImageUpload = () => {
@@ -258,8 +332,18 @@ export function AdminNews() {
     setShowImageUploadModal(false);
   };
 
+  const confirmCopy = confirmDialog
+    ? getConfirmCopy(confirmDialog.type)
+    : { title: "", message: "" };
+
   return (
     <div className="min-h-screen bg-[#F5EFE6] px-4 sm:px-6 lg:px-8 py-8">
+      <ProcessingOverlay
+        state={processingState}
+        title={processingTitle}
+        message={processingMessage}
+        onComplete={resetProcessing}
+      />
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
@@ -360,27 +444,12 @@ export function AdminNews() {
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={async () => {
-                          if (
-                            !confirm(
-                              language === "zh"
-                                ? "确认删除草稿？"
-                                : "Delete draft?"
-                            )
-                          )
-                            return;
-                          try {
-                            await deleteDraft(draft.id);
-                            setDraftList((prev) =>
-                              prev.filter((d) => d.id !== draft.id)
-                            );
-                            setSuccess(
-                              language === "zh" ? "草稿已删除" : "Draft deleted"
-                            );
-                          } catch {
-                            setError(t("common.error"));
-                          }
-                        }}
+                        onClick={() =>
+                          setConfirmDialog({
+                            type: "deleteDraft",
+                            targetId: draft.id,
+                          })
+                        }
                         className="p-2 text-[#2B5F9E] hover:text-red-600 transition-colors"
                         title={language === "zh" ? "删除草稿" : "Delete draft"}
                       >
@@ -497,6 +566,17 @@ export function AdminNews() {
             onSuccess={handleImageUploadSuccess}
           />
         )}
+
+        <AdminConfirmDialog
+          open={Boolean(confirmDialog)}
+          title={confirmCopy.title}
+          message={confirmCopy.message}
+          confirmLabel={t("admin.members.confirm.confirm")}
+          cancelLabel={t("admin.members.confirm.cancel")}
+          tone="danger"
+          onCancel={() => setConfirmDialog(null)}
+          onConfirm={handleConfirmDelete}
+        />
       </div>
     </div>
   );
@@ -511,6 +591,115 @@ type NewsFormState = {
   date: string;
   image: string;
 };
+
+type NewsValidationFields = {
+  date: string;
+  titleZh: string;
+  titleEn: string;
+  summaryZh: string;
+  summaryEn: string;
+  contentZh: string;
+  contentEn: string;
+};
+
+const hasRichTextContent = (value: string): boolean => {
+  if (!value) return false;
+  const text = value
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text.length > 0;
+};
+
+const newsValidationRules: ValidationRules<NewsValidationFields> = {
+  date: {
+    pattern: /^\d{4}-\d{2}-\d{2}$/,
+    errorType: "invalidDate",
+    required: true,
+  },
+  titleZh: {
+    pattern: /^.{2,120}$/,
+    errorType: "invalidTitleZh",
+    required: true,
+  },
+  titleEn: {
+    pattern: /^.{2,120}$/,
+    errorType: "invalidTitleEn",
+    required: true,
+  },
+  summaryZh: {
+    pattern: /^.{10,500}$/,
+    errorType: "invalidSummaryZh",
+    required: true,
+  },
+  summaryEn: {
+    pattern: /^.{10,500}$/,
+    errorType: "invalidSummaryEn",
+    required: true,
+  },
+  contentZh: {
+    validate: hasRichTextContent,
+    errorType: "invalidContentZh",
+    required: true,
+  },
+  contentEn: {
+    validate: hasRichTextContent,
+    errorType: "invalidContentEn",
+    required: true,
+  },
+};
+
+const newsErrorMessages: ErrorMessages = {
+  required: {
+    zh: "此字段为必填项",
+    en: "This field is required",
+  },
+  invalidDate: {
+    zh: "请选择发布日期",
+    en: "Please select a publish date",
+  },
+  invalidTitleZh: {
+    zh: "请输入至少2个字符的中文标题",
+    en: "Enter a Chinese title with at least 2 characters",
+  },
+  invalidTitleEn: {
+    zh: "请输入至少2个字符的英文标题",
+    en: "Enter an English title with at least 2 characters",
+  },
+  invalidSummaryZh: {
+    zh: "请输入10-500字的中文摘要",
+    en: "Enter a Chinese summary between 10 and 500 characters",
+  },
+  invalidSummaryEn: {
+    zh: "请输入10-500字的英文摘要",
+    en: "Enter an English summary between 10 and 500 characters",
+  },
+  invalidContentZh: {
+    zh: "请输入中文正文内容",
+    en: "Enter the Chinese body content",
+  },
+  invalidContentEn: {
+    zh: "请输入英文正文内容",
+    en: "Enter the English body content",
+  },
+};
+
+const mapNewsFormToValidation = (
+  data: NewsFormState
+): NewsValidationFields => ({
+  date: data.date,
+  titleZh: data.title.zh.trim(),
+  titleEn: data.title.en.trim(),
+  summaryZh: data.summary.zh.trim(),
+  summaryEn: data.summary.en.trim(),
+  contentZh: data.content.zh,
+  contentEn: data.content.en,
+});
+
+const newsRequiredFields = Object.keys(
+  newsValidationRules
+) as (keyof NewsValidationFields)[];
 
 function NewsFormModal({
   news,
@@ -601,6 +790,17 @@ function NewsFormModal({
       image: "",
     };
   });
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const validationConfig = useMemo<ValidationConfig<NewsValidationFields>>(
+    () => ({
+      rules: newsValidationRules,
+      requiredFields: newsRequiredFields,
+      errorMessages: newsErrorMessages,
+      language,
+    }),
+    [language]
+  );
 
   useEffect(() => {
     if (uploadedImage) {
@@ -610,9 +810,101 @@ function NewsFormModal({
     }
   }, [uploadedImage]);
 
+  useEffect(() => {
+    setErrors({});
+    setTouched({});
+  }, [draft?.id, news?.id]);
+
+  const normalizeFieldValue = (
+    field: keyof NewsValidationFields,
+    value: string
+  ) => {
+    if (field === "contentZh" || field === "contentEn") {
+      return value;
+    }
+    return value.trim();
+  };
+
+  const clearFieldError = (field: keyof NewsValidationFields) => {
+    setErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
+
+  const runFieldValidation = (
+    field: keyof NewsValidationFields,
+    value?: string
+  ) => {
+    const fallbackValues = mapNewsFormToValidation(formData);
+    const result = validateFieldUtil(
+      field,
+      value ?? fallbackValues[field],
+      validationConfig
+    );
+    setErrors((prev) => {
+      if (result) {
+        return { ...prev, [field]: result };
+      }
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+    return result;
+  };
+
+  const handleFieldBlur = (field: keyof NewsValidationFields) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    runFieldValidation(field);
+  };
+
+  const handleFieldChange = (
+    field: keyof NewsValidationFields,
+    value: string
+  ) => {
+    if (touched[field]) {
+      runFieldValidation(field, normalizeFieldValue(field, value));
+    } else if (errors[field]) {
+      clearFieldError(field);
+    }
+  };
+
+  const touchAllFields = () => {
+    const touchedMap = newsRequiredFields.reduce<Record<string, boolean>>(
+      (acc, field) => {
+        acc[field] = true;
+        return acc;
+      },
+      {}
+    );
+    setTouched((prev) => ({ ...prev, ...touchedMap }));
+  };
+
+  const validateBeforePublish = (): boolean => {
+    const validationErrors = validateFormUtil(
+      mapNewsFormToValidation(formData),
+      validationConfig
+    );
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      touchAllFields();
+      scrollToFirstError(validationErrors);
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(formData);
+  };
+
+  const handlePublishAttempt = () => {
+    if (!validateBeforePublish()) return;
+    onPublish(formData);
   };
 
   // Quill editor modules configuration
@@ -685,14 +977,25 @@ function NewsFormModal({
                 {t("admin.news.form.date")} *
               </label>
               <input
+                id="date"
                 type="date"
-                required
                 value={formData.date}
-                onChange={(e) =>
-                  setFormData({ ...formData, date: e.target.value })
-                }
+                onChange={(e) => {
+                  setFormData({ ...formData, date: e.target.value });
+                  handleFieldChange("date", e.target.value);
+                }}
+                onBlur={() => handleFieldBlur("date")}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
               />
+              {touched.date && errors.date && (
+                <p className="mt-1 text-xs text-red-600" role="alert">
+                  {getErrorMessage(
+                    errors.date,
+                    validationConfig.errorMessages,
+                    language
+                  )}
+                </p>
+              )}
             </div>
 
             {/* Image Section - Unsplash or Upload */}
@@ -810,34 +1113,56 @@ function NewsFormModal({
                   {t("admin.news.form.titleZh")} *
                 </label>
                 <input
+                  id="titleZh"
                   type="text"
-                  required
                   value={formData.title.zh}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setFormData({
                       ...formData,
                       title: { ...formData.title, zh: e.target.value },
-                    })
-                  }
+                    });
+                    handleFieldChange("titleZh", e.target.value);
+                  }}
+                  onBlur={() => handleFieldBlur("titleZh")}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
                 />
+                {touched.titleZh && errors.titleZh && (
+                  <p className="mt-1 text-xs text-red-600" role="alert">
+                    {getErrorMessage(
+                      errors.titleZh,
+                      validationConfig.errorMessages,
+                      language
+                    )}
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-gray-700 mb-2">
                   {t("admin.news.form.titleEn")} *
                 </label>
                 <input
+                  id="titleEn"
                   type="text"
-                  required
                   value={formData.title.en}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setFormData({
                       ...formData,
                       title: { ...formData.title, en: e.target.value },
-                    })
-                  }
+                    });
+                    handleFieldChange("titleEn", e.target.value);
+                  }}
+                  onBlur={() => handleFieldBlur("titleEn")}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
                 />
+                {touched.titleEn && errors.titleEn && (
+                  <p className="mt-1 text-xs text-red-600" role="alert">
+                    {getErrorMessage(
+                      errors.titleEn,
+                      validationConfig.errorMessages,
+                      language
+                    )}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -848,40 +1173,62 @@ function NewsFormModal({
                   {t("admin.news.form.summaryZh")} *
                 </label>
                 <textarea
-                  required
+                  id="summaryZh"
                   value={formData.summary.zh}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setFormData({
                       ...formData,
                       summary: { ...formData.summary, zh: e.target.value },
-                    })
-                  }
+                    });
+                    handleFieldChange("summaryZh", e.target.value);
+                  }}
+                  onBlur={() => handleFieldBlur("summaryZh")}
                   rows={3}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
                 />
+                {touched.summaryZh && errors.summaryZh && (
+                  <p className="mt-1 text-xs text-red-600" role="alert">
+                    {getErrorMessage(
+                      errors.summaryZh,
+                      validationConfig.errorMessages,
+                      language
+                    )}
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-gray-700 mb-2">
                   {t("admin.news.form.summaryEn")} *
                 </label>
                 <textarea
-                  required
+                  id="summaryEn"
                   value={formData.summary.en}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setFormData({
                       ...formData,
                       summary: { ...formData.summary, en: e.target.value },
-                    })
-                  }
+                    });
+                    handleFieldChange("summaryEn", e.target.value);
+                  }}
+                  onBlur={() => handleFieldBlur("summaryEn")}
                   rows={3}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
                 />
+                {touched.summaryEn && errors.summaryEn && (
+                  <p className="mt-1 text-xs text-red-600" role="alert">
+                    {getErrorMessage(
+                      errors.summaryEn,
+                      validationConfig.errorMessages,
+                      language
+                    )}
+                  </p>
+                )}
               </div>
             </div>
 
             {/* Content - Rich Text Editor */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <div>
+              <div id="contentZh">
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-gray-700">
                     {t("admin.news.form.contentZh")} *
@@ -900,25 +1247,36 @@ function NewsFormModal({
                   <ReactQuill
                     theme="snow"
                     value={formData.content.zh}
-                    onChange={(value: string) =>
+                    onChange={(value: string) => {
                       setFormData({
                         ...formData,
                         content: { ...formData.content, zh: value },
-                      })
-                    }
+                      });
+                      handleFieldChange("contentZh", value);
+                    }}
+                    onBlur={(_, __, ___) => handleFieldBlur("contentZh")}
                     modules={modules}
                     formats={formats}
                     className="bg-white"
                     style={{ height: "300px", marginBottom: "42px" }}
                   />
                 </div>
+                {touched.contentZh && errors.contentZh && (
+                  <p className="mt-2 text-xs text-red-600" role="alert">
+                    {getErrorMessage(
+                      errors.contentZh,
+                      validationConfig.errorMessages,
+                      language
+                    )}
+                  </p>
+                )}
                 <p className="text-xs text-gray-500 mt-2">
                   {language === "zh"
                     ? "支持富文本格式、插入图片等"
                     : "Supports rich text formatting and image insertion"}
                 </p>
               </div>
-              <div>
+              <div id="contentEn">
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-gray-700">
                     {t("admin.news.form.contentEn")} *
@@ -937,18 +1295,29 @@ function NewsFormModal({
                   <ReactQuill
                     theme="snow"
                     value={formData.content.en}
-                    onChange={(value: string) =>
+                    onChange={(value: string) => {
                       setFormData({
                         ...formData,
                         content: { ...formData.content, en: value },
-                      })
-                    }
+                      });
+                      handleFieldChange("contentEn", value);
+                    }}
+                    onBlur={(_, __, ___) => handleFieldBlur("contentEn")}
                     modules={modules}
                     formats={formats}
                     className="bg-white"
                     style={{ height: "300px", marginBottom: "42px" }}
                   />
                 </div>
+                {touched.contentEn && errors.contentEn && (
+                  <p className="mt-2 text-xs text-red-600" role="alert">
+                    {getErrorMessage(
+                      errors.contentEn,
+                      validationConfig.errorMessages,
+                      language
+                    )}
+                  </p>
+                )}
                 <p className="text-xs text-gray-500 mt-2">
                   {language === "zh"
                     ? "支持富文本格式、插入图片等"
@@ -984,7 +1353,7 @@ function NewsFormModal({
             </button>
             <button
               type="button"
-              onClick={() => onPublish(formData)}
+              onClick={handlePublishAttempt}
               className="flex-1 px-6 py-3 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
               disabled={formLoading}
             >

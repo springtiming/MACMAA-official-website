@@ -6,22 +6,25 @@ import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { NewsSkeleton } from "../components/NewsSkeleton";
 import { useState, useEffect } from "react";
 import { fetchNewsPosts, type NewsPostRecord } from "../lib/supabaseApi";
+import { resolveNewsCover } from "../lib/supabaseHelpers";
 
 export function NewsList() {
   const { language, t } = useLanguage();
   const [newsList, setNewsList] = useState<NewsPostRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // 仅在首次加载时展示骨架屏，之后加载直接展示内容
-  const [showSkeleton, setShowSkeleton] = useState(() => {
-    if (typeof window === "undefined") return true;
-    return !window.sessionStorage.getItem("NewsListSkeletonSeen");
-  });
+  // 每次加载时展示骨架屏，由最小时长逻辑控制隐藏时机
+  const [showSkeleton, setShowSkeleton] = useState(true);
 
   useEffect(() => {
     let active = true;
+    let timeoutId: number | undefined;
+    const startTime = performance.now();
+
     setError(null);
     setIsLoading(true);
+    setShowSkeleton(true);
+
     const loadNews = async () => {
       try {
         const data = await fetchNewsPosts({ publishedOnly: true });
@@ -31,21 +34,30 @@ export function NewsList() {
       } catch {
         if (active) setError(t("common.error"));
       } finally {
-        if (active) {
+        if (!active) return;
+
+        const finish = () => {
+          if (!active) return;
           setIsLoading(false);
-          // 首次完成加载后记录已播放骨架屏
-          if (showSkeleton) {
-            if (typeof window !== "undefined") {
-              window.sessionStorage.setItem("NewsListSkeletonSeen", "1");
-            }
-            setShowSkeleton(false);
-          }
+          setShowSkeleton(false);
+        };
+
+        const elapsed = performance.now() - startTime;
+        const remaining = 150 - elapsed;
+
+        if (remaining > 0) {
+          timeoutId = window.setTimeout(finish, remaining);
+        } else {
+          finish();
         }
       }
     };
     loadNews();
     return () => {
       active = false;
+      if (timeoutId !== undefined) {
+        window.clearTimeout(timeoutId);
+      }
     };
   }, [t]);
 
@@ -81,12 +93,7 @@ export function NewsList() {
               >
                 <div className="aspect-video bg-gray-200 overflow-hidden">
                   <ImageWithFallback
-                    src={
-                      news.cover_source ||
-                      `https://source.unsplash.com/800x600/?${encodeURIComponent(
-                        language === "zh" ? news.title_zh : news.title_en
-                      )}`
-                    }
+                    src={resolveNewsCover(news.cover_source, "thumb")}
                     alt={language === "zh" ? news.title_zh : news.title_en}
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                   />

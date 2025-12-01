@@ -20,16 +20,6 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "../components/ui/alert-dialog";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -50,12 +40,14 @@ import {
   deleteAdminAccount,
   type AdminAccountRecord,
 } from "../lib/supabaseApi";
+import { ProcessingOverlay } from "../components/ProcessingOverlay";
+import { useProcessingFeedback } from "../hooks/useProcessingFeedback";
+import { AdminConfirmDialog } from "../components/AdminConfirmDialog";
 
 export function AdminAccounts() {
   const navigate = useNavigate();
   const { language, t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] =
     useState<AdminAccountRecord | null>(null);
@@ -64,6 +56,15 @@ export function AdminAccounts() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [confirmDialog, setConfirmDialog] =
+    useState<AdminAccountRecord | null>(null);
+  const {
+    state: processingState,
+    title: processingTitle,
+    message: processingMessage,
+    runWithFeedback,
+    reset: resetProcessing,
+  } = useProcessingFeedback();
 
   // Current user role (from sessionStorage)
   const currentUserRole =
@@ -75,6 +76,17 @@ export function AdminAccounts() {
     email: "",
     password: "",
     role: "admin" as "admin" | "owner",
+  });
+
+  const getFeedbackMessages = (action: "create" | "delete") => ({
+    processingTitle: t(`admin.accounts.feedback.${action}.processingTitle`),
+    processingMessage: t(
+      `admin.accounts.feedback.${action}.processingMessage`
+    ),
+    successTitle: t(`admin.accounts.feedback.${action}.successTitle`),
+    successMessage: t(`admin.accounts.feedback.${action}.successMessage`),
+    errorTitle: t(`admin.accounts.feedback.${action}.errorTitle`),
+    errorMessage: t(`admin.accounts.feedback.${action}.errorMessage`),
   });
 
   useEffect(() => {
@@ -104,10 +116,13 @@ export function AdminAccounts() {
   const handleDeleteAccount = async () => {
     if (!selectedAccount) return;
     setError(null);
+    const messages = getFeedbackMessages("delete");
     try {
-      await deleteAdminAccount(selectedAccount.id);
-      setAccounts((prev) => prev.filter((a) => a.id !== selectedAccount.id));
-      setSuccess(t("admin.accounts.deleteDialog.confirm"));
+      await runWithFeedback(messages, async () => {
+        await deleteAdminAccount(selectedAccount.id);
+        setAccounts((prev) => prev.filter((a) => a.id !== selectedAccount.id));
+        setSuccess(t("admin.accounts.deleteDialog.confirm"));
+      });
     } catch (err) {
       const msg =
         (err as Error).message === "forbidden"
@@ -117,7 +132,7 @@ export function AdminAccounts() {
           : t("common.error");
       setError(msg);
     } finally {
-      setDeleteDialogOpen(false);
+      setConfirmDialog(null);
       setSelectedAccount(null);
       setTimeout(() => setSuccess(null), 2500);
     }
@@ -125,17 +140,25 @@ export function AdminAccounts() {
 
   const handleCreateAccount = async () => {
     setError(null);
+    const messages = getFeedbackMessages("create");
     try {
-      const account = await createAdminAccount({
-        username: newAccount.username,
-        email: newAccount.email,
-        password: newAccount.password,
-        role: newAccount.role,
+      await runWithFeedback(messages, async () => {
+        const account = await createAdminAccount({
+          username: newAccount.username,
+          email: newAccount.email,
+          password: newAccount.password,
+          role: newAccount.role,
+        });
+        setAccounts((prev) => [...prev, account]);
+        setSuccess(t("admin.accounts.createDialog.create"));
+        setCreateDialogOpen(false);
+        setNewAccount({
+          username: "",
+          email: "",
+          password: "",
+          role: "admin",
+        });
       });
-      setAccounts((prev) => [...prev, account]);
-      setSuccess(t("admin.accounts.createDialog.create"));
-      setCreateDialogOpen(false);
-      setNewAccount({ username: "", email: "", password: "", role: "admin" });
     } catch (err) {
       const duplicateMsg =
         language === "zh"
@@ -159,8 +182,23 @@ export function AdminAccounts() {
     return true;
   };
 
+  const confirmCopy = confirmDialog
+    ? {
+        title: t("admin.accounts.confirm.delete.title"),
+        message: `${t("admin.accounts.confirm.delete.message")} ${
+          confirmDialog.username ? `(${confirmDialog.username})` : ""
+        }`,
+      }
+    : { title: "", message: "" };
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <ProcessingOverlay
+        state={processingState}
+        title={processingTitle}
+        message={processingMessage}
+        onComplete={resetProcessing}
+      />
       {/* Header */}
       <div className="bg-white shadow-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
@@ -380,7 +418,7 @@ export function AdminAccounts() {
                             size="sm"
                             onClick={() => {
                               setSelectedAccount(account);
-                              setDeleteDialogOpen(true);
+                            setConfirmDialog(account);
                             }}
                             className="text-red-600 hover:text-red-700 hover:bg-red-50"
                           >
@@ -422,34 +460,6 @@ export function AdminAccounts() {
           </ul>
         </motion.div>
       </div>
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t("admin.accounts.deleteDialog.title")}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("admin.accounts.deleteDialog.description").replace(
-                "{username}",
-                selectedAccount?.username || ""
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>
-              {t("admin.members.confirm.cancel")}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteAccount}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              {t("admin.accounts.deleteDialog.confirm")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       {/* Create Account Dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
@@ -567,6 +577,20 @@ export function AdminAccounts() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AdminConfirmDialog
+        open={Boolean(confirmDialog)}
+        title={confirmCopy.title}
+        message={confirmCopy.message}
+        confirmLabel={t("admin.accounts.deleteDialog.confirm")}
+        cancelLabel={t("admin.members.confirm.cancel")}
+        tone="danger"
+        onCancel={() => {
+          setConfirmDialog(null);
+          setSelectedAccount(null);
+        }}
+        onConfirm={handleDeleteAccount}
+      />
     </div>
   );
 }

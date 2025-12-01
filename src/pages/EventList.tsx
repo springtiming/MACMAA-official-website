@@ -12,11 +12,8 @@ export function EventList() {
   const [events, setEvents] = useState<EventRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // 仅在首次加载时展示骨架屏，之后加载直接展示内容
-  const [showSkeleton, setShowSkeleton] = useState(() => {
-    if (typeof window === "undefined") return true;
-    return !window.sessionStorage.getItem("EventListSkeletonSeen");
-  });
+  // 每次加载时展示骨架屏，由最小时长逻辑控制隐藏时机
+  const [showSkeleton, setShowSkeleton] = useState(true);
 
   const formatDate = (dateString: string, start?: string | null) => {
     const date = new Date(dateString);
@@ -42,8 +39,13 @@ export function EventList() {
 
   useEffect(() => {
     let active = true;
+    let timeoutId: number | undefined;
+    const startTime = performance.now();
+
     setError(null);
     setIsLoading(true);
+    setShowSkeleton(true);
+
     const loadEvents = async () => {
       try {
         const data = await fetchEvents({
@@ -55,21 +57,30 @@ export function EventList() {
       } catch {
         if (active) setError(t("common.error"));
       } finally {
-        if (active) {
+        if (!active) return;
+
+        const finish = () => {
+          if (!active) return;
           setIsLoading(false);
-          // 首次完成加载后记录已播放骨架屏
-          if (showSkeleton) {
-            if (typeof window !== "undefined") {
-              window.sessionStorage.setItem("EventListSkeletonSeen", "1");
-            }
-            setShowSkeleton(false);
-          }
+          setShowSkeleton(false);
+        };
+
+        const elapsed = performance.now() - startTime;
+        const remaining = 150 - elapsed;
+
+        if (remaining > 0) {
+          timeoutId = window.setTimeout(finish, remaining);
+        } else {
+          finish();
         }
       }
     };
     loadEvents();
     return () => {
       active = false;
+      if (timeoutId !== undefined) {
+        window.clearTimeout(timeoutId);
+      }
     };
   }, [t]);
 
@@ -177,8 +188,13 @@ export function EventList() {
                     <div className="flex items-center gap-2">
                       <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#EB8C3A] flex-shrink-0" />
                       <span>
-                        {event.capacity ? `${event.capacity}` : "—"}{" "}
-                        {language === "zh" ? "名额" : "capacity"}
+                        {event.capacity && event.capacity > 0
+                          ? `${event.capacity} ${
+                              language === "zh" ? "名额" : "capacity"
+                            }`
+                          : language === "zh"
+                            ? "名额不限"
+                            : "Unlimited capacity"}
                       </span>
                     </div>
                   </div>
