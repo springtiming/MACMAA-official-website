@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 
@@ -124,14 +125,14 @@ export function ProcessingOverlay({
   const config = statusConfig[state];
   const Icon = config.icon;
 
-  return (
+  const overlay = (
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.15 }}
-        className="fixed inset-0 flex items-center justify-center p-4 z-[80]"
+        className="fixed inset-0 flex items-center justify-center p-4 z-[9999]"
         style={{
           backgroundColor: "rgba(0,0,0,0.6)",
           backdropFilter: "blur(8px)",
@@ -306,4 +307,10 @@ export function ProcessingOverlay({
       </motion.div>
     </AnimatePresence>
   );
+
+  if (typeof document === "undefined") {
+    return overlay;
+  }
+
+  return createPortal(overlay, document.body);
 }

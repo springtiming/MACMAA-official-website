@@ -4,7 +4,7 @@ import {
   Route,
   useLocation,
 } from "react-router-dom";
-import { useEffect, useRef } from "react";
+import { useLayoutEffect } from "react";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
@@ -40,20 +40,15 @@ export default function App() {
 
 function AppLayout() {
   const location = useLocation();
-  const mainRef = useRef<HTMLElement | null>(null);
-
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (typeof window === "undefined") return;
-    window.requestAnimationFrame(() => {
-      const targetTop = mainRef.current?.offsetTop ?? 0;
-      window.scrollTo({ top: targetTop, behavior: "smooth" });
-    });
+    window.scrollTo(0, 0);
   }, [location.pathname]);
 
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <main ref={mainRef} className="flex-1">
+      <main className="flex-1">
         <AnimatePresence mode="wait" initial={false}>
           <Routes location={location} key={location.pathname}>
             <Route

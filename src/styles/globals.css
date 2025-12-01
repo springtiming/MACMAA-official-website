@@ -212,7 +212,7 @@
 
 html {
   font-size: var(--font-size);
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
 }
 
 /* Custom utilities for VMCA theme */
@@ -411,7 +411,7 @@ html {
 /* 减少动画抖动 */
 @media (prefers-reduced-motion: no-preference) {
   * {
-    scroll-behavior: smooth;
+    scroll-behavior: auto;
   }
 }
 
