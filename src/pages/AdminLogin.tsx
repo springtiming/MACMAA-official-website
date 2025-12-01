@@ -138,7 +138,7 @@ export function AdminLogin() {
               disabled={isSubmitting}
               className={`w-full px-6 py-3 rounded-lg text-white transition-colors ${
                 isSubmitting
-                  ? "bg-[#2B5F9E]/70 cursor-not-allowed"
+                  ? "bg-[#2B5F9E] opacity-60 cursor-not-allowed"
                   : "bg-[#2B5F9E] hover:bg-[#234a7e]"
               }`}
               whileHover={isSubmitting ? undefined : { scale: 1.02 }}

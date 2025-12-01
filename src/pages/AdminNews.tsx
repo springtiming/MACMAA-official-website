@@ -549,7 +549,7 @@ export function AdminNews() {
                 </motion.div>
               ))}
 
-              {filteredNews.length === 0 && (
+              {!loading && filteredNews.length === 0 && (
                 <div className="text-center py-12 text-gray-500">
                   {language === "zh" ? "没有找到新闻" : "No news found"}
                 </div>
