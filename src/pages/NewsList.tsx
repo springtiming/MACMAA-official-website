@@ -34,21 +34,21 @@ export function NewsList() {
       } catch {
         if (active) setError(t("common.error"));
       } finally {
-        if (!active) return;
+        if (active) {
+          const finish = () => {
+            if (!active) return;
+            setIsLoading(false);
+            setShowSkeleton(false);
+          };
 
-        const finish = () => {
-          if (!active) return;
-          setIsLoading(false);
-          setShowSkeleton(false);
-        };
+          const elapsed = performance.now() - startTime;
+          const remaining = 150 - elapsed;
 
-        const elapsed = performance.now() - startTime;
-        const remaining = 150 - elapsed;
-
-        if (remaining > 0) {
-          timeoutId = window.setTimeout(finish, remaining);
-        } else {
-          finish();
+          if (remaining > 0) {
+            timeoutId = window.setTimeout(finish, remaining);
+          } else {
+            finish();
+          }
         }
       }
     };
@@ -77,6 +77,10 @@ export function NewsList() {
         <p className="text-red-600 px-2">{error}</p>
       ) : isLoading && showSkeleton ? (
         <NewsSkeleton count={6} />
+      ) : isLoading ? (
+        <p className="text-gray-600 px-2">{t("common.loading")}</p>
+      ) : newsList.length === 0 ? (
+        <p className="text-gray-600 px-2">{t("news.empty")}</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {newsList.map((news, index) => (

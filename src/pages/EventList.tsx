@@ -57,21 +57,21 @@ export function EventList() {
       } catch {
         if (active) setError(t("common.error"));
       } finally {
-        if (!active) return;
+        if (active) {
+          const finish = () => {
+            if (!active) return;
+            setIsLoading(false);
+            setShowSkeleton(false);
+          };
 
-        const finish = () => {
-          if (!active) return;
-          setIsLoading(false);
-          setShowSkeleton(false);
-        };
+          const elapsed = performance.now() - startTime;
+          const remaining = 150 - elapsed;
 
-        const elapsed = performance.now() - startTime;
-        const remaining = 150 - elapsed;
-
-        if (remaining > 0) {
-          timeoutId = window.setTimeout(finish, remaining);
-        } else {
-          finish();
+          if (remaining > 0) {
+            timeoutId = window.setTimeout(finish, remaining);
+          } else {
+            finish();
+          }
         }
       }
     };

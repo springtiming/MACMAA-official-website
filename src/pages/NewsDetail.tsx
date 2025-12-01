@@ -63,7 +63,7 @@ export function NewsDetail() {
       await navigator.clipboard.writeText(textToCopy);
       setShareSuccess(true);
       setTimeout(() => setShareSuccess(false), 2000);
-    } catch (err) {
+    } catch {
       // Clipboard API failed, show error
       setError(language === "zh" ? "复制失败" : "Failed to copy");
       setTimeout(() => setError(null), 3000);

@@ -55,8 +55,25 @@ Deno.serve(async (req) => {
       );
     }
 
-    const articleId = draft.article_id || crypto.randomUUID();
+    // 使用 article_id 作为统一的新闻编号
+    // - 如果草稿已经有 article_id，则直接复用
+    // - 否则生成新的 UUID 并写回该版本记录，确保之后的草稿/发布都使用同一编号
+    let articleId = draft.article_id || crypto.randomUUID();
     const publishedAt = new Date().toISOString();
+
+    if (!draft.article_id) {
+      const { error: updateDraftArticleIdError } = await supabase
+        .from("article_versions")
+        .update({ article_id: articleId })
+        .eq("id", draft.id);
+      if (updateDraftArticleIdError) {
+        console.error("[news-publish] set article_id on draft", updateDraftArticleIdError);
+        return new Response(
+          JSON.stringify({ error: "Failed to prepare draft for publish" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+    }
 
     const { data: article, error: articleError } = await supabase
       .from("articles")
@@ -85,6 +102,7 @@ Deno.serve(async (req) => {
       );
     }
 
+    // 将当前草稿标记为已发布版本
     const { data: version, error: versionError } = await supabase
       .from("article_versions")
       .update({ status: "published", article_id: articleId })
@@ -98,6 +116,21 @@ Deno.serve(async (req) => {
       console.error("[news-publish] draft update", versionError);
       return new Response(
         JSON.stringify({ error: "Failed to mark draft published" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    // 删除同一新闻编号下所有仍为草稿状态的版本
+    const { error: deleteDraftsError } = await supabase
+      .from("article_versions")
+      .delete()
+      .eq("article_id", articleId)
+      .eq("status", "draft");
+
+    if (deleteDraftsError) {
+      console.error("[news-publish] delete remaining drafts", deleteDraftsError);
+      return new Response(
+        JSON.stringify({ error: "Failed to clean up drafts after publish" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }

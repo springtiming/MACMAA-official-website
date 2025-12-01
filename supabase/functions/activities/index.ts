@@ -14,7 +14,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "GET, OPTIONS",
 };
 
-type ActivityType = "registration" | "member" | "news";
+type ActivityType = "registration" | "member" | "news" | "event";
 
 type Activity = {
   id: string;
@@ -45,6 +45,15 @@ type NewsWithAuthor = {
   admin_accounts: {
     username: string | null;
   } | null;
+};
+
+type EventRow = {
+  id: string;
+  title_zh: string | null;
+  title_en: string | null;
+  created_at: string | null;
+  access_type: "members-only" | "all-welcome" | null;
+  published: boolean | null;
 };
 
 Deno.serve(async (req) => {
@@ -94,14 +103,33 @@ Deno.serve(async (req) => {
       .order("published_at", { ascending: false })
       .limit(perQueryLimit);
 
+    const eventsPromise = supabase
+      .from("events")
+      .select(
+        "id, title_zh, title_en, created_at, access_type, published"
+      )
+      .eq("published", true)
+      .gte("created_at", since)
+      .order("created_at", { ascending: false })
+      .limit(perQueryLimit);
+
     const [
       { data: regData, error: regError },
       { data: memberData, error: memberError },
       { data: newsData, error: newsError },
-    ] = await Promise.all([registrationsPromise, membersPromise, newsPromise]);
+      { data: eventsData, error: eventsError },
+    ] = await Promise.all([
+      registrationsPromise,
+      membersPromise,
+      newsPromise,
+      eventsPromise,
+    ]);
 
-    if (regError || memberError || newsError) {
-      console.error("[activities] query error", regError || memberError || newsError);
+    if (regError || memberError || newsError || eventsError) {
+      console.error(
+        "[activities] query error",
+        regError || memberError || newsError || eventsError,
+      );
       return new Response(
         JSON.stringify({ error: "Failed to fetch activities" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
@@ -167,7 +195,38 @@ Deno.serve(async (req) => {
         };
       }) ?? [];
 
-    const activities = [...registrations, ...members, ...news]
+    const events: Activity[] =
+      eventsData?.map((e: EventRow) => {
+        const titleZh = e.title_zh ?? "";
+        const titleEn = e.title_en ?? "";
+        const primaryTitle = titleZh || titleEn;
+
+        const zhAction = primaryTitle
+          ? `发布了活动“${primaryTitle}”`
+          : "发布了活动";
+        const enAction = primaryTitle
+          ? `published event "${primaryTitle}"`
+          : "published event";
+
+        return {
+          id: `event-${e.id}`,
+          type: "event",
+          timestamp: e.created_at ?? new Date().toISOString(),
+          user: "Admin",
+          action: {
+            zh: zhAction,
+            en: enAction,
+          },
+          metadata: {
+            event_id: e.id,
+            title_zh: titleZh || null,
+            title_en: titleEn || null,
+            access_type: e.access_type,
+          },
+        };
+      }) ?? [];
+
+    const activities = [...registrations, ...members, ...news, ...events]
       .filter((a) => a.timestamp)
       .sort(
         (a, b) =>

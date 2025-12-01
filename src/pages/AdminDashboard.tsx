@@ -16,6 +16,8 @@ import {
   fetchEvents,
   fetchNewsPosts,
   fetchActivities,
+  fetchMembers,
+  fetchAdminEventRegistrations,
   type ActivityRecord,
 } from "../lib/supabaseApi";
 
@@ -24,6 +26,8 @@ export function AdminDashboard() {
   const { language, t } = useLanguage();
   const [newsCount, setNewsCount] = useState(0);
   const [eventsCount, setEventsCount] = useState(0);
+  const [pendingMembersCount, setPendingMembersCount] = useState(0);
+  const [recentRegistrationsCount, setRecentRegistrationsCount] = useState(0);
   const [statsError, setStatsError] = useState<string | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
   const [activities, setActivities] = useState<ActivityRecord[]>([]);
@@ -48,11 +52,23 @@ export function AdminDashboard() {
     Promise.all([
       fetchEvents(),
       fetchNewsPosts({ publishedOnly: false }),
+      fetchMembers(),
+      fetchAdminEventRegistrations(),
     ])
-      .then(([events, news]) => {
+      .then(([events, news, members, registrations]) => {
         if (!active) return;
         setEventsCount(events.length);
         setNewsCount(news.length);
+        const pendingMembers = members.filter(
+          (member) => member.status === "pending"
+        ).length;
+        setPendingMembersCount(pendingMembers);
+        const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        const recentRegistrations = registrations.filter((registration) => {
+          const ts = new Date(registration.registration_date).getTime();
+          return !Number.isNaN(ts) && ts >= sevenDaysAgo;
+        }).length;
+        setRecentRegistrationsCount(recentRegistrations);
       })
       .catch(() => {
         if (active) setStatsError(t("common.error"));
@@ -108,13 +124,13 @@ export function AdminDashboard() {
     {
       icon: Users,
       label: t("admin.dashboard.stats.members"),
-      value: "—",
+      value: statsLoading ? "…" : pendingMembersCount,
       color: "#EB8C3A",
     },
     {
       icon: UserCheck,
       label: t("admin.dashboard.stats.registrations"),
-      value: "—",
+      value: statsLoading ? "…" : recentRegistrationsCount,
       color: "#8B5CF6",
     },
   ];
@@ -344,18 +360,19 @@ export function AdminDashboard() {
                     </p>
                   )}
                 {activities.map((activity) => {
-                  const Icon =
-                    activity.type === "registration"
-                      ? Calendar
-                      : activity.type === "member"
-                        ? Users
-                        : Newspaper;
-                  const color =
-                    activity.type === "registration"
-                      ? "#2B5F9E"
-                      : activity.type === "member"
-                        ? "#EB8C3A"
-                        : "#6BA868";
+                  let Icon = Newspaper;
+                  let color = "#6BA868";
+
+                  if (activity.type === "registration") {
+                    Icon = Calendar;
+                    color = "#2B5F9E";
+                  } else if (activity.type === "member") {
+                    Icon = Users;
+                    color = "#EB8C3A";
+                  } else if (activity.type === "event") {
+                    Icon = Calendar;
+                    color = "#7BA3C7";
+                  }
                   const actionText =
                     language === "zh" ? activity.action.zh : activity.action.en;
                   return (

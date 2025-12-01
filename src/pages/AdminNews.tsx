@@ -188,6 +188,7 @@ export function AdminNews() {
       await runWithFeedback(messages, async () => {
         try {
           const draft = await saveNewsDraft({
+            // 这里的 id 代表业务上的“新闻编号”(article_id)
             id: news.id || editingArticle?.id || editingDraft?.article_id,
             title_zh: news.title.zh,
             title_en: news.title.en,
@@ -197,7 +198,10 @@ export function AdminNews() {
             content_en: news.content.en,
             cover_source: news.image || null,
           });
+          // 记录当前正在编辑的草稿版本以及对应的新闻编号
           setDraftVersionId(draft.id);
+          setEditingDraft(draft);
+          setEditingArticle(null);
           setSuccess(language === "zh" ? "草稿已保存" : "Draft saved");
           const drafts = await fetchMyDrafts();
           setDraftList(drafts);
@@ -247,6 +251,7 @@ export function AdminNews() {
           let versionId = draftVersionId;
           if (!versionId) {
             const draft = await saveNewsDraft({
+              // 这里的 id 代表业务上的“新闻编号”(article_id)
               id: news.id || editingArticle?.id || editingDraft?.article_id,
               title_zh: news.title.zh,
               title_en: news.title.en,
@@ -257,6 +262,8 @@ export function AdminNews() {
               cover_source: news.image || null,
             });
             versionId = draft.id;
+            setEditingDraft(draft);
+            setEditingArticle(null);
           }
 
           const result = await publishNewsFromDraft(versionId!);
@@ -430,10 +437,16 @@ export function AdminNews() {
                           language
                         )}
                       </p>
-                      <p className="text-xs text-gray-500">
-                        {language === "zh" ? "草稿版本" : "Draft version"} #
-                        {draft.version_number}
-                      </p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {language === "zh" ? "新闻编号：" : "News ID: "}
+                      <span className="font-mono break-all">
+                        {draft.article_id || (language === "zh" ? "（未关联）" : "(unlinked)")}
+                      </span>
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {language === "zh" ? "草稿版本" : "Draft version"} #
+                      {draft.version_number}
+                    </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
@@ -504,7 +517,11 @@ export function AdminNews() {
                       <p className="text-gray-600 mb-3">
                         {pickLocalized(news.summary_zh, news.summary_en, language)}
                       </p>
-                      <div className="text-sm text-gray-500 flex items-center gap-2">
+                      <div className="text-sm text-gray-500 flex flex-col gap-1">
+                        <span>
+                          {language === "zh" ? "新闻编号：" : "News ID: "}
+                          <span className="font-mono break-all">{news.id}</span>
+                        </span>
                         <span>{news.published_at?.slice(0, 10) || ""}</span>
                       </div>
                     </div>
@@ -801,6 +818,16 @@ function NewsFormModal({
     }),
     [language]
   );
+
+  // 当外部传入的草稿发生变化（例如首次保存新草稿后），同步其 article_id 作为表单中的“新闻编号”
+  useEffect(() => {
+    if (draft?.article_id && formData.id !== draft.article_id) {
+      setFormData((prev) => ({
+        ...prev,
+        id: draft.article_id ?? prev.id,
+      }));
+    }
+  }, [draft?.article_id, formData.id]);
 
   useEffect(() => {
     if (uploadedImage) {

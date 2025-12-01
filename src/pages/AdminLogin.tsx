@@ -13,19 +13,21 @@ export function AdminLogin() {
     password: "",
   });
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     setError("");
 
     if (!credentials.username || !credentials.password) {
       setError(language === "zh" ? "请输入用户名和密码" : "Enter username and password");
+      setIsSubmitting(false);
       return;
     }
 
     try {
-      setLoading(true);
       const res = await fetch("/api/admin-auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -34,6 +36,7 @@ export function AdminLogin() {
 
       if (!res.ok) {
         setError(language === "zh" ? "用户名或密码错误" : "Invalid username or password");
+        setIsSubmitting(false);
         return;
       }
 
@@ -45,7 +48,7 @@ export function AdminLogin() {
     } catch {
       setError(language === "zh" ? "登录失败，请稍后再试" : "Login failed, please try again");
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -132,11 +135,16 @@ export function AdminLogin() {
 
             <motion.button
               type="submit"
-              className="w-full px-6 py-3 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              disabled={isSubmitting}
+              className={`w-full px-6 py-3 rounded-lg text-white transition-colors ${
+                isSubmitting
+                  ? "bg-[#2B5F9E]/70 cursor-not-allowed"
+                  : "bg-[#2B5F9E] hover:bg-[#234a7e]"
+              }`}
+              whileHover={isSubmitting ? undefined : { scale: 1.02 }}
+              whileTap={isSubmitting ? undefined : { scale: 0.98 }}
             >
-              {t("admin.login.submit")}
+              {isSubmitting ? t("admin.login.processing") : t("admin.login.submit")}
             </motion.button>
           </form>
 

@@ -430,7 +430,7 @@ export async function createAdminAccount(payload: {
 
     const body = (await res.json()) as { account: AdminAccountRecord };
     return body.account;
-  } catch (err) {
+  } catch {
     const accounts = getLocalAdminAccounts();
     const duplicate = accounts.some(
       (acc) => acc.username === payload.username || acc.email === payload.email
@@ -660,7 +660,7 @@ export interface AdminAccountRecord {
 
 export type ActivityRecord = {
   id: string;
-  type: "registration" | "member" | "news";
+  type: "registration" | "member" | "news" | "event";
   timestamp: string;
   user: string;
   action: { zh: string; en: string };

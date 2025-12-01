@@ -10,7 +10,7 @@ export type ValidationRule<T = string> = {
   required?: boolean;
 };
 
-export type ValidationRules<T extends Record<string, any>> = {
+export type ValidationRules<T extends Record<string, unknown>> = {
   [K in keyof T]?: ValidationRule<T[K]>;
 };
 
@@ -20,7 +20,7 @@ export type FormErrors = {
   [key: string]: string;
 };
 
-export type ValidationConfig<T extends Record<string, any>> = {
+export type ValidationConfig<T extends Record<string, unknown>> = {
   rules: ValidationRules<T>;
   requiredFields?: (keyof T)[];
   errorMessages: ErrorMessages;
@@ -30,12 +30,12 @@ export type ValidationConfig<T extends Record<string, any>> = {
 /**
  * 验证单个字段
  */
-export function validateField<T extends Record<string, any>>(
+export function validateField<T extends Record<string, unknown>>(
   fieldName: keyof T,
   value: T[keyof T],
   config: ValidationConfig<T>
 ): string | "" {
-  const { rules, requiredFields, errorMessages } = config;
+  const { rules, requiredFields } = config;
   const rule = rules[fieldName];
 
   if (!rule) return "";
@@ -82,7 +82,7 @@ export function validateField<T extends Record<string, any>>(
 /**
  * 验证整个表单
  */
-export function validateForm<T extends Record<string, any>>(
+export function validateForm<T extends Record<string, unknown>>(
   formData: T,
   config: ValidationConfig<T>
 ): FormErrors {

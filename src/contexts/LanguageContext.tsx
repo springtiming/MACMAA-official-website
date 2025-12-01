@@ -58,6 +58,7 @@ const translations: Record<Language, Record<string, string>> = {
     "news.back": "返回列表",
     "news.date": "发布时间",
     "news.share": "分享",
+    "news.empty": "当前没有新闻",
 
     // Events
     "events.title": "活动中心",
@@ -128,6 +129,7 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.login.username": "用户名",
     "admin.login.password": "密码",
     "admin.login.submit": "登录",
+    "admin.login.processing": "验证中...",
     "admin.dashboard.title": "管理后台",
     "admin.dashboard.welcome": "欢迎回来",
     "admin.dashboard.stats.events": "活动总数",
@@ -508,6 +510,7 @@ const translations: Record<Language, Record<string, string>> = {
     "news.back": "Back to List",
     "news.date": "Published",
     "news.share": "Share",
+    "news.empty": "No news available",
 
     // Events
     "events.title": "Events",

@@ -22,6 +22,8 @@ import gatheringPhoto from "figma:asset/c47e6fc792d8b9f97dd68ae29a97bfa32594f251
 import calligraphyPhoto from "figma:asset/928ec88ac46c7ad8c5c157f2f73842edb6fb5c04.png";
 import leadershipPhoto from "figma:asset/e64db2d9d10306a4e7b8be715dce92e0c0c49c49.png";
 
+const AUTO_SWITCH_DELAY = 4000;
+
 export function Home() {
   const { t, language } = useLanguage();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -66,20 +68,13 @@ export function Home() {
     [language]
   );
 
-  // Preload all images
-  useEffect(() => {
-    const imagePromises = activityImages.map((img) => {
-      return new Promise((resolve, reject) => {
-        const image = new Image();
-        image.src = img.url;
-        image.onload = resolve;
-        image.onerror = reject;
-      });
-    });
+  const [loadedImages, setLoadedImages] = useState<boolean[]>(
+    () => activityImages.map(() => false)
+  );
 
-    Promise.all(imagePromises)
-      .then(() => setImagesLoaded(true))
-      .catch(() => setImagesLoaded(true)); // Still set to true even if some images fail
+  useEffect(() => {
+    setLoadedImages(activityImages.map(() => false));
+    setImagesLoaded(false);
   }, [activityImages]);
 
   // Manual navigation functions
@@ -99,14 +94,29 @@ export function Home() {
     setCurrentImageIndex(index);
   };
 
+  const handleImageLoad = (index: number) => {
+    setLoadedImages((prev) => {
+      if (prev[index]) return prev;
+      const next = [...prev];
+      next[index] = true;
+      return next;
+    });
+    setImagesLoaded(true);
+  };
+
   useEffect(() => {
-    const interval = setInterval(() => {
+    if (!loadedImages[currentImageIndex]) {
+      return;
+    }
+
+    const timeout = setTimeout(() => {
       setCurrentImageIndex(
         (prevIndex) => (prevIndex + 1) % activityImages.length
       );
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [activityImages.length, currentImageIndex]);
+    }, AUTO_SWITCH_DELAY);
+
+    return () => clearTimeout(timeout);
+  }, [currentImageIndex, loadedImages, activityImages.length]);
 
   const services = [
     {
@@ -381,6 +391,7 @@ export function Home() {
                   src={activityImages[currentImageIndex].url}
                   alt={activityImages[currentImageIndex].caption}
                   className="w-full h-full object-cover"
+                  onLoad={() => handleImageLoad(currentImageIndex)}
                 />
               </motion.div>
 

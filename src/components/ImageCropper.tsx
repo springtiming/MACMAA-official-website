@@ -57,7 +57,7 @@ export function ImageCropper({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/90 flex flex-col z-50"
+      className="fixed inset-0 bg-black/90 flex flex-col z-60"
       onClick={(e) => e.target === e.currentTarget && onCancel()}
     >
       <div className="flex items-center justify-between p-4 bg-black/50 backdrop-blur-sm">
