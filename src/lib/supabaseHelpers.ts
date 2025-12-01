@@ -27,10 +27,18 @@ export function resolveNewsCover(
   if (!coverSource) {
     return buildUnsplashUrl("community,news", size);
   }
-  if (coverSource.startsWith("http") || coverSource.startsWith("/")) {
-    return coverSource;
+  const trimmed = coverSource.trim();
+  const isDirectSource =
+    trimmed.startsWith("http") ||
+    trimmed.startsWith("/") ||
+    trimmed.startsWith("data:") ||
+    trimmed.startsWith("blob:");
+
+  if (isDirectSource) {
+    return trimmed;
   }
-  return buildUnsplashUrl(coverSource, size);
+
+  return buildUnsplashUrl(trimmed, size);
 }
 
 export function resolveEventImage(
@@ -39,7 +47,7 @@ export function resolveEventImage(
   imageUrl: string | null,
   size: "thumb" | "hero" = "thumb"
 ) {
-  if (imageType === "upload" && imageUrl) {
+  if (imageUrl) {
     return imageUrl;
   }
   if (imageKeyword) {

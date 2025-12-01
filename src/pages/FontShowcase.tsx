@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 
 interface FontOption {
   name: string;
   family: string;
+  /** 原始 Google Fonts 对应的 family，用于调试展示 */
+  originalFamily?: string;
   googleFontUrl: string;
   description: string;
   zhDescription: string;
@@ -12,7 +14,9 @@ interface FontOption {
 const fonts: FontOption[] = [
   {
     name: "Inter",
-    family: "'Inter', sans-serif",
+    // 优先使用本地 VMCA Inter，回退到系统无衬线
+    family: '"VMCA Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    originalFamily: "'Inter', sans-serif",
     googleFontUrl:
       "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap",
     description:
@@ -66,7 +70,10 @@ const fonts: FontOption[] = [
   },
   {
     name: "Noto Sans SC",
-    family: "'Noto Sans SC', sans-serif",
+    // 优先使用本地 VMCA Noto Sans SC，回退到系统中文无衬线
+    family:
+      '"VMCA Noto Sans SC", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif',
+    originalFamily: "'Noto Sans SC', sans-serif",
     googleFontUrl:
       "https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap",
     description:
@@ -75,7 +82,10 @@ const fonts: FontOption[] = [
   },
   {
     name: "Inter + Noto Sans SC",
-    family: "'Inter', 'Noto Sans SC', sans-serif",
+    // 本地组合字体：英文 Inter + 中文 Noto Sans SC
+    family:
+      '"VMCA Inter Noto", "VMCA Inter", "VMCA Noto Sans SC", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif',
+    originalFamily: "'Inter', 'Noto Sans SC', sans-serif",
     googleFontUrl:
       "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap",
     description:
@@ -87,6 +97,13 @@ const fonts: FontOption[] = [
 export function FontShowcase() {
   const [selectedFont, setSelectedFont] = useState<FontOption | null>(null);
   const [fontsReady, setFontsReady] = useState(false);
+  const [fontLoadStatus, setFontLoadStatus] = useState<
+    Record<string, "loaded" | "unknown">
+  >({});
+  const [computedFamilies, setComputedFamilies] = useState<
+    Record<string, string>
+  >({});
+  const sampleRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
     const loadFonts = async () => {
@@ -138,11 +155,16 @@ export function FontShowcase() {
       if (document.fonts && document.fonts.ready) {
         try {
           await document.fonts.ready;
-          // 检查所有字体
+          // 检查所有字体，并记录加载状态
+          const status: Record<string, "loaded" | "unknown"> = {};
           fonts.forEach((font) => {
             const fontName = font.family.split(",")[0].replace(/'/g, "").trim();
             const fontSpec = '16px "' + fontName + '"';
-            const isAvailable = document.fonts.check(fontSpec);
+            const isAvailable =
+              document.fonts && document.fonts.check
+                ? document.fonts.check(fontSpec)
+                : false;
+            status[font.name] = isAvailable ? "loaded" : "unknown";
             console.log(
               "Font " + font.name + " available:",
               isAvailable,
@@ -150,6 +172,7 @@ export function FontShowcase() {
               font.family
             );
           });
+          setFontLoadStatus(status);
         } catch (e) {
           console.warn("Font loading check failed:", e);
         }
@@ -166,6 +189,20 @@ export function FontShowcase() {
 
     loadFonts();
   }, []);
+
+  // 在字体加载完成后，读取每个示例块的 computed font-family
+  useEffect(() => {
+    if (!fontsReady) return;
+    const next: Record<string, string> = {};
+    fonts.forEach((font) => {
+      const el = sampleRefs.current[font.name];
+      if (el) {
+        const computed = window.getComputedStyle(el).fontFamily;
+        next[font.name] = computed;
+      }
+    });
+    setComputedFamilies(next);
+  }, [fontsReady]);
 
   const handleSelectFont = (font: FontOption) => {
     setSelectedFont(font);
@@ -207,14 +244,22 @@ export function FontShowcase() {
           {!fontsReady && (
             <p className="text-sm text-gray-500 mt-2">正在加载字体...</p>
           )}
-          <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm">
-            <p className="font-semibold mb-2">调试信息：</p>
-            <p>如果字体看起来相同，请：</p>
+          <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-left max-w-3xl mx-auto">
+            <p className="font-semibold mb-2">调试说明：</p>
+            <p>
+              本页为开发者提供字体调试能力。核心候选字体优先使用本地
+              <code className="px-1 mx-1 rounded bg-yellow-100 border border-yellow-200">
+                VMCA Inter / VMCA Noto Sans SC
+              </code>
+              ，确保在当前环境下能看出差异。
+            </p>
+            <p className="mt-2">
+              如果某些卡片看起来仍然相同，可以：
+            </p>
             <ol className="list-decimal list-inside mt-2 space-y-1">
-              <li>打开浏览器开发者工具（F12）</li>
-              <li>在 Elements 标签中选择一个文本元素</li>
-              <li>查看 Computed 样式中的 font-family 值</li>
-              <li>检查控制台中的字体加载日志</li>
+              <li>查看卡片底部的“配置 font-family”与“实际生效”对比</li>
+              <li>打开开发者工具（F12），在 Elements &gt; Computed 中查看 font-family</li>
+              <li>检查控制台中的字体加载日志（document.fonts.check 结果）</li>
             </ol>
           </div>
         </motion.div>
@@ -252,6 +297,10 @@ export function FontShowcase() {
                     isolation: "isolate",
                   } as React.CSSProperties
                 }
+                // 用于读取实际渲染的 font-family
+                ref={(el) => {
+                  sampleRefs.current[font.name] = el;
+                }}
               >
                 <div style={{ fontFamily: font.family } as React.CSSProperties}>
                   <p
@@ -300,6 +349,63 @@ export function FontShowcase() {
                   >
                     {sampleTexts.paragraph.zh}
                   </p>
+                </div>
+                <div className="mt-3 rounded-md bg-gray-50 border border-dashed border-gray-200 p-3 text-xs text-gray-600 space-y-1">
+                  <div className="flex flex-wrap gap-x-2 gap-y-1">
+                    <span className="font-semibold text-gray-700">
+                      配置 font-family:
+                    </span>
+                    <code className="px-1 rounded bg-white border border-gray-200">
+                      {font.family}
+                    </code>
+                  </div>
+                  {font.originalFamily && (
+                    <div className="flex flex-wrap gap-x-2 gap-y-1">
+                      <span className="font-semibold text-gray-700">
+                        原始 Google Fonts:
+                      </span>
+                      <code className="px-1 rounded bg-white border border-gray-200">
+                        {font.originalFamily}
+                      </code>
+                    </div>
+                  )}
+                  <div className="flex flex-wrap gap-x-2 gap-y-1">
+                    <span className="font-semibold text-gray-700">
+                      实际生效:
+                    </span>
+                    <code className="px-1 rounded bg-white border border-gray-200">
+                      {computedFamilies[font.name] || "（等待计算或不可用）"}
+                    </code>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-semibold text-gray-700">
+                      加载状态:
+                    </span>
+                    <span
+                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ${
+                        fontLoadStatus[font.name] === "loaded"
+                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                          : "bg-gray-100 text-gray-600 border border-gray-200"
+                      }`}
+                    >
+                      {fontLoadStatus[font.name] === "loaded"
+                        ? "已加载（document.fonts.check）"
+                        : "未确认 / 本地字体可能回退"}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-x-2 gap-y-1">
+                    <span className="font-semibold text-gray-700">
+                      Google Fonts:
+                    </span>
+                    <a
+                      href={font.googleFontUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[#2B5F9E] underline underline-offset-2 break-all"
+                    >
+                      打开字体配置链接
+                    </a>
+                  </div>
                 </div>
               </div>
             </motion.div>

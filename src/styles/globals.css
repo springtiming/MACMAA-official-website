@@ -1,5 +1,31 @@
 @custom-variant dark (&:is(.dark *));
 
+/* 本地字体声明：
+ * 1. 请将 Inter / Noto Sans SC 的 woff2 文件放到 `src/assets/fonts/` 目录下
+ * 2. 示例文件名可以根据你实际下载的文件调整
+ * 3. 这些字体仅用于 /font-showcase 调试页面，避免影响全局样式
+ */
+@font-face {
+  font-family: "VMCA Inter";
+  src: url("../assets/fonts/Inter-Variable.woff2") format("woff2");
+  font-weight: 300 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "VMCA Noto Sans SC";
+  src: url("../assets/fonts/NotoSansSC-Variable.woff2") format("woff2");
+  font-weight: 300 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "VMCA Inter Noto";
+  src: local("VMCA Inter"), local("VMCA Noto Sans SC");
+  font-weight: 300 700;
+  font-display: swap;
+}
+
 :root {
   --font-size: 16px;
   --background: #ffffff;

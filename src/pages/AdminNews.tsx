@@ -533,21 +533,39 @@ function NewsFormModal({
 }) {
   const { language, t } = useLanguage();
   const initialCover = draft?.cover_source || news?.cover_source || "";
+  
+  // 辅助函数：判断字符串是否为图片 URL
+  const isImageUrl = (str: string): boolean => {
+    return (
+      str.startsWith("http") ||
+      str.startsWith("/") ||
+      str.startsWith("data:") ||
+      str.startsWith("blob:")
+    );
+  };
+  
   const [imageSource, setImageSource] = useState<"unsplash" | "upload">(() => {
     if (!initialCover) return "upload";
-    if (
-      initialCover.startsWith("http") ||
-      initialCover.startsWith("/") ||
-      initialCover.startsWith("data:image")
-    ) {
+    if (isImageUrl(initialCover)) {
       return "upload";
     }
     return "unsplash";
+  });
+  
+  // 状态：保存上传的图片 URL（用于在模式切换时恢复）
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string>(() => {
+    if (initialCover && isImageUrl(initialCover)) {
+      return initialCover;
+    }
+    return "";
   });
   const [fullscreenEditor, setFullscreenEditor] = useState<"zh" | "en" | null>(
     null
   );
   const [formData, setFormData] = useState<NewsFormState>(() => {
+    const coverSource = draft?.cover_source || news?.cover_source || "";
+    const isCoverImageUrl = coverSource && isImageUrl(coverSource);
+    
     if (draft) {
       return {
         id: draft.article_id ?? "",
@@ -555,7 +573,9 @@ function NewsFormModal({
         summary: { zh: draft.summary_zh ?? "", en: draft.summary_en ?? "" },
         content: { zh: draft.content_zh ?? "", en: draft.content_en ?? "" },
         date: new Date().toISOString().split("T")[0],
-        image: draft.cover_source ?? "",
+        // 如果是图片 URL 且当前模式是 unsplash，则清空（避免在搜索框显示 URL）
+        // 否则使用 coverSource（图片 URL 或关键词）
+        image: isCoverImageUrl && imageSource === "unsplash" ? "" : coverSource,
       };
     }
     if (news) {
@@ -567,7 +587,9 @@ function NewsFormModal({
         date: news.published_at
           ? news.published_at.slice(0, 10)
           : new Date().toISOString().split("T")[0],
-        image: news.cover_source ?? "",
+        // 如果是图片 URL 且当前模式是 unsplash，则清空（避免在搜索框显示 URL）
+        // 否则使用 coverSource（图片 URL 或关键词）
+        image: isCoverImageUrl && imageSource === "unsplash" ? "" : coverSource,
       };
     }
     return {
@@ -583,6 +605,7 @@ function NewsFormModal({
   useEffect(() => {
     if (uploadedImage) {
       setImageSource("upload");
+      setUploadedImageUrl(uploadedImage);
       setFormData((prev) => ({ ...prev, image: uploadedImage }));
     }
   }, [uploadedImage]);
@@ -682,7 +705,16 @@ function NewsFormModal({
               <div className="flex gap-2 mb-4">
                 <button
                   type="button"
-                  onClick={() => setImageSource("upload")}
+                  onClick={() => {
+                    setImageSource("upload");
+                    // 如果之前保存了上传的图片 URL，恢复它
+                    if (uploadedImageUrl) {
+                      setFormData((prev) => ({ ...prev, image: uploadedImageUrl }));
+                    } else if (formData.image && !isImageUrl(formData.image)) {
+                      // 如果 uploadedImageUrl 不存在，且当前 formData.image 是关键词（不是图片 URL），则清空
+                      setFormData((prev) => ({ ...prev, image: "" }));
+                    }
+                  }}
                   className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all ${
                     imageSource === "upload"
                       ? "bg-[#2B5F9E] text-white shadow-md"
@@ -693,7 +725,14 @@ function NewsFormModal({
                 </button>
                 <button
                   type="button"
-                  onClick={() => setImageSource("unsplash")}
+                  onClick={() => {
+                    setImageSource("unsplash");
+                    // 如果当前 formData.image 是图片 URL，保存到 uploadedImageUrl 并清空搜索框
+                    if (formData.image && isImageUrl(formData.image)) {
+                      setUploadedImageUrl(formData.image);
+                      setFormData((prev) => ({ ...prev, image: "" }));
+                    }
+                  }}
                   className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all ${
                     imageSource === "unsplash"
                       ? "bg-[#2B5F9E] text-white shadow-md"

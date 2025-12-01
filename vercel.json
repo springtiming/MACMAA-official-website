@@ -5,6 +5,14 @@
   "framework": "vite",
   "rewrites": [
     {
+      "source": "/api/unsplash/search",
+      "destination": "/api/unsplash?route=search"
+    },
+    {
+      "source": "/api/unsplash/random",
+      "destination": "/api/unsplash?route=random"
+    },
+    {
       "source": "/api/:path*",
       "destination": "/api/:path*"
     },

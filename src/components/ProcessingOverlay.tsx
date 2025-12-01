@@ -25,6 +25,9 @@ type StatusConfig = {
   progressFill?: string;
 };
 
+// 与管理员确认弹窗统一的圆角半径，保证进度浮层卡片轮廓为圆角
+const CARD_RADIUS = "1.75rem";
+
 const statusConfig: Record<NonIdleState, StatusConfig> = {
   processing: {
     icon: Loader2,
@@ -167,15 +170,16 @@ export function ProcessingOverlay({
           style={{ maxWidth: "24rem" }}
         >
           <div
-            className="rounded-[32px] p-[1.5px] overflow-hidden"
+            className="p-[1.5px] overflow-hidden"
             style={{
               background: config.borderGradient,
               boxShadow: config.cardShadow,
+              borderRadius: CARD_RADIUS,
             }}
           >
             <div
-              className="rounded-[30px] px-8 py-8"
-              style={{ background: config.cardBackground }}
+              className="px-8 py-8"
+              style={{ background: config.cardBackground, borderRadius: CARD_RADIUS }}
             >
               {/* 图标 / 动画 */}
               <motion.div
