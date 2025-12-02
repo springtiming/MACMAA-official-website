@@ -58,7 +58,7 @@ export function ImageCropper({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/90 flex items-start justify-center p-4 z-[100] overflow-y-auto"
+      className="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-[100] overflow-y-auto"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onCancel();
       }}
@@ -69,9 +69,9 @@ export function ImageCropper({
         exit={{ scale: 0.95, opacity: 0 }}
         onMouseDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
-        className="flex flex-col w-full max-w-5xl mt-8 rounded-2xl overflow-hidden bg-black/70 backdrop-blur-sm"
+        className="flex flex-col w-full max-w-5xl max-h-[90vh] my-auto rounded-2xl overflow-hidden bg-black/70 backdrop-blur-sm"
       >
-        <div className="flex items-center justify-between p-4 bg-black/60">
+        <div className="flex items-center justify-between p-4 bg-black/60 flex-shrink-0">
           <h2 className="text-white text-lg sm:text-xl">
             {language === "zh" ? "剪裁图片" : "Crop Image"}
           </h2>
@@ -83,7 +83,7 @@ export function ImageCropper({
           </button>
         </div>
 
-        <div className="flex-1 relative bg-black">
+        <div className="flex-1 relative bg-black min-h-[400px]">
           <Cropper
             image={image}
             crop={crop}
@@ -97,7 +97,7 @@ export function ImageCropper({
           />
         </div>
 
-        <div className="bg-black/60 p-4 sm:p-6 space-y-4">
+        <div className="bg-black/60 p-4 sm:p-6 space-y-4 flex-shrink-0">
           {/* Zoom Control */}
           <div className="space-y-2">
             <label className="text-white text-sm">

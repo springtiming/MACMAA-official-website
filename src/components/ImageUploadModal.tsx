@@ -76,7 +76,7 @@ export function ImageUploadModal({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/50 flex items-start justify-center p-4 z-[100] overflow-y-auto"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[100] overflow-y-auto"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -87,7 +87,7 @@ export function ImageUploadModal({
         exit={{ scale: 0.9, opacity: 0 }}
         onMouseDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-2xl shadow-2xl max-w-lg w-full mt-8 overflow-hidden"
+        className="bg-white rounded-2xl shadow-2xl max-w-lg w-full my-auto overflow-hidden"
       >
         {/* Header */}
         <div className="bg-gradient-to-r from-[#2B5F9E] to-[#6BA868] text-white p-6">
