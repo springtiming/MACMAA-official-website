@@ -1,12 +1,51 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 
+// 仅在本页面内引入字体，不影响其他页面
+import "@fontsource/inter/300.css";
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/500.css";
+import "@fontsource/inter/600.css";
+import "@fontsource/inter/700.css";
+
+import "@fontsource/poppins/300.css";
+import "@fontsource/poppins/400.css";
+import "@fontsource/poppins/500.css";
+import "@fontsource/poppins/600.css";
+import "@fontsource/poppins/700.css";
+
+import "@fontsource/roboto/300.css";
+import "@fontsource/roboto/400.css";
+import "@fontsource/roboto/500.css";
+import "@fontsource/roboto/700.css";
+
+import "@fontsource/source-sans-pro/300.css";
+import "@fontsource/source-sans-pro/400.css";
+import "@fontsource/source-sans-pro/600.css";
+import "@fontsource/source-sans-pro/700.css";
+
+import "@fontsource/work-sans/300.css";
+import "@fontsource/work-sans/400.css";
+import "@fontsource/work-sans/500.css";
+import "@fontsource/work-sans/600.css";
+import "@fontsource/work-sans/700.css";
+
+import "@fontsource/lato/300.css";
+import "@fontsource/lato/400.css";
+import "@fontsource/lato/700.css";
+
+import "@fontsource/noto-sans-sc/300.css";
+import "@fontsource/noto-sans-sc/400.css";
+import "@fontsource/noto-sans-sc/500.css";
+import "@fontsource/noto-sans-sc/700.css";
+
 interface FontOption {
   name: string;
   family: string;
   /** 原始 Google Fonts 对应的 family，用于调试展示 */
   originalFamily?: string;
-  googleFontUrl: string;
+  /** 对应的 npm 字体包名称，用于展示安装指引 */
+  npmPackage: string;
   description: string;
   zhDescription: string;
 }
@@ -14,81 +53,78 @@ interface FontOption {
 const fonts: FontOption[] = [
   {
     name: "Inter",
-    // 优先使用本地 VMCA Inter，回退到系统无衬线
-    family:
-      '"VMCA Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    // 使用 @fontsource/inter 提供的 Inter 字体
+    family: "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     originalFamily: "'Inter', sans-serif",
-    googleFontUrl:
-      "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap",
+    npmPackage: "@fontsource/inter",
     description:
       "Modern, professional, highly readable. Perfect for corporate and institutional websites.",
     zhDescription: "现代、专业、易读性强。适合企业和机构网站。",
   },
   {
     name: "Poppins",
-    family: "'Poppins', sans-serif",
-    googleFontUrl:
-      "https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap",
+    family: "'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    originalFamily: "'Poppins', sans-serif",
+    npmPackage: "@fontsource/poppins",
     description:
       "Friendly and modern, with excellent readability. Great for community organizations.",
     zhDescription: "友好现代，可读性极佳。适合社区组织。",
   },
   {
     name: "Roboto",
-    family: "'Roboto', sans-serif",
-    googleFontUrl:
-      "https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap",
+    family: "'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    originalFamily: "'Roboto', sans-serif",
+    npmPackage: "@fontsource/roboto",
     description:
       "Professional and reliable, widely used. Excellent for formal content.",
     zhDescription: "专业可靠，使用广泛。适合正式内容。",
   },
   {
     name: "Source Sans Pro",
-    family: "'Source Sans Pro', sans-serif",
-    googleFontUrl:
-      "https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700&display=swap",
+    family:
+      "'Source Sans Pro', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    originalFamily: "'Source Sans Pro', sans-serif",
+    npmPackage: "@fontsource/source-sans-pro",
     description:
       "Clear and professional, designed for user interfaces. Great for readability.",
     zhDescription: "清晰专业，专为界面设计。可读性极佳。",
   },
   {
     name: "Work Sans",
-    family: "'Work Sans', sans-serif",
-    googleFontUrl:
-      "https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&display=swap",
+    family: "'Work Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    originalFamily: "'Work Sans', sans-serif",
+    npmPackage: "@fontsource/work-sans",
     description:
       "Modern and friendly, designed for screens. Perfect balance of professionalism and warmth.",
     zhDescription: "现代友好，专为屏幕设计。专业与温暖的完美平衡。",
   },
   {
     name: "Lato",
-    family: "'Lato', sans-serif",
-    googleFontUrl:
-      "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap",
+    family: "'Lato', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    originalFamily: "'Lato', sans-serif",
+    npmPackage: "@fontsource/lato",
     description:
       "Elegant and professional, with a warm character. Ideal for community associations.",
     zhDescription: "优雅专业，带有温暖特质。适合社区协会。",
   },
   {
     name: "Noto Sans SC",
-    // 优先使用本地 VMCA Noto Sans SC，回退到系统中文无衬线
+    // 使用 @fontsource/noto-sans-sc 提供的中文字体，回退到系统中文无衬线
     family:
-      '"VMCA Noto Sans SC", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif',
+      "'Noto Sans SC', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     originalFamily: "'Noto Sans SC', sans-serif",
-    googleFontUrl:
-      "https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap",
+    npmPackage: "@fontsource/noto-sans-sc",
     description:
       "Modern Chinese font with excellent readability. Perfect for bilingual content.",
     zhDescription: "现代中文字体，可读性极佳。适合双语内容。",
   },
   {
     name: "Inter + Noto Sans SC",
-    // 本地组合字体：英文 Inter + 中文 Noto Sans SC
+    // 组合：英文 Inter + 中文 Noto Sans SC
     family:
-      '"VMCA Inter Noto", "VMCA Inter", "VMCA Noto Sans SC", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif',
+      "'Inter', 'Noto Sans SC', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     originalFamily: "'Inter', 'Noto Sans SC', sans-serif",
-    googleFontUrl:
-      "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap",
+    npmPackage: "@fontsource/inter + @fontsource/noto-sans-sc",
     description:
       "Combination of Inter (English) and Noto Sans SC (Chinese). Best for bilingual websites.",
     zhDescription: "Inter（英文）与思源黑体（中文）的组合。最适合双语网站。",
@@ -108,55 +144,10 @@ export function FontShowcase() {
 
   useEffect(() => {
     const loadFonts = async () => {
-      // 检查是否已经加载过
-      const existingLinks = Array.from(
-        document.querySelectorAll('link[rel="stylesheet"]')
-      ).map((link) => (link as HTMLLinkElement).href);
-
-      const promises = fonts.map((font) => {
-        return new Promise<void>((resolve) => {
-          // 如果已经加载过，直接返回
-          const fontNameForUrl = font.name.replace(/\s+/g, "+");
-          if (existingLinks.some((url) => url.includes(fontNameForUrl))) {
-            resolve();
-            return;
-          }
-
-          const link = document.createElement("link");
-          link.rel = "stylesheet";
-          link.href = font.googleFontUrl;
-          link.crossOrigin = "anonymous";
-          link.onload = () => {
-            // 检查字体是否真的可用
-            if (document.fonts && document.fonts.check) {
-              const fontName = font.family
-                .split(",")[0]
-                .replace(/'/g, "")
-                .trim();
-              const fontSpec = '16px "' + fontName + '"';
-              const isLoaded = document.fonts.check(fontSpec);
-              console.log(
-                "Font " + font.name + " (" + fontName + ") loaded:",
-                isLoaded
-              );
-            }
-            resolve();
-          };
-          link.onerror = () => {
-            console.error(`Failed to load font: ${font.name}`);
-            resolve();
-          };
-          document.head.appendChild(link);
-        });
-      });
-
-      await Promise.all(promises);
-
-      // 等待字体真正加载完成
+      // 使用 npm 导入字体后，这里只负责等待 document.fonts 就绪并做可用性检查
       if (document.fonts && document.fonts.ready) {
         try {
           await document.fonts.ready;
-          // 检查所有字体，并记录加载状态
           const status: Record<string, "loaded" | "unknown"> = {};
           fonts.forEach((font) => {
             const fontName = font.family.split(",")[0].replace(/'/g, "").trim();
@@ -167,7 +158,7 @@ export function FontShowcase() {
                 : false;
             status[font.name] = isAvailable ? "loaded" : "unknown";
             console.log(
-              "Font " + font.name + " available:",
+              "Font " + font.name + " available via npm import:",
               isAvailable,
               "Family:",
               font.family
@@ -183,7 +174,7 @@ export function FontShowcase() {
       setTimeout(() => {
         setFontsReady(true);
         console.log(
-          "All fonts loaded. Check browser DevTools > Elements > Computed to see applied fonts."
+          "All fonts loaded (npm). Check DevTools > Elements > Computed to see applied fonts."
         );
       }, 1000);
     };
@@ -397,16 +388,11 @@ export function FontShowcase() {
                   </div>
                   <div className="flex flex-wrap gap-x-2 gap-y-1">
                     <span className="font-semibold text-gray-700">
-                      Google Fonts:
+                      npm 字体包:
                     </span>
-                    <a
-                      href={font.googleFontUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-[#2B5F9E] underline underline-offset-2 break-all"
-                    >
-                      打开字体配置链接
-                    </a>
+                    <code className="px-1 rounded bg-white border border-gray-200">
+                      {font.npmPackage}
+                    </code>
                   </div>
                 </div>
               </div>
@@ -630,33 +616,26 @@ export function FontShowcase() {
             <div className="space-y-4 text-sm">
               <div>
                 <p className="text-gray-300 mb-2">
-                  1. 在 index.html 中添加字体链接：
+                  1. 安装字体 npm 包（以当前字体为例）：
                 </p>
                 <pre className="bg-gray-900 p-4 rounded-lg overflow-x-auto text-xs">
-                  {'<link rel="stylesheet" href="' +
-                    selectedFont.googleFontUrl +
-                    '" />'}
+                  {`npm install ${selectedFont.npmPackage} --save`}
                 </pre>
               </div>
               <div>
                 <p className="text-gray-300 mb-2">
-                  2. 在 src/index.css 中更新字体变量：
+                  2. 在需要使用的页面或组件中按需 import：
                 </p>
                 <pre className="bg-gray-900 p-4 rounded-lg overflow-x-auto text-xs">
-                  {"--font-sans: " + selectedFont.family + ";"}
+                  {`import "${selectedFont.npmPackage}/400.css";\nimport "${selectedFont.npmPackage}/700.css";`}
                 </pre>
               </div>
               <div>
                 <p className="text-gray-300 mb-2">
-                  3. 或者在 Tailwind 配置中设置：
+                  3. 在样式中使用对应的 font-family（仅影响你设置的区域）：
                 </p>
                 <pre className="bg-gray-900 p-4 rounded-lg overflow-x-auto text-xs">
-                  {`fontFamily: {
-  sans: [${selectedFont.family
-    .split(",")
-    .map((f) => f.trim())
-    .join(", ")}],
-}`}
+                  {"font-family: " + selectedFont.family + ";"}
                 </pre>
               </div>
             </div>
