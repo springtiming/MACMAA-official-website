@@ -1,5 +1,4 @@
 import { useState, useCallback } from "react";
-import { createPortal } from "react-dom";
 import { motion } from "motion/react";
 import Cropper from "react-easy-crop";
 import { X, Check, RotateCw } from "lucide-react";
@@ -53,118 +52,101 @@ export function ImageCropper({
     }
   };
 
-  const cropperContent = (
+  return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-[100] overflow-y-auto"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onCancel();
-      }}
+      className="fixed inset-0 bg-black/90 flex flex-col z-50"
+      onClick={(e) => e.target === e.currentTarget && onCancel()}
     >
-      <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        onMouseDown={(e) => e.stopPropagation()}
-        onClick={(e) => e.stopPropagation()}
-        className="flex flex-col w-full max-w-5xl max-h-[90vh] my-auto rounded-2xl overflow-hidden bg-black/70 backdrop-blur-sm"
-      >
-        <div className="flex items-center justify-between p-4 bg-black/60 flex-shrink-0">
-          <h2 className="text-white text-lg sm:text-xl">
-            {language === "zh" ? "剪裁图片" : "Crop Image"}
-          </h2>
-          <button
-            onClick={onCancel}
-            className="p-2 text-white hover:bg-white/20 rounded-lg transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
+      <div className="flex items-center justify-between p-4 bg-black/50 backdrop-blur-sm">
+        <h2 className="text-white text-lg sm:text-xl">
+          {language === "zh" ? "剪裁图片" : "Crop Image"}
+        </h2>
+        <button
+          onClick={onCancel}
+          className="p-2 text-white hover:bg-white/20 rounded-lg transition-colors"
+        >
+          <X className="w-6 h-6" />
+        </button>
+      </div>
 
-        <div className="flex-1 relative bg-black min-h-[400px]">
-          <Cropper
-            image={image}
-            crop={crop}
-            zoom={zoom}
-            rotation={rotation}
-            aspect={aspect}
-            onCropChange={setCrop}
-            onZoomChange={setZoom}
-            onRotationChange={setRotation}
-            onCropComplete={onCropCompleteHandler}
+      <div className="flex-1 relative">
+        <Cropper
+          image={image}
+          crop={crop}
+          zoom={zoom}
+          rotation={rotation}
+          aspect={aspect}
+          onCropChange={setCrop}
+          onZoomChange={setZoom}
+          onRotationChange={setRotation}
+          onCropComplete={onCropCompleteHandler}
+        />
+      </div>
+
+      <div className="bg-black/50 backdrop-blur-sm p-4 sm:p-6 space-y-4">
+        {/* Zoom Control */}
+        <div className="space-y-2">
+          <label className="text-white text-sm">
+            {language === "zh" ? "缩放" : "Zoom"}
+          </label>
+          <input
+            type="range"
+            min={1}
+            max={3}
+            step={0.1}
+            value={zoom}
+            onChange={(e) => setZoom(Number(e.target.value))}
+            className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
           />
         </div>
 
-        <div className="bg-black/60 p-4 sm:p-6 space-y-4 flex-shrink-0">
-          {/* Zoom Control */}
-          <div className="space-y-2">
+        {/* Rotation Control */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
             <label className="text-white text-sm">
-              {language === "zh" ? "缩放" : "Zoom"}
+              {language === "zh" ? "旋转" : "Rotation"}
             </label>
-            <input
-              type="range"
-              min={1}
-              max={3}
-              step={0.1}
-              value={zoom}
-              onChange={(e) => setZoom(Number(e.target.value))}
-              className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
-            />
-          </div>
-
-          {/* Rotation Control */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-white text-sm">
-                {language === "zh" ? "旋转" : "Rotation"}
-              </label>
-              <button
-                onClick={() => setRotation((r) => (r + 90) % 360)}
-                className="p-2 text-white hover:bg-white/20 rounded-lg transition-colors"
-                title={language === "zh" ? "旋转90度" : "Rotate 90°"}
-              >
-                <RotateCw className="w-5 h-5" />
-              </button>
-            </div>
-            <input
-              type="range"
-              min={0}
-              max={360}
-              step={1}
-              value={rotation}
-              onChange={(e) => setRotation(Number(e.target.value))}
-              className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
-            />
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-3 pt-2">
             <button
-              onClick={createCroppedImage}
-              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-[#6BA868] text-white rounded-lg hover:bg-[#5a9157] transition-colors"
+              onClick={() => setRotation((r) => (r + 90) % 360)}
+              className="p-2 text-white hover:bg-white/20 rounded-lg transition-colors"
+              title={language === "zh" ? "旋转90度" : "Rotate 90°"}
             >
-              <Check className="w-5 h-5" />
-              {language === "zh" ? "确认" : "Confirm"}
-            </button>
-            <button
-              onClick={onCancel}
-              className="flex-1 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-            >
-              {language === "zh" ? "取消" : "Cancel"}
+              <RotateCw className="w-5 h-5" />
             </button>
           </div>
+          <input
+            type="range"
+            min={0}
+            max={360}
+            step={1}
+            value={rotation}
+            onChange={(e) => setRotation(Number(e.target.value))}
+            className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
+          />
         </div>
-      </motion.div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3 pt-2">
+          <button
+            onClick={createCroppedImage}
+            className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-[#6BA868] text-white rounded-lg hover:bg-[#5a9157] transition-colors"
+          >
+            <Check className="w-5 h-5" />
+            {language === "zh" ? "确认" : "Confirm"}
+          </button>
+          <button
+            onClick={onCancel}
+            className="flex-1 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+          >
+            {language === "zh" ? "取消" : "Cancel"}
+          </button>
+        </div>
+      </div>
     </motion.div>
   );
-
-  if (typeof document === "undefined") {
-    return cropperContent;
-  }
-
-  return createPortal(cropperContent, document.body);
 }
 
 // Helper function to create cropped image

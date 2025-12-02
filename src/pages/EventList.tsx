@@ -1,13 +1,22 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import { motion } from "motion/react";
 import { Calendar, MapPin, Users, DollarSign } from "lucide-react";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/ui/tabs";
+import { EventSkeleton } from "../components/EventSkeleton";
 import { mockEvents, type Event } from "../data/mockData";
 
 export function EventList() {
   const { language, t } = useLanguage();
+  const [activeTab, setActiveTab] = useState<"upcoming" | "past">("upcoming");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
 
   // 获取当前时间
   const now = new Date();
@@ -207,19 +216,70 @@ export function EventList() {
         </h1>
       </motion.div>
 
-      <Tabs defaultValue="upcoming" className="w-full">
-        <TabsList className="mb-6 sm:mb-8">
-          <TabsTrigger value="upcoming">{t("events.upcoming")}</TabsTrigger>
-          <TabsTrigger value="past">{t("events.past")}</TabsTrigger>
-        </TabsList>
+      <Tabs
+        value={activeTab}
+        className="w-full"
+        onValueChange={(value) =>
+          setActiveTab(value as "upcoming" | "past")
+        }
+      >
+        <div className="flex justify-center mb-8">
+          <TabsList className="grid w-full max-w-md grid-cols-2 bg-gray-100/80 p-1 h-auto rounded-2xl">
+            <TabsTrigger
+              value="upcoming"
+              className="rounded-xl py-2.5 text-base font-medium data-[state=active]:bg-white data-[state=active]:text-[#2B5F9E] data-[state=active]:shadow-md transition-all"
+              disabled={isLoading}
+            >
+              {language === "zh" ? "即将开始" : "Upcoming"}
+              {!isLoading && ` (${upcomingEvents.length})`}
+            </TabsTrigger>
+            <TabsTrigger
+              value="past"
+              className="rounded-xl py-2.5 text-base font-medium data-[state=active]:bg-white data-[state=active]:text-gray-700 data-[state=active]:shadow-md transition-all"
+              disabled={isLoading}
+            >
+              {language === "zh" ? "往期回顾" : "Past Events"}
+              {!isLoading && ` (${pastEvents.length})`}
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
-        <TabsContent value="upcoming">
-          {renderEventGrid(upcomingEvents, false)}
-        </TabsContent>
+        {/* Keep the tab structure visible at all times; swap only the content */}
+        {isLoading ? (
+          <TabsContent value="upcoming" className="mt-0">
+            <EventSkeleton count={4} />
+          </TabsContent>
+        ) : (
+          <>
+            <TabsContent value="upcoming" className="mt-0 min-h-[400px]">
+              {upcomingEvents.length > 0 ? (
+                renderEventGrid(upcomingEvents, false)
+              ) : (
+                <div className="text-center py-20 text-gray-500 bg-gray-50/50 rounded-2xl">
+                  <p className="text-lg">
+                    {language === "zh"
+                      ? "近期暂无活动"
+                      : "No upcoming events"}
+                  </p>
+                </div>
+              )}
+            </TabsContent>
 
-        <TabsContent value="past">
-          {renderEventGrid(pastEvents, true)}
-        </TabsContent>
+            <TabsContent value="past" className="mt-0 min-h-[400px]">
+              {pastEvents.length > 0 ? (
+                renderEventGrid(pastEvents, true)
+              ) : (
+                <div className="text-center py-20 text-gray-500 bg-gray-50/50 rounded-2xl">
+                  <p className="text-lg">
+                    {language === "zh"
+                      ? "暂无往期活动"
+                      : "No past events"}
+                  </p>
+                </div>
+              )}
+            </TabsContent>
+          </>
+        )}
       </Tabs>
     </div>
   );
