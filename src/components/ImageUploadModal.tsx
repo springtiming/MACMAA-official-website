@@ -19,15 +19,43 @@ export function ImageUploadModal({
   const { language } = useLanguage();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
   const handleFileSelect = (file: File) => {
-    if (file && file.type.startsWith("image/")) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setSelectedImage(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      window.alert(
+        language === "zh"
+          ? "请选择图片文件（JPG/PNG/GIF）"
+          : "Please select an image file (JPG/PNG/GIF)"
+      );
+      return;
     }
+
+    if (file.size > MAX_FILE_SIZE) {
+      window.alert(
+        language === "zh"
+          ? "图片文件过大，请选择 5MB 以下的图片"
+          : "Image is too large, please select a file smaller than 5MB"
+      );
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result;
+      if (typeof result === "string") {
+        setSelectedImage(result);
+      } else {
+        window.alert(
+          language === "zh"
+            ? "读取图片失败，请重试或更换图片"
+            : "Failed to read image, please try again or choose another file"
+        );
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {

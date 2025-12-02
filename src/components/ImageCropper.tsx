@@ -72,18 +72,21 @@ export function ImageCropper({
         </button>
       </div>
 
-      <div className="flex-1 relative">
-        <Cropper
-          image={image}
-          crop={crop}
-          zoom={zoom}
-          rotation={rotation}
-          aspect={aspect}
-          onCropChange={setCrop}
-          onZoomChange={setZoom}
-          onRotationChange={setRotation}
-          onCropComplete={onCropCompleteHandler}
-        />
+      {/* 中间区域限制最大宽度，并使用 16:9 比例，避免在大屏上过于巨大难以操作 */}
+      <div className="flex-1 flex items-center justify-center px-4 py-4">
+        <div className="relative w-full max-w-4xl aspect-video">
+          <Cropper
+            image={image}
+            crop={crop}
+            zoom={zoom}
+            rotation={rotation}
+            aspect={aspect}
+            onCropChange={setCrop}
+            onZoomChange={setZoom}
+            onRotationChange={setRotation}
+            onCropComplete={onCropCompleteHandler}
+          />
+        </div>
       </div>
 
       <div className="bg-black/50 backdrop-blur-sm p-4 sm:p-6 space-y-4">
@@ -206,7 +209,12 @@ function createImage(url: string): Promise<HTMLImageElement> {
     const image = new Image();
     image.addEventListener("load", () => resolve(image));
     image.addEventListener("error", (error) => reject(error));
-    image.setAttribute("crossOrigin", "anonymous");
+
+    // data: / blob: 不需要 crossOrigin，避免不必要的 CORS 干扰
+    if (!url.startsWith("data:") && !url.startsWith("blob:")) {
+      image.setAttribute("crossOrigin", "anonymous");
+    }
+
     image.src = url;
   });
 }

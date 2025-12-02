@@ -227,7 +227,7 @@ export function EventList() {
           <TabsList className="grid w-full max-w-md grid-cols-2 bg-gray-100/80 p-1 h-auto rounded-2xl">
             <TabsTrigger
               value="upcoming"
-              className="rounded-xl py-2.5 text-base font-medium data-[state=active]:bg-white data-[state=active]:text-[#2B5F9E] data-[state=active]:shadow-md transition-all"
+              className="rounded-xl py-2.5 text-base font-medium text-gray-600 data-[state=active]:bg-white data-[state=active]:text-[#2B5F9E] data-[state=active]:shadow-md transition-all"
               disabled={isLoading}
             >
               {language === "zh" ? "即将开始" : "Upcoming"}
@@ -235,7 +235,7 @@ export function EventList() {
             </TabsTrigger>
             <TabsTrigger
               value="past"
-              className="rounded-xl py-2.5 text-base font-medium data-[state=active]:bg-white data-[state=active]:text-gray-700 data-[state=active]:shadow-md transition-all"
+              className="rounded-xl py-2.5 text-base font-medium text-gray-600 data-[state=active]:bg-white data-[state=active]:text-[#2B5F9E] data-[state=active]:shadow-md transition-all"
               disabled={isLoading}
             >
               {language === "zh" ? "往期回顾" : "Past Events"}

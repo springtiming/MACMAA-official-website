@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getSupabaseServiceClient, logSupabaseError } from "../_supabaseAdminClient.js";
+import { sendMemberApprovedEmail } from "../_emailService.js";
 
 type MemberStatus = "pending" | "approved" | "rejected";
 
@@ -66,6 +67,15 @@ async function handleUpdateStatus(id: string, req: VercelRequest, res: VercelRes
     }
     logSupabaseError("api.members.updateStatus", error);
     return res.status(500).json({ error: "Failed to update member" });
+  }
+
+  if (status === "approved") {
+    // Fire-and-forget: do not block the response on email failures
+    void sendMemberApprovedEmail({
+      chinese_name: data?.chinese_name,
+      english_name: data?.english_name,
+      email: data?.email,
+    });
   }
 
   return res.status(200).json({ member: data });

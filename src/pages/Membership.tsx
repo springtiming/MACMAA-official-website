@@ -2,7 +2,10 @@ import { useState } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { motion, AnimatePresence } from "motion/react";
 import { Users, Check, AlertCircle } from "lucide-react";
-import { createMemberApplication } from "../lib/supabaseApi";
+import {
+  createMemberApplication,
+  notifyMemberApplication,
+} from "../lib/supabaseApi";
 
 // Validation error types (language-independent)
 type ErrorType =
@@ -315,6 +318,13 @@ export function Membership() {
       emergency_relation: formData.emergencyRelation.trim() || null,
     })
       .then(() => {
+        void notifyMemberApplication({
+          chineseName: formData.chineseName.trim(),
+          englishName: formData.englishName.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
+          applyDate: new Date().toISOString(),
+        });
         setSubmitted(true);
       })
       .catch(() => {

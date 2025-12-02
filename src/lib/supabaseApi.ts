@@ -235,6 +235,7 @@ function buildAdminApiUrl(path: string) {
 
 const ADMIN_NEWS_API_BASE = buildAdminApiUrl("/news");
 const ADMIN_ACCOUNTS_API_BASE = buildAdminApiUrl("/admin-accounts");
+const NOTIFICATIONS_API_BASE = buildAdminApiUrl("/notifications");
 const SUPABASE_URL =
   typeof import.meta !== "undefined"
     ? (import.meta.env.VITE_SUPABASE_URL as string)
@@ -789,4 +790,43 @@ export async function createEventRegistration(payload: {
     throw error;
   }
   return data as EventRegistrationRecord;
+}
+
+export async function notifyMemberApplication(payload: {
+  chineseName?: string | null;
+  englishName?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  applyDate?: string | null;
+}) {
+  try {
+    await fetch(`${NOTIFICATIONS_API_BASE}/member-application`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    console.warn("[notifications] member application failed", err);
+  }
+}
+
+export async function notifyEventRegistration(payload: {
+  eventTitleZh?: string | null;
+  eventTitleEn?: string | null;
+  name: string;
+  email?: string | null;
+  tickets?: number;
+  paymentMethod?: string | null;
+  notes?: string | null;
+  notifyAdminNotes?: boolean;
+}) {
+  try {
+    await fetch(`${NOTIFICATIONS_API_BASE}/event-registration`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    console.warn("[notifications] event registration failed", err);
+  }
 }
