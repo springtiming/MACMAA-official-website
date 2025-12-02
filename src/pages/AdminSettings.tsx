@@ -49,6 +49,7 @@ export function AdminSettings() {
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [memberNotifications, setMemberNotifications] = useState(true);
   const [eventNotifications, setEventNotifications] = useState(true);
+  const [eventNotesNotifications, setEventNotesNotifications] = useState(false);
 
   // Email language preference
   const [emailLanguage, setEmailLanguage] = useState<"zh" | "en">("zh");
@@ -482,6 +483,36 @@ export function AdminSettings() {
                     <div
                       className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full transition-transform ${
                         eventNotifications ? "translate-x-7" : "translate-x-0"
+                      }`}
+                    />
+                  </div>
+                </div>
+              </label>
+
+              <label className="flex items-center justify-between p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                <div>
+                  <div className="text-gray-900 mb-1">
+                    {t("admin.settings.eventNotesNotifications")}
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    {t("admin.settings.eventNotesNotificationsDesc")}
+                  </div>
+                </div>
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    checked={eventNotesNotifications}
+                    onChange={(e) => setEventNotesNotifications(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div
+                    className={`w-14 h-7 rounded-full transition-colors ${
+                      eventNotesNotifications ? "bg-[#6BA868]" : "bg-gray-300"
+                    }`}
+                  >
+                    <div
+                      className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full transition-transform ${
+                        eventNotesNotifications ? "translate-x-7" : "translate-x-0"
                       }`}
                     />
                   </div>

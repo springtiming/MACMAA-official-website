@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { motion } from "motion/react";
 import { X, Upload } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -70,12 +71,12 @@ export function ImageUploadModal({
     );
   }
 
-  return (
+  const modalContent = (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/50 flex items-start justify-center p-4 z-60 overflow-y-auto"
+      className="fixed inset-0 bg-black/50 flex items-start justify-center p-4 z-[100] overflow-y-auto"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -150,4 +151,10 @@ export function ImageUploadModal({
       </motion.div>
     </motion.div>
   );
+
+  if (typeof document === "undefined") {
+    return modalContent;
+  }
+
+  return createPortal(modalContent, document.body);
 }

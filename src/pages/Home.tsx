@@ -27,7 +27,6 @@ const AUTO_SWITCH_DELAY = 4000;
 export function Home() {
   const { t, language } = useLanguage();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [imagesLoaded, setImagesLoaded] = useState(false);
 
   const activityImages = useMemo(
     () => [
@@ -74,7 +73,30 @@ export function Home() {
 
   useEffect(() => {
     setLoadedImages(activityImages.map(() => false));
-    setImagesLoaded(false);
+  }, [activityImages]);
+
+  // Preload all images in the background
+  useEffect(() => {
+    activityImages.forEach((image, index) => {
+      const img = new Image();
+      img.src = image.url;
+      img.onload = () => {
+        setLoadedImages((prev) => {
+          if (prev[index]) return prev;
+          const next = [...prev];
+          next[index] = true;
+          return next;
+        });
+      };
+      img.onerror = () => {
+        setLoadedImages((prev) => {
+          if (prev[index]) return prev;
+          const next = [...prev];
+          next[index] = true;
+          return next;
+        });
+      };
+    });
   }, [activityImages]);
 
   // Manual navigation functions
@@ -101,7 +123,6 @@ export function Home() {
       next[index] = true;
       return next;
     });
-    setImagesLoaded(true);
   };
 
   useEffect(() => {
@@ -382,9 +403,9 @@ export function Home() {
               <motion.div
                 key={currentImageIndex}
                 initial={{ opacity: 0 }}
-                animate={{ opacity: imagesLoaded ? 1 : 0 }}
+                animate={{ opacity: loadedImages[currentImageIndex] ? 1 : 0 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 1, ease: "easeInOut" }}
+                transition={{ duration: 0.7, ease: "easeInOut" }}
                 className="absolute inset-0"
               >
                 <ImageWithFallback

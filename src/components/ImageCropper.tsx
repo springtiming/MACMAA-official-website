@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { motion } from "motion/react";
 import Cropper from "react-easy-crop";
 import { X, Check, RotateCw } from "lucide-react";
@@ -52,12 +53,12 @@ export function ImageCropper({
     }
   };
 
-  return (
+  const cropperContent = (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/90 flex items-start justify-center p-4 z-60 overflow-y-auto"
+      className="fixed inset-0 bg-black/90 flex items-start justify-center p-4 z-[100] overflow-y-auto"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onCancel();
       }}
@@ -158,6 +159,12 @@ export function ImageCropper({
       </motion.div>
     </motion.div>
   );
+
+  if (typeof document === "undefined") {
+    return cropperContent;
+  }
+
+  return createPortal(cropperContent, document.body);
 }
 
 // Helper function to create cropped image

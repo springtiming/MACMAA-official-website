@@ -63,7 +63,10 @@ const translations: Record<Language, Record<string, string>> = {
     // Events
     "events.title": "活动中心",
     "events.upcoming": "即将举行",
+    "events.past": "往期回顾",
     "events.register": "立即报名",
+    "events.viewRecap": "查看回顾",
+    "events.ended": "已结束",
     "events.details": "活动详情",
     "events.date": "活动时间",
     "events.location": "活动地点",
@@ -380,6 +383,8 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.settings.memberNotificationsDesc": "收到新的会员申请时发送邮件通知",
     "admin.settings.eventNotifications": "活动报名通知",
     "admin.settings.eventNotificationsDesc": "有新的活动报名时发送邮件通知",
+    "admin.settings.eventNotesNotifications": "活动报名备注通知",
+    "admin.settings.eventNotesNotificationsDesc": "当用户报名活动时填写了备注，发送邮件通知",
     "admin.settings.saveNotifications": "保存通知设置",
     "admin.settings.notificationsUpdated": "通知设置已保存",
     "admin.settings.emailLanguageSection": "邮件语言偏好",
@@ -525,7 +530,10 @@ const translations: Record<Language, Record<string, string>> = {
     // Events
     "events.title": "Events",
     "events.upcoming": "Upcoming",
+    "events.past": "Past Events",
     "events.register": "Register Now",
+    "events.viewRecap": "View Recap",
+    "events.ended": "Ended",
     "events.details": "Event Details",
     "events.date": "Date & Time",
     "events.location": "Location",
@@ -871,6 +879,9 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.settings.eventNotifications": "Event Registration Notifications",
     "admin.settings.eventNotificationsDesc":
       "Send email notifications when there is a new event registration",
+    "admin.settings.eventNotesNotifications": "Event Registration Notes Notifications",
+    "admin.settings.eventNotesNotificationsDesc":
+      "Send email notifications when users include notes in event registrations",
     "admin.settings.saveNotifications": "Save Notification Settings",
     "admin.settings.notificationsUpdated": "Notification settings saved",
     "admin.settings.emailLanguageSection": "Email Language Preference",

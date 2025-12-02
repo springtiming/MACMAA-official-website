@@ -236,4 +236,48 @@ export const mockEvents: Event[] = [
     image: "chinese tea ceremony",
     accessType: "members-only",
   },
+  {
+    id: 6,
+    title: {
+      zh: "2025年MACMAA春节联欢晚会",
+      en: "2025 MACMAA Chinese New Year Gala",
+    },
+    description: {
+      zh: "澳洲万年市华人互助会在Templestowe社区中心举办春节晚会，社区成员欢聚一堂，共庆蛇年新春。晚会包括传统舞蹈、太极表演、儿童合唱、书法展示等精彩节目。",
+      en: "MACMAA hosted a Chinese New Year celebration at Templestowe Community Center, bringing together community members to celebrate the Year of the Snake. The evening featured traditional dances, Tai Chi demonstrations, children's choir, and calligraphy exhibitions.",
+    },
+    date: "2025-02-08T18:00:00",
+    location: {
+      zh: "Templestowe社区中心",
+      en: "Templestowe Community Center",
+    },
+    fee: 0,
+    memberFee: 0,
+    capacity: 300,
+    registered: 300,
+    image: "chinese celebration community",
+    accessType: "all-welcome",
+  },
+  {
+    id: 7,
+    title: {
+      zh: "MACMAA居家养老服务讲座",
+      en: "MACMAA Aged Care Services Seminar",
+    },
+    description: {
+      zh: "协会邀请专业顾问为社区长者和家庭讲解澳洲居家养老服务体系和政府补助政策。讲座包括详细的服务介绍、申请流程说明以及一对一咨询服务。",
+      en: "The association invited professional consultants to explain Australia's aged care service system and government subsidy policies to seniors and families. The seminar included detailed service introductions, application process explanations, and one-on-one consultation services.",
+    },
+    date: "2025-01-15T14:00:00",
+    location: {
+      zh: "MACMAA活动中心 - 293-297 Manningham Rd, Templestowe Lower",
+      en: "MACMAA Activity Center - 293-297 Manningham Rd, Templestowe Lower",
+    },
+    fee: 0,
+    memberFee: 0,
+    capacity: 80,
+    registered: 78,
+    image: "seniors health care",
+    accessType: "all-welcome",
+  },
 ];
