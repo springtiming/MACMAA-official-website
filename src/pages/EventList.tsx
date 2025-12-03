@@ -224,10 +224,10 @@ export function EventList() {
         }
       >
         <div className="flex justify-center mb-8">
-          <TabsList className="grid w-full max-w-xl grid-cols-2 bg-gray-50 border border-gray-200 shadow-sm p-1.5 h-auto rounded-2xl">
+          <TabsList className="grid w-full max-w-2xl grid-cols-2 bg-[#f7f8fa] border border-gray-100 shadow-md p-2 h-auto rounded-2xl">
             <TabsTrigger
               value="upcoming"
-              className="rounded-xl px-6 py-2.5 text-base font-medium text-gray-600 data-[state=active]:bg-white data-[state=active]:text-[#2B5F9E] data-[state=active]:shadow-md transition-all"
+              className="rounded-xl px-8 py-2.5 text-base font-medium text-gray-600 data-[state=active]:bg-white data-[state=active]:text-[#2B5F9E] data-[state=active]:shadow-[0_8px_18px_-10px_rgba(0,0,0,0.35)] transition-all"
               disabled={isLoading}
             >
               {language === "zh" ? "即将开始" : "Upcoming"}
@@ -235,7 +235,7 @@ export function EventList() {
             </TabsTrigger>
             <TabsTrigger
               value="past"
-              className="rounded-xl px-6 py-2.5 text-base font-medium text-gray-600 data-[state=active]:bg-white data-[state=active]:text-[#2B5F9E] data-[state=active]:shadow-md transition-all"
+              className="rounded-xl px-8 py-2.5 text-base font-medium text-gray-600 data-[state=active]:bg-white data-[state=active]:text-[#2B5F9E] data-[state=active]:shadow-[0_8px_18px_-10px_rgba(0,0,0,0.35)] transition-all"
               disabled={isLoading}
             >
               {language === "zh" ? "往期回顾" : "Past Events"}
@@ -255,7 +255,7 @@ export function EventList() {
               {upcomingEvents.length > 0 ? (
                 renderEventGrid(upcomingEvents, false)
               ) : (
-                <div className="text-center py-20 px-6 text-gray-500 bg-[#f9fafb] rounded-3xl max-w-4xl mx-auto">
+                <div className="text-center py-20 px-6 text-gray-500 bg-[#fbfcfd] rounded-3xl max-w-5xl mx-auto shadow-sm">
                   <p className="text-lg">
                     {language === "zh"
                       ? "近期暂无活动"
@@ -269,7 +269,7 @@ export function EventList() {
               {pastEvents.length > 0 ? (
                 renderEventGrid(pastEvents, true)
               ) : (
-                <div className="text-center py-20 px-6 text-gray-500 bg-[#f9fafb] rounded-3xl max-w-4xl mx-auto">
+                <div className="text-center py-20 px-6 text-gray-500 bg-[#fbfcfd] rounded-3xl max-w-5xl mx-auto shadow-sm">
                   <p className="text-lg">
                     {language === "zh"
                       ? "暂无往期活动"

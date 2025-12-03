@@ -60,21 +60,21 @@ export function ImageCropper({
       className="fixed inset-0 bg-black/90 flex flex-col z-50"
       onClick={(e) => e.target === e.currentTarget && onCancel()}
     >
-      <div className="flex items-center justify-between p-4 bg-black/50 backdrop-blur-sm">
-        <h2 className="text-white text-lg sm:text-xl">
+      <div className="flex items-center justify-between px-4 py-2 bg-black/60 backdrop-blur-sm">
+        <h2 className="text-white text-base sm:text-lg">
           {language === "zh" ? "剪裁图片" : "Crop Image"}
         </h2>
         <button
           onClick={onCancel}
-          className="p-2 text-white hover:bg-white/20 rounded-lg transition-colors"
+          className="p-1.5 text-white hover:bg-white/20 rounded-lg transition-colors"
         >
-          <X className="w-6 h-6" />
+          <X className="w-5 h-5" />
         </button>
       </div>
 
       {/* 中间区域限制最大宽度，并使用 16:9 比例，避免在大屏上过于巨大难以操作 */}
-      <div className="flex-1 flex items-center justify-center px-4 py-4">
-        <div className="relative w-full max-w-4xl aspect-video">
+      <div className="flex-1 flex items-center justify-center px-3 py-3">
+        <div className="relative w-full max-w-4xl aspect-video rounded-lg overflow-hidden bg-black">
           <Cropper
             image={image}
             crop={crop}
@@ -89,9 +89,9 @@ export function ImageCropper({
         </div>
       </div>
 
-      <div className="bg-black/50 backdrop-blur-sm p-4 sm:p-6 space-y-4">
+      <div className="bg-black/60 backdrop-blur-sm px-4 py-3 space-y-3">
         {/* Zoom Control */}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <label className="text-white text-sm">
             {language === "zh" ? "缩放" : "Zoom"}
           </label>
@@ -107,17 +107,17 @@ export function ImageCropper({
         </div>
 
         {/* Rotation Control */}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <label className="text-white text-sm">
               {language === "zh" ? "旋转" : "Rotation"}
             </label>
             <button
               onClick={() => setRotation((r) => (r + 90) % 360)}
-              className="p-2 text-white hover:bg-white/20 rounded-lg transition-colors"
+              className="p-1.5 text-white hover:bg-white/20 rounded-lg transition-colors"
               title={language === "zh" ? "旋转90度" : "Rotate 90°"}
             >
-              <RotateCw className="w-5 h-5" />
+              <RotateCw className="w-4 h-4" />
             </button>
           </div>
           <input
@@ -132,17 +132,17 @@ export function ImageCropper({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 pt-2">
+        <div className="flex gap-2 pt-1.5">
           <button
             onClick={createCroppedImage}
-            className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-[#6BA868] text-white rounded-lg hover:bg-[#5a9157] transition-colors"
+            className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 bg-[#6BA868] text-white rounded-lg hover:bg-[#5a9157] transition-colors"
           >
-            <Check className="w-5 h-5" />
+            <Check className="w-4 h-4" />
             {language === "zh" ? "确认" : "Confirm"}
           </button>
           <button
             onClick={onCancel}
-            className="flex-1 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            className="flex-1 px-4 py-2.5 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
           >
             {language === "zh" ? "取消" : "Cancel"}
           </button>

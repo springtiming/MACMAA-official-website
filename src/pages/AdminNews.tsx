@@ -16,6 +16,7 @@ import {
   Maximize2,
   Minimize2,
 } from "lucide-react";
+import { createPortal } from "react-dom";
 import ReactQuill from "react-quill@2.0.0-beta.2";
 import type { ReactQuillProps } from "react-quill@2.0.0-beta.2";
 import "react-quill@2.0.0-beta.2/dist/quill.snow.css";
@@ -971,12 +972,12 @@ function NewsFormModal({
     "image",
   ];
 
-  return (
+  const modal = (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/50 flex items-start justify-center p-4 z-50 overflow-y-auto"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -987,7 +988,7 @@ function NewsFormModal({
         exit={{ scale: 0.9, opacity: 0 }}
         onMouseDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full mt-8 max-h-[90vh] overflow-hidden flex flex-col"
+        className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col"
       >
         {/* Fixed Header */}
         <div className="bg-gradient-to-r from-[#2B5F9E] to-[#6BA868] text-white p-6 flex-shrink-0">
@@ -1430,6 +1431,12 @@ function NewsFormModal({
       </motion.div>
     </motion.div>
   );
+
+  if (typeof document === "undefined") {
+    return modal;
+  }
+
+  return createPortal(modal, document.body);
 }
 
 // Fullscreen Editor Modal Component

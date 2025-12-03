@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import type { LucideIcon } from "lucide-react";
 import { AlertTriangle } from "lucide-react";
+import { createPortal } from "react-dom";
 
 type AdminConfirmDialogProps = {
   open: boolean;
@@ -48,7 +49,7 @@ export function AdminConfirmDialog({
 }: AdminConfirmDialogProps) {
   const styles = TONE_STYLES[tone];
 
-  return (
+  const dialog = (
     <AnimatePresence>
       {open && (
         <motion.div
@@ -109,6 +110,12 @@ export function AdminConfirmDialog({
       )}
     </AnimatePresence>
   );
+
+  if (typeof document === "undefined") {
+    return dialog;
+  }
+
+  return createPortal(dialog, document.body);
 }
 
 
