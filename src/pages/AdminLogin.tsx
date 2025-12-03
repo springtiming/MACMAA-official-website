@@ -4,6 +4,7 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { motion } from "motion/react";
 import { Lock, User } from "lucide-react";
 import logo from "figma:asset/486cb6c21a188aae71ad06b3d541eb54ff86e307.png";
+import { adminAuthLogin } from "../lib/supabaseApi";
 
 export function AdminLogin() {
   const navigate = useNavigate();
@@ -30,36 +31,21 @@ export function AdminLogin() {
     }
 
     try {
-      const res = await fetch("/api/admin-auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(credentials),
-      });
-
-      if (!res.ok) {
-        setError(
-          language === "zh"
-            ? "用户名或密码错误"
-            : "Invalid username or password"
-        );
-        setIsSubmitting(false);
-        return;
-      }
-
-      const body = (await res.json()) as {
-        role: "owner" | "admin";
-        username: string;
-      };
+      const body = await adminAuthLogin(credentials);
       sessionStorage.setItem("adminAuth", "true");
       sessionStorage.setItem("adminRole", body.role);
       sessionStorage.setItem("adminUsername", body.username);
       navigate("/admin/dashboard");
-    } catch {
-      setError(
-        language === "zh"
-          ? "登录失败，请稍后再试"
-          : "Login failed, please try again"
-      );
+    } catch (err) {
+      const message =
+        (err as Error)?.message === "invalid-credentials"
+          ? language === "zh"
+            ? "用户名或密码错误"
+            : "Invalid username or password"
+          : language === "zh"
+            ? "登录失败，请稍后再试"
+            : "Login failed, please try again";
+      setError(message);
     } finally {
       setIsSubmitting(false);
     }

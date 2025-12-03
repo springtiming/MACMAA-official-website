@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "motion/react";
 import { X, Upload } from "lucide-react";
@@ -20,6 +20,14 @@ export function ImageUploadModal({
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+  // 当弹窗打开时，降低 Header 的 z-index
+  useEffect(() => {
+    document.body.classList.add("image-upload-modal-open");
+    return () => {
+      document.body.classList.remove("image-upload-modal-open");
+    };
+  }, []);
 
   const handleFileSelect = (file: File) => {
     if (!file) return;
@@ -104,7 +112,8 @@ export function ImageUploadModal({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[100] overflow-y-auto"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 overflow-y-auto"
+      style={{ zIndex: 9999 }}
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}

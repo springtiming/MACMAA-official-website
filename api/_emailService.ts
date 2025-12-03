@@ -51,7 +51,7 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
       subject: input.subject,
       html: input.html,
       cc: normalize(input.cc),
-      reply_to: input.replyTo,
+      replyTo: input.replyTo,
     });
 
     if (error) {

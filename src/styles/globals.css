@@ -398,6 +398,11 @@ html {
   color: #2b5f9e;
 }
 
+/* 当图片上传弹窗打开时，降低 Header 的 z-index */
+body.image-upload-modal-open header {
+  z-index: 30 !important;
+}
+
 /* 视差滚动和玻璃态效果性能优化 */
 
 /* 启用硬件加速 */

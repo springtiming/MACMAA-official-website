@@ -583,6 +583,7 @@ export function AdminNews() {
             handleImageUpload={handleImageUpload}
             uploadedImage={uploadedImage}
             formLoading={formLoading}
+            isImageUploadModalOpen={showImageUploadModal}
           />
         )}
 
@@ -737,6 +738,7 @@ function NewsFormModal({
   handleImageUpload,
   uploadedImage,
   formLoading,
+  isImageUploadModalOpen = false,
 }: {
   news: NewsPostRecord | null;
   draft: ArticleVersionRecord | null;
@@ -746,6 +748,7 @@ function NewsFormModal({
   handleImageUpload: () => void;
   uploadedImage: string;
   formLoading: boolean;
+  isImageUploadModalOpen?: boolean;
 }) {
   const { language, t } = useLanguage();
   const initialCover = draft?.cover_source || news?.cover_source || "";
@@ -977,7 +980,9 @@ function NewsFormModal({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+      className={`fixed inset-0 bg-black/50 flex items-center justify-center p-4 ${
+        isImageUploadModalOpen ? "z-[48]" : "z-50"
+      }`}
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}

@@ -261,6 +261,25 @@ async function callEdgeFunction(path: string, init?: RequestInit) {
   };
   return fetch(url, { ...init, headers });
 }
+export async function adminAuthLogin(payload: { username: string; password: string }) {
+  const res = await callEdgeFunction("admin-auth", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (res.status === 401) {
+    throw new Error("invalid-credentials");
+  }
+  if (!res.ok) {
+    throw new Error("login-failed");
+  }
+  const body = (await res.json()) as { id: string; username: string; role: "owner" | "admin" };
+  return body;
+}
 
 export async function fetchAdminEvents() {
   const res = await callEdgeFunction("events-admin", {

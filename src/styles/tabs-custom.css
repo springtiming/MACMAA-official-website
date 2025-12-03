@@ -1,0 +1,58 @@
+/* ============================================
+   Custom Tabs Styles - Overrides Shadcn defaults
+   ============================================ */
+
+/* Tabs Container */
+[data-slot="tabs-list"].tabs-gray {
+    display: grid !important;
+    width: 100% !important;
+    max-width: 28rem !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    background-color: rgba(243, 244, 246, 0.8) !important;
+    padding: 0.25rem !important;
+    height: auto !important;
+    border-radius: 1rem !important;
+  }
+  
+  /* Tabs Trigger */
+  [data-slot="tabs-trigger"].tabs-gray-trigger {
+    border-radius: 0.75rem !important;
+    padding-top: 0.625rem !important;
+    padding-bottom: 0.625rem !important;
+    font-size: 1rem !important;
+    line-height: 1.5rem !important;
+    font-weight: 500 !important;
+    transition-property: all !important;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition-duration: 150ms !important;
+    border-width: 0 !important;
+  }
+  
+  /* Tabs Trigger - Active State */
+  [data-slot="tabs-trigger"].tabs-gray-trigger[data-state="active"] {
+    background-color: #ffffff !important;
+    color: #2B5F9E !important;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+  }
+  
+  /* Tabs Trigger - Past Events (Inactive State) - 对齐 Upcoming 的样式 */
+  [data-slot="tabs-trigger"].tabs-gray-trigger-past {
+    border-radius: 0.75rem !important;
+    padding-top: 0.625rem !important;
+    padding-bottom: 0.625rem !important;
+    font-size: 1rem !important;
+    line-height: 1.5rem !important;
+    font-weight: 500 !important;
+    transition-property: all !important;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition-duration: 150ms !important;
+    border-width: 0 !important;
+  }
+  
+  /* Tabs Trigger - Active State (Past Events) */
+  [data-slot="tabs-trigger"].tabs-gray-trigger-past[data-state="active"] {
+    background-color: #ffffff !important;
+    color: #2B5F9E !important;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+  }
+  

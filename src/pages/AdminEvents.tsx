@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import {
   Search,
   Plus,
@@ -760,35 +761,47 @@ export function AdminEvents() {
           )}
         </div>
 
-        {showForm && (
-          <div
-            className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
-            onMouseDown={(e) => {
-              if (e.target === e.currentTarget) setShowForm(false);
-            }}
-          >
-            <div
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col"
-              onMouseDown={(e) => e.stopPropagation()}
-            >
-              <div className="bg-gradient-to-r from-[#2B5F9E] to-[#6BA868] text-white p-6 flex items-center justify-between">
-                <div>
-                  <p className="text-sm opacity-80">
-                    {form.id ? t("admin.events.edit") : t("admin.events.add")}
-                  </p>
-                  <h2 className="text-xl sm:text-2xl font-semibold">
-                    {language === "zh"
-                      ? "活动信息填写"
-                      : "Event Content & Settings"}
-                  </h2>
-                </div>
-                <button
-                  onClick={() => setShowForm(false)}
-                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+        <AnimatePresence>
+          {showForm && (
+            <>
+              {typeof document !== "undefined" &&
+                createPortal(
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+                    onMouseDown={(e) => {
+                      if (e.target === e.currentTarget) setShowForm(false);
+                    }}
+                  >
+                    <motion.div
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0.9, opacity: 0 }}
+                      className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col"
+                      onMouseDown={(e) => e.stopPropagation()}
+                    >
+                      <div className="bg-gradient-to-r from-[#2B5F9E] to-[#6BA868] text-white p-6 flex items-center justify-between">
+                        <div>
+                          <p className="text-sm opacity-80">
+                            {form.id
+                              ? t("admin.events.edit")
+                              : t("admin.events.add")}
+                          </p>
+                          <h2 className="text-xl sm:text-2xl font-semibold">
+                            {language === "zh"
+                              ? "活动信息填写"
+                              : "Event Content & Settings"}
+                          </h2>
+                        </div>
+                        <button
+                          onClick={() => setShowForm(false)}
+                          className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                        >
+                          <X className="w-6 h-6" />
+                        </button>
+                      </div>
 
               <div className="p-6 overflow-y-auto">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1294,9 +1307,13 @@ export function AdminEvents() {
                   </button>
                 </div>
               </div>
-            </div>
-          </div>
-        )}
+                    </motion.div>
+                  </motion.div>,
+                  document.body
+                )}
+            </>
+          )}
+        </AnimatePresence>
 
         {/* Image Upload Modal */}
         {showImageUploadModal && (
@@ -1307,37 +1324,47 @@ export function AdminEvents() {
         )}
 
         {/* Registrations Modal */}
-        {activeRegEvent && (
-          <div
-            className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
-            onMouseDown={(e) => {
-              if (e.target === e.currentTarget) closeRegistrations();
-            }}
-          >
-            <div
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
-              onMouseDown={(e) => e.stopPropagation()}
-            >
-              <div className="bg-gradient-to-r from-[#2B5F9E] to-[#6BA868] text-white p-6 flex items-center justify-between">
-                <div>
-                  <p className="text-sm opacity-80">
-                    {language === "zh" ? "报名信息" : "Registrations"}
-                  </p>
-                  <h2 className="text-xl sm:text-2xl font-semibold">
-                    {pickLocalized(
-                      activeRegEvent.title_zh,
-                      activeRegEvent.title_en,
-                      language
-                    )}
-                  </h2>
-                </div>
-                <button
-                  onClick={closeRegistrations}
-                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+        <AnimatePresence>
+          {activeRegEvent && (
+            <>
+              {typeof document !== "undefined" &&
+                createPortal(
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+                    onMouseDown={(e) => {
+                      if (e.target === e.currentTarget) closeRegistrations();
+                    }}
+                  >
+                    <motion.div
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0.9, opacity: 0 }}
+                      className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col"
+                      onMouseDown={(e) => e.stopPropagation()}
+                    >
+                      <div className="bg-gradient-to-r from-[#2B5F9E] to-[#6BA868] text-white p-6 flex items-center justify-between">
+                        <div>
+                          <p className="text-sm opacity-80">
+                            {language === "zh" ? "报名信息" : "Registrations"}
+                          </p>
+                          <h2 className="text-xl sm:text-2xl font-semibold">
+                            {pickLocalized(
+                              activeRegEvent.title_zh,
+                              activeRegEvent.title_en,
+                              language
+                            )}
+                          </h2>
+                        </div>
+                        <button
+                          onClick={closeRegistrations}
+                          className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                        >
+                          <X className="w-6 h-6" />
+                        </button>
+                      </div>
 
               <div className="p-6 overflow-y-auto space-y-4">
                 <div className="flex items-center justify-between">
@@ -1407,9 +1434,13 @@ export function AdminEvents() {
                   </div>
                 )}
               </div>
-            </div>
-          </div>
-        )}
+                    </motion.div>
+                  </motion.div>,
+                  document.body
+                )}
+            </>
+          )}
+        </AnimatePresence>
 
         <AdminConfirmDialog
           open={Boolean(confirmDialog)}

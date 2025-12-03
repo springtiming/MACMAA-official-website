@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion } from "motion/react";
 import Cropper from "react-easy-crop";
 import { X, Check, RotateCw } from "lucide-react";
@@ -37,6 +38,14 @@ export function ImageCropper({
     []
   );
 
+  // 当裁剪器打开时，降低 Header 的 z-index
+  useEffect(() => {
+    document.body.classList.add("image-upload-modal-open");
+    return () => {
+      document.body.classList.remove("image-upload-modal-open");
+    };
+  }, []);
+
   const createCroppedImage = async () => {
     if (!croppedAreaPixels) return;
 
@@ -52,12 +61,13 @@ export function ImageCropper({
     }
   };
 
-  return (
+  const cropperContent = (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/90 flex flex-col z-50"
+      className="fixed inset-0 bg-black/90 flex flex-col"
+      style={{ zIndex: 9999 }}
       onClick={(e) => e.target === e.currentTarget && onCancel()}
     >
       <div className="flex items-center justify-between px-4 py-2 bg-black/60 backdrop-blur-sm">
@@ -150,6 +160,12 @@ export function ImageCropper({
       </div>
     </motion.div>
   );
+
+  if (typeof document === "undefined") {
+    return cropperContent;
+  }
+
+  return createPortal(cropperContent, document.body);
 }
 
 // Helper function to create cropped image
