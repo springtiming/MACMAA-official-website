@@ -206,81 +206,88 @@ export function EventList() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-6 sm:mb-8"
-      >
-        <h1 className="text-[#2B5F9E] mb-3 sm:mb-4 text-3xl sm:text-4xl px-2">
-          {t("events.title")}
-        </h1>
-      </motion.div>
+      <div className="mx-auto max-w-7xl">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <h1 className="text-[#2B5F9E] mb-3 sm:mb-4 text-3xl sm:text-4xl px-2">
+            {t("events.title")}
+          </h1>
+          <p className="text-gray-500 text-sm sm:text-base px-2">
+            {language === "zh"
+              ? "注：本原型使用模拟数据，实际系统将对接 API、邮件服务和支付网关。"
+              : "Note: This prototype uses mock data. The production system will integrate APIs, email services, and payment gateways."}
+          </p>
+        </motion.div>
 
-      <Tabs
-        value={activeTab}
-        className="w-full"
-        onValueChange={(value) =>
-          setActiveTab(value as "upcoming" | "past")
-        }
-      >
-        <div className="flex justify-center mb-8">
-          <TabsList className="grid w-full max-w-2xl grid-cols-2 bg-[#f7f8fa] border border-gray-100 shadow-md p-2 h-auto rounded-2xl">
-            <TabsTrigger
-              value="upcoming"
-              className="rounded-xl px-8 py-2.5 text-base font-medium text-gray-600 data-[state=active]:bg-white data-[state=active]:text-[#2B5F9E] data-[state=active]:shadow-[0_8px_18px_-10px_rgba(0,0,0,0.35)] transition-all"
-              disabled={isLoading}
-            >
-              {language === "zh" ? "即将开始" : "Upcoming"}
-              {!isLoading && ` (${upcomingEvents.length})`}
-            </TabsTrigger>
-            <TabsTrigger
-              value="past"
-              className="rounded-xl px-8 py-2.5 text-base font-medium text-gray-600 data-[state=active]:bg-white data-[state=active]:text-[#2B5F9E] data-[state=active]:shadow-[0_8px_18px_-10px_rgba(0,0,0,0.35)] transition-all"
-              disabled={isLoading}
-            >
-              {language === "zh" ? "往期回顾" : "Past Events"}
-              {!isLoading && ` (${pastEvents.length})`}
-            </TabsTrigger>
-          </TabsList>
-        </div>
+        <Tabs
+          value={activeTab}
+          className="w-full"
+          onValueChange={(value) =>
+            setActiveTab(value as "upcoming" | "past")
+          }
+        >
+          <div className="flex justify-center mb-8">
+            <TabsList className="grid w-full max-w-2xl grid-cols-2 bg-white/60 backdrop-blur-md border border-white/40 shadow-lg p-1.5 h-auto rounded-2xl gap-2">
+              <TabsTrigger
+                value="upcoming"
+                className="rounded-xl px-6 sm:px-8 py-3 text-base font-medium text-gray-600 data-[state=active]:bg-white data-[state=active]:text-[#2B5F9E] data-[state=active]:shadow-md transition-all"
+                disabled={isLoading}
+              >
+                {language === "zh" ? "即将开始" : "Upcoming"}
+                {!isLoading && ` (${upcomingEvents.length})`}
+              </TabsTrigger>
+              <TabsTrigger
+                value="past"
+                className="rounded-xl px-6 sm:px-8 py-3 text-base font-medium text-gray-600 data-[state=active]:bg-white data-[state=active]:text-[#2B5F9E] data-[state=active]:shadow-md transition-all"
+                disabled={isLoading}
+              >
+                {language === "zh" ? "往期回顾" : "Past Events"}
+                {!isLoading && ` (${pastEvents.length})`}
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-        {/* Keep the tab structure visible at all times; swap only the content */}
-        {isLoading ? (
-          <TabsContent value="upcoming" className="mt-0">
-            <EventSkeleton count={4} />
-          </TabsContent>
-        ) : (
-          <>
-            <TabsContent value="upcoming" className="mt-0 min-h-[400px]">
-              {upcomingEvents.length > 0 ? (
-                renderEventGrid(upcomingEvents, false)
-              ) : (
-                <div className="text-center py-20 px-6 text-gray-500 bg-[#fbfcfd] rounded-3xl max-w-5xl mx-auto shadow-sm">
-                  <p className="text-lg">
-                    {language === "zh"
-                      ? "近期暂无活动"
-                      : "No upcoming events"}
-                  </p>
-                </div>
-              )}
+          {/* Keep the tab structure visible at all times; swap only the content */}
+          {isLoading ? (
+            <TabsContent value="upcoming" className="mt-0">
+              <EventSkeleton count={4} />
             </TabsContent>
+          ) : (
+            <>
+              <TabsContent value="upcoming" className="mt-0 min-h-[400px]">
+                {upcomingEvents.length > 0 ? (
+                  renderEventGrid(upcomingEvents, false)
+                ) : (
+                  <div className="text-center py-20 px-6 text-gray-500 bg-[#fbfcfd] rounded-3xl max-w-5xl mx-auto shadow-[0_8px_18px_-16px_rgba(0,0,0,0.25)]">
+                    <p className="text-lg">
+                      {language === "zh"
+                        ? "近期暂无活动"
+                        : "No upcoming events"}
+                    </p>
+                  </div>
+                )}
+              </TabsContent>
 
-            <TabsContent value="past" className="mt-0 min-h-[400px]">
-              {pastEvents.length > 0 ? (
-                renderEventGrid(pastEvents, true)
-              ) : (
-                <div className="text-center py-20 px-6 text-gray-500 bg-[#fbfcfd] rounded-3xl max-w-5xl mx-auto shadow-sm">
-                  <p className="text-lg">
-                    {language === "zh"
-                      ? "暂无往期活动"
-                      : "No past events"}
-                  </p>
-                </div>
-              )}
-            </TabsContent>
-          </>
-        )}
-      </Tabs>
+              <TabsContent value="past" className="mt-0 min-h-[400px]">
+                {pastEvents.length > 0 ? (
+                  renderEventGrid(pastEvents, true)
+                ) : (
+                  <div className="text-center py-20 px-6 text-gray-500 bg-[#fbfcfd] rounded-3xl max-w-5xl mx-auto shadow-[0_8px_18px_-16px_rgba(0,0,0,0.25)]">
+                    <p className="text-lg">
+                      {language === "zh"
+                        ? "暂无往期活动"
+                        : "No past events"}
+                    </p>
+                  </div>
+                )}
+              </TabsContent>
+            </>
+          )}
+        </Tabs>
+      </div>
     </div>
   );
 }
