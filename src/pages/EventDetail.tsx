@@ -61,6 +61,9 @@ export function EventDetail() {
     );
   }
 
+  // 与 EventList 中的逻辑保持一致：基于活动日期判断是否为往期活动
+  const isPast = new Date(event.event_date) < new Date();
+
   return (
     <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-12">
       <motion.div
@@ -210,14 +213,20 @@ export function EventDetail() {
                 ? `Capacity: ${event.capacity}, first come first served`
                 : "Unlimited capacity, all welcome"}
           </p>
-          <motion.button
-            onClick={() => navigate(`/events/${event.id}/register`)}
-            className="px-8 py-3 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            {t("events.register")}
-          </motion.button>
+          {isPast ? (
+            <div className="inline-flex items-center justify-center px-6 py-3 bg-gray-200 text-gray-600 rounded-lg">
+              {t("events.ended")}
+            </div>
+          ) : (
+            <motion.button
+              onClick={() => navigate(`/events/${event.id}/register`)}
+              className="px-8 py-3 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {t("events.register")}
+            </motion.button>
+          )}
         </div>
       </motion.div>
     </div>
