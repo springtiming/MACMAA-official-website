@@ -13,17 +13,12 @@ export function NewsList() {
   const [newsList, setNewsList] = useState<NewsPostRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // 每次加载时展示骨架屏，由最小时长逻辑控制隐藏时机
-  const [showSkeleton, setShowSkeleton] = useState(true);
 
   useEffect(() => {
     let active = true;
-    let timeoutId: number | undefined;
-    const startTime = performance.now();
 
     setError(null);
     setIsLoading(true);
-    setShowSkeleton(true);
 
     const loadNews = async () => {
       try {
@@ -35,29 +30,13 @@ export function NewsList() {
         if (active) setError(t("common.error"));
       } finally {
         if (active) {
-          const finish = () => {
-            if (!active) return;
-            setIsLoading(false);
-            setShowSkeleton(false);
-          };
-
-          const elapsed = performance.now() - startTime;
-          const remaining = 150 - elapsed;
-
-          if (remaining > 0) {
-            timeoutId = window.setTimeout(finish, remaining);
-          } else {
-            finish();
-          }
+          setIsLoading(false);
         }
       }
     };
     loadNews();
     return () => {
       active = false;
-      if (timeoutId !== undefined) {
-        window.clearTimeout(timeoutId);
-      }
     };
   }, [t]);
 
@@ -75,10 +54,8 @@ export function NewsList() {
 
       {error ? (
         <p className="text-red-600 px-2">{error}</p>
-      ) : isLoading && showSkeleton ? (
-        <NewsSkeleton count={6} />
       ) : isLoading ? (
-        <p className="text-gray-600 px-2">{t("common.loading")}</p>
+        <NewsSkeleton count={6} />
       ) : newsList.length === 0 ? (
         <p className="text-gray-600 px-2">{t("news.empty")}</p>
       ) : (
