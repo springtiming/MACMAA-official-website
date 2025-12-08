@@ -136,6 +136,7 @@ export function ProcessingOverlay({
         style={{
           backgroundColor: "rgba(0,0,0,0.6)",
           backdropFilter: "blur(8px)",
+          zIndex: 99999,
         }}
       >
         <motion.div
