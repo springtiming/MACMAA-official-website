@@ -267,9 +267,9 @@ export function ProcessingOverlay({
                     className="absolute inset-y-0 rounded-full"
                     style={{
                       background: config.progressFill,
-                      width: "45%",
+                      width: "42%",
                     }}
-                    animate={{ x: ["0%", "55%", "0%"] }}
+                    animate={{ x: ["-40%", "105%"] }}
                     transition={{
                       duration: 1.9,
                       repeat: Infinity,

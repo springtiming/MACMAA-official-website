@@ -209,15 +209,8 @@ async function getCroppedImg(
     Math.round(0 - safeArea / 2 + image.height * 0.5 - pixelCrop.y)
   );
 
-  return new Promise((resolve) => {
-    canvas.toBlob((blob) => {
-      if (!blob) {
-        throw new Error("Canvas is empty");
-      }
-      const fileUrl = URL.createObjectURL(blob);
-      resolve(fileUrl);
-    }, "image/jpeg");
-  });
+  // 直接返回 base64 Data URL，避免保存为 blob: 本地对象导致跨域不可读
+  return canvas.toDataURL("image/jpeg", 0.9);
 }
 
 function createImage(url: string): Promise<HTMLImageElement> {

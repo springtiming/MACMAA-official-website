@@ -26,6 +26,11 @@ export function resolveNewsCover(
   coverKeyword?: string | null,
   coverUrl?: string | null
 ) {
+  // 如果是开发环境留下的 blob URL（跨域加载会报错），直接忽略并回退到公共图
+  if (coverUrl?.startsWith("blob:")) {
+    coverUrl = null;
+  }
+
   if (coverUrl) {
     return coverUrl;
   }
