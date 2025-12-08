@@ -91,6 +91,15 @@ async function saveDraft(req: Request) {
   }
 
   try {
+    console.log("[news-drafts] incoming payload", {
+      hasId: !!body.id,
+      id: body.id,
+      title_zh: body.title_zh,
+      title_en: body.title_en,
+      cover_type: body.cover_type,
+      cover_keyword: body.cover_keyword,
+      cover_url: body.cover_url,
+    });
     // 业务约定：
     // - 使用 article_id 作为“新闻编号”，同一编号下最多只保留 1 条草稿（status = 'draft'）
     // - 若已存在草稿，则覆盖更新；否则按当前最大 version_number + 1 创建新草稿
@@ -100,8 +109,12 @@ async function saveDraft(req: Request) {
     //    - 否则生成一个新的 UUID，作为之后草稿和已发布新闻的统一编号
     let articleId = body.id && body.id.trim().length > 0 ? body.id : null;
     if (!articleId || !UUID_REGEX.test(articleId)) {
+      console.warn("[news-drafts] non-uuid articleId, regenerating", {
+        provided: body.id,
+      });
       articleId = crypto.randomUUID();
     }
+    console.log("[news-drafts] normalized articleId", { articleId });
 
     const coverSource =
       body.cover_url ?? body.cover_source ?? body.cover_keyword ?? null;
@@ -126,9 +139,12 @@ async function saveDraft(req: Request) {
       .eq("id", articleId);
 
     if (articleError) {
-      console.error("[news-drafts] ensure article", articleError);
+      console.error("[news-drafts] ensure article", {
+        articleId,
+        error: articleError,
+      });
       return new Response(
-        JSON.stringify({ error: "Failed to save draft" }),
+        JSON.stringify({ error: "Failed to save draft", detail: articleError.message }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
@@ -176,9 +192,13 @@ async function saveDraft(req: Request) {
         .single();
 
       if (error) {
-        console.error("[news-drafts] update draft", error);
+        console.error("[news-drafts] update draft", {
+          articleId,
+          draftId: existingDraft.id,
+          error,
+        });
         return new Response(
-          JSON.stringify({ error: "Failed to save draft" }),
+          JSON.stringify({ error: "Failed to save draft", detail: error.message }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
@@ -200,9 +220,9 @@ async function saveDraft(req: Request) {
       .maybeSingle();
 
     if (latestError) {
-      console.error("[news-drafts] nextVersion", latestError);
+      console.error("[news-drafts] nextVersion", { articleId, error: latestError });
       return new Response(
-        JSON.stringify({ error: "Failed to determine next version" }),
+        JSON.stringify({ error: "Failed to determine next version", detail: latestError.message }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
@@ -233,9 +253,9 @@ async function saveDraft(req: Request) {
       .single();
 
     if (error) {
-      console.error("[news-drafts] save", error);
+      console.error("[news-drafts] save", { articleId, error });
       return new Response(
-        JSON.stringify({ error: "Failed to save draft" }),
+        JSON.stringify({ error: "Failed to save draft", detail: error.message }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
