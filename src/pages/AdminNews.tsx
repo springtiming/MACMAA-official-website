@@ -63,6 +63,7 @@ export function AdminNews() {
   const [draftVersionId, setDraftVersionId] = useState<string | null>(null);
   const [showImageUploadModal, setShowImageUploadModal] = useState(false);
   const [uploadedImage, setUploadedImage] = useState("");
+  const [uploadedImageUrl, setUploadedImageUrl] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -197,7 +198,10 @@ export function AdminNews() {
     const type = news.imageType || "upload";
     const keyword =
       type === "unsplash" ? news.imageKeyword.trim() : "";
-    const url = type === "upload" ? news.image || uploadedImage || "" : news.image;
+    const url =
+      type === "upload"
+        ? news.image || uploadedImage || uploadedImageUrl || ""
+        : news.image;
     const coverSource = url || keyword || null;
     return {
       cover_source: coverSource,
@@ -672,6 +676,8 @@ export function AdminNews() {
             }}
             handleImageUpload={handleImageUpload}
             uploadedImage={uploadedImage}
+            uploadedImageUrl={uploadedImageUrl}
+            setUploadedImageUrl={setUploadedImageUrl}
             formLoading={formLoading}
             isImageUploadModalOpen={showImageUploadModal}
           />
@@ -829,6 +835,8 @@ function NewsFormModal({
   onClose,
   handleImageUpload,
   uploadedImage,
+  uploadedImageUrl,
+  setUploadedImageUrl,
   formLoading,
   isImageUploadModalOpen = false,
 }: {
@@ -839,6 +847,8 @@ function NewsFormModal({
   onClose: () => void;
   handleImageUpload: () => void;
   uploadedImage: string;
+  uploadedImageUrl: string;
+  setUploadedImageUrl: (url: string) => void;
   formLoading: boolean;
   isImageUploadModalOpen?: boolean;
 }) {
@@ -895,9 +905,10 @@ function NewsFormModal({
   );
 
   // 状态：保存上传的图片 URL（用于在模式切换时恢复）
-  const [uploadedImageUrl, setUploadedImageUrl] = useState<string>(() => {
-    return initialCoverUrl || "";
-  });
+  // 由父组件传入，避免多份状态不一致
+  // const [uploadedImageUrl, setUploadedImageUrl] = useState<string>(() => {
+  //   return initialCoverUrl || "";
+  // });
   const [fullscreenEditor, setFullscreenEditor] = useState<"zh" | "en" | null>(
     null
   );
