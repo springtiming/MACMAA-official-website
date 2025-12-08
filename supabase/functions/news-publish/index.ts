@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
     const { data: draft, error: draftError } = await supabase
       .from("article_versions")
       .select(
-        "id, article_id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, status, version_number"
+        "id, article_id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, cover_type, cover_keyword, cover_url, status, version_number"
       )
       .eq("id", versionId)
       .maybeSingle();
@@ -85,12 +85,17 @@ Deno.serve(async (req) => {
         summary_en: draft.summary_en,
         content_zh: draft.content_zh,
         content_en: draft.content_en,
-        cover_source: draft.cover_source,
+        cover_source: draft.cover_url ?? draft.cover_keyword ?? draft.cover_source,
+        cover_type:
+          draft.cover_type ??
+          (draft.cover_url ? "upload" : draft.cover_keyword ? "unsplash" : null),
+        cover_keyword: draft.cover_keyword ?? null,
+        cover_url: draft.cover_url ?? null,
         published: true,
         published_at: publishedAt,
       })
       .select(
-        "id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, published_at, published, author_id"
+        "id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, cover_type, cover_keyword, cover_url, published_at, published, author_id"
       )
       .single();
 
@@ -108,7 +113,7 @@ Deno.serve(async (req) => {
       .update({ status: "published", article_id: articleId })
       .eq("id", draft.id)
       .select(
-        "id, article_id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, status, version_number, created_by, created_at, updated_at"
+        "id, article_id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, cover_type, cover_keyword, cover_url, status, version_number, created_by, created_at, updated_at"
       )
       .single();
 

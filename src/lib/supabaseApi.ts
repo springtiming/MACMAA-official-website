@@ -10,6 +10,9 @@ export interface NewsPostRecord {
   content_zh: string | null;
   content_en: string | null;
   cover_source: string | null;
+  cover_type?: "unsplash" | "upload" | null;
+  cover_keyword?: string | null;
+  cover_url?: string | null;
   published_at: string | null;
   published: boolean;
   author_id: string | null;
@@ -68,6 +71,9 @@ export interface ArticleVersionRecord {
   content_zh: string | null;
   content_en: string | null;
   cover_source: string | null;
+  cover_type?: "unsplash" | "upload" | null;
+  cover_keyword?: string | null;
+  cover_url?: string | null;
   status: "draft" | "published";
   version_number: number;
   created_by: string | null;
@@ -123,7 +129,7 @@ export async function fetchNewsPosts(options: FetchNewsOptions = {}) {
   let query = supabase
     .from("articles")
     .select(
-      "id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, published_at, published, author_id"
+      "id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, cover_type, cover_keyword, cover_url, published_at, published, author_id"
     )
     .order("published_at", { ascending: false });
 
@@ -188,7 +194,7 @@ export async function fetchNewsPostById(id: string) {
   const { data, error } = await supabase
     .from("articles")
     .select(
-      "id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, published_at, published, author_id"
+      "id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, cover_type, cover_keyword, cover_url, published_at, published, author_id"
     )
     .eq("id", id)
     .eq("published", true)
@@ -582,6 +588,9 @@ export type NewsDraftInput = {
   content_zh?: string | null;
   content_en?: string | null;
   cover_source?: string | null;
+  cover_type?: "unsplash" | "upload" | null;
+  cover_keyword?: string | null;
+  cover_url?: string | null;
 };
 
 export async function saveNewsDraft(payload: NewsDraftInput) {

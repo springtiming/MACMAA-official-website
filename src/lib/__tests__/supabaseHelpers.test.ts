@@ -20,11 +20,16 @@ describe("supabaseHelpers", () => {
     expect(buildUnsplashUrl("community", "hero")).toContain("1200x675");
   });
 
-  it("resolves news cover using keyword and direct URL", () => {
-    const keywordUrl = resolveNewsCover("hello world", "thumb");
+  it("resolves news cover preferring url then keyword", () => {
+    const keywordUrl = resolveNewsCover(null, "thumb", "hello world", null);
     expect(keywordUrl).toContain("hello%20world");
 
-    const directUrl = resolveNewsCover("https://example.com/image.png", "hero");
+    const directUrl = resolveNewsCover(
+      null,
+      "hero",
+      "hello world",
+      "https://example.com/image.png"
+    );
     expect(directUrl).toBe("https://example.com/image.png");
   });
 

@@ -22,6 +22,9 @@ type DraftPayload = {
   content_zh?: string | null;
   content_en?: string | null;
   cover_source?: string | null;
+  cover_type?: "unsplash" | "upload" | null;
+  cover_keyword?: string | null;
+  cover_url?: string | null;
 };
 
 Deno.serve(async (req) => {
@@ -46,7 +49,7 @@ async function listDrafts() {
     const { data, error } = await supabase
       .from("article_versions")
       .select(
-        "id, article_id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, status, version_number, created_by, created_at, updated_at"
+        "id, article_id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, cover_type, cover_keyword, cover_url, status, version_number, created_by, created_at, updated_at"
       )
       .eq("status", "draft")
       .order("updated_at", { ascending: false });
@@ -124,13 +127,17 @@ async function saveDraft(req: Request) {
           summary_en: body.summary_en ?? null,
           content_zh: body.content_zh ?? null,
           content_en: body.content_en ?? null,
-          cover_source: body.cover_source ?? null,
+          cover_source:
+            body.cover_url ?? body.cover_source ?? body.cover_keyword ?? null,
+          cover_type: body.cover_type ?? null,
+          cover_keyword: body.cover_keyword ?? null,
+          cover_url: body.cover_url ?? null,
           // 保持 status = 'draft' 与 version_number 不变，仅更新时间
           updated_at: now,
         })
         .eq("id", existingDraft.id)
         .select(
-          "id, article_id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, status, version_number, created_by, created_at, updated_at",
+          "id, article_id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, cover_type, cover_keyword, cover_url, status, version_number, created_by, created_at, updated_at",
         )
         .single();
 
@@ -179,12 +186,16 @@ async function saveDraft(req: Request) {
         summary_en: body.summary_en ?? null,
         content_zh: body.content_zh ?? null,
         content_en: body.content_en ?? null,
-        cover_source: body.cover_source ?? null,
+        cover_source:
+          body.cover_url ?? body.cover_source ?? body.cover_keyword ?? null,
+        cover_type: body.cover_type ?? null,
+        cover_keyword: body.cover_keyword ?? null,
+        cover_url: body.cover_url ?? null,
         status: "draft",
         version_number: versionNumber,
       })
       .select(
-        "id, article_id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, status, version_number, created_by, created_at, updated_at",
+        "id, article_id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, cover_type, cover_keyword, cover_url, status, version_number, created_by, created_at, updated_at",
       )
       .single();
 

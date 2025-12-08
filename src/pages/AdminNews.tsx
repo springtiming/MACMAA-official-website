@@ -24,6 +24,7 @@ import { ImageUploadModal } from "../components/ImageUploadModal";
 import { ProcessingOverlay } from "../components/ProcessingOverlay";
 import { useProcessingFeedback } from "../hooks/useProcessingFeedback";
 import { AdminConfirmDialog } from "../components/AdminConfirmDialog";
+import { searchPhotos, type UnsplashPhoto } from "../lib/unsplashApi";
 import {
   fetchAdminNewsPosts,
   fetchMyDrafts,
@@ -142,7 +143,12 @@ export function AdminNews() {
   };
 
   const handleEdit = (news: NewsPostRecord) => {
-    setUploadedImage(news.cover_source ?? "");
+    const coverUrl =
+      news.cover_url ||
+      (news.cover_source && news.cover_source.startsWith("http")
+        ? news.cover_source
+        : "");
+    setUploadedImage(coverUrl ?? "");
     setEditingArticle(news);
     setEditingDraft(null);
     setDraftVersionId(null);
@@ -150,7 +156,12 @@ export function AdminNews() {
   };
 
   const handleEditDraft = (draft: ArticleVersionRecord) => {
-    setUploadedImage(draft.cover_source ?? "");
+    const coverUrl =
+      draft.cover_url ||
+      (draft.cover_source && draft.cover_source.startsWith("http")
+        ? draft.cover_source
+        : "");
+    setUploadedImage(coverUrl ?? "");
     setEditingDraft(draft);
     setEditingArticle(null);
     setDraftVersionId(draft.id);
@@ -182,12 +193,27 @@ export function AdminNews() {
     }
   };
 
+  const buildCoverFields = (news: NewsFormState) => {
+    const type = news.imageType || "upload";
+    const keyword =
+      type === "unsplash" ? news.imageKeyword.trim() : "";
+    const url = type === "upload" ? news.image || uploadedImage || "" : news.image;
+    const coverSource = url || keyword || null;
+    return {
+      cover_source: coverSource,
+      cover_type: type,
+      cover_keyword: keyword || null,
+      cover_url: url || null,
+    };
+  };
+
   const handleSave = async (news: NewsFormState) => {
     setFormLoading(true);
     const messages = getFeedbackMessages("save");
     try {
       await runWithFeedback(messages, async () => {
         try {
+          const coverFields = buildCoverFields(news);
           const draft = await saveNewsDraft({
             // 这里的 id 代表业务上的“新闻编号”(article_id)
             id: news.id || editingArticle?.id || editingDraft?.article_id,
@@ -197,7 +223,7 @@ export function AdminNews() {
             summary_en: news.summary.en,
             content_zh: news.content.zh,
             content_en: news.content.en,
-            cover_source: news.image || null,
+            ...coverFields,
           });
           // 记录当前正在编辑的草稿版本以及对应的新闻编号
           setDraftVersionId(draft.id);
@@ -221,7 +247,10 @@ export function AdminNews() {
             summary_en: news.summary.en,
             content_zh: news.content.zh,
             content_en: news.content.en,
-            cover_source: news.image || null,
+            cover_source: buildCoverFields(news).cover_source,
+            cover_type: news.imageType,
+            cover_keyword: news.imageKeyword,
+            cover_url: buildCoverFields(news).cover_url,
             status: "draft",
             version_number: (draftList[0]?.version_number ?? 0) + 1,
             created_by: null,
@@ -251,6 +280,7 @@ export function AdminNews() {
         try {
           let versionId = draftVersionId;
           if (!versionId) {
+            const coverFields = buildCoverFields(news);
             const draft = await saveNewsDraft({
               // 这里的 id 代表业务上的“新闻编号”(article_id)
               id: news.id || editingArticle?.id || editingDraft?.article_id,
@@ -260,7 +290,7 @@ export function AdminNews() {
               summary_en: news.summary.en,
               content_zh: news.content.zh,
               content_en: news.content.en,
-              cover_source: news.image || null,
+              ...coverFields,
             });
             versionId = draft.id;
             setEditingDraft(draft);
@@ -294,7 +324,10 @@ export function AdminNews() {
             summary_en: news.summary.en,
             content_zh: news.content.zh,
             content_en: news.content.en,
-            cover_source: news.image || null,
+            cover_source: buildCoverFields(news).cover_source,
+            cover_type: news.imageType,
+            cover_keyword: news.imageKeyword,
+            cover_url: buildCoverFields(news).cover_url,
             published_at: new Date().toISOString(),
             published: true,
             author_id: null,
@@ -337,7 +370,64 @@ export function AdminNews() {
 
   const handleImageUploadSuccess = (imageUrl: string) => {
     setUploadedImage(imageUrl);
+    setUploadedImageUrl(imageUrl);
+    setFormData((prev) => ({
+      ...prev,
+      image: imageUrl,
+      imageKeyword: "",
+      imageType: "upload",
+    }));
+    setImageSource("upload");
+    setSelectedUnsplashId(null);
     setShowImageUploadModal(false);
+  };
+
+  const handleUnsplashSearch = async () => {
+    const keyword = unsplashKeyword.trim();
+    if (!keyword) {
+      setUnsplashError(
+        language === "zh" ? "请输入关键词后再搜索" : "Enter a keyword to search"
+      );
+      setUnsplashResults([]);
+      return;
+    }
+
+    setUnsplashLoading(true);
+    setUnsplashError(null);
+    try {
+      const res = await searchPhotos(keyword, 1, 12);
+      setUnsplashResults(res.results);
+      if (res.results.length === 0) {
+        setUnsplashError(
+          language === "zh" ? "未找到相关图片" : "No images found"
+        );
+      }
+    } catch (err) {
+      console.error("[AdminNews] unsplash search", err);
+      setUnsplashError(
+        language === "zh" ? "搜索失败，请稍后再试" : "Search failed, please try again"
+      );
+    } finally {
+      setUnsplashLoading(false);
+    }
+  };
+
+  const handleSelectUnsplash = (photo: UnsplashPhoto) => {
+    const url =
+      photo.urls?.regular ??
+      photo.urls?.full ??
+      photo.urls?.small ??
+      photo.urls?.thumb ??
+      "";
+    if (!url) return;
+    setFormData((prev) => ({
+      ...prev,
+      image: url,
+      imageKeyword: unsplashKeyword,
+      imageType: "unsplash",
+    }));
+    setImageSource("unsplash");
+    setSelectedUnsplashId(photo.id);
   };
 
   const confirmCopy = confirmDialog
@@ -618,6 +708,8 @@ type NewsFormState = {
   content: { zh: string; en: string };
   date: string;
   image: string;
+  imageKeyword: string;
+  imageType: "unsplash" | "upload";
 };
 
 type NewsValidationFields = {
@@ -751,7 +843,24 @@ function NewsFormModal({
   isImageUploadModalOpen?: boolean;
 }) {
   const { language, t } = useLanguage();
-  const initialCover = draft?.cover_source || news?.cover_source || "";
+  const initialCoverUrl =
+    draft?.cover_url ||
+    news?.cover_url ||
+    (draft?.cover_source && draft.cover_source.startsWith("http")
+      ? draft.cover_source
+      : news?.cover_source && news.cover_source.startsWith("http")
+        ? news.cover_source
+        : "");
+  const initialCoverKeyword =
+    draft?.cover_keyword ||
+    news?.cover_keyword ||
+    (!initialCoverUrl
+      ? (draft?.cover_source ?? news?.cover_source ?? "")
+      : "");
+  const initialCoverType =
+    draft?.cover_type ||
+    news?.cover_type ||
+    (initialCoverUrl ? "upload" : initialCoverKeyword ? "unsplash" : "upload");
 
   // 辅助函数：判断字符串是否为图片 URL
   const isImageUrl = (str: string): boolean => {
@@ -763,27 +872,42 @@ function NewsFormModal({
     );
   };
 
+  const isUnsplashUrl = (str: string): boolean =>
+    isImageUrl(str) && str.includes("images.unsplash.com");
+
   const [imageSource, setImageSource] = useState<"unsplash" | "upload">(() => {
-    if (!initialCover) return "upload";
-    if (isImageUrl(initialCover)) {
-      return "upload";
-    }
-    return "unsplash";
+    if (initialCoverType) return initialCoverType;
+    if (isUnsplashUrl(initialCoverUrl)) return "unsplash";
+    if (initialCoverUrl) return "upload";
+    if (initialCoverKeyword) return "unsplash";
+    return "upload";
   });
+
+  const [unsplashKeyword, setUnsplashKeyword] = useState<string>(() => {
+    if (initialCoverKeyword) return initialCoverKeyword;
+    return "";
+  });
+  const [unsplashResults, setUnsplashResults] = useState<UnsplashPhoto[]>([]);
+  const [unsplashLoading, setUnsplashLoading] = useState(false);
+  const [unsplashError, setUnsplashError] = useState<string | null>(null);
+  const [selectedUnsplashId, setSelectedUnsplashId] = useState<string | null>(
+    null
+  );
 
   // 状态：保存上传的图片 URL（用于在模式切换时恢复）
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>(() => {
-    if (initialCover && isImageUrl(initialCover)) {
-      return initialCover;
-    }
-    return "";
+    return initialCoverUrl || "";
   });
   const [fullscreenEditor, setFullscreenEditor] = useState<"zh" | "en" | null>(
     null
   );
   const [formData, setFormData] = useState<NewsFormState>(() => {
     const coverSource = draft?.cover_source || news?.cover_source || "";
-    const isCoverImageUrl = coverSource && isImageUrl(coverSource);
+    const coverUrl = draft?.cover_url || news?.cover_url || uploadedImageUrl;
+    const coverKeyword =
+      draft?.cover_keyword || news?.cover_keyword || unsplashKeyword;
+    const isCoverImageUrl = !!coverUrl && isImageUrl(coverUrl);
+    const isCoverUnsplash = !!coverUrl && isUnsplashUrl(coverUrl);
 
     if (draft) {
       return {
@@ -792,9 +916,12 @@ function NewsFormModal({
         summary: { zh: draft.summary_zh ?? "", en: draft.summary_en ?? "" },
         content: { zh: draft.content_zh ?? "", en: draft.content_en ?? "" },
         date: new Date().toISOString().split("T")[0],
-        // 如果是图片 URL 且当前模式是 unsplash，则清空（避免在搜索框显示 URL）
-        // 否则使用 coverSource（图片 URL 或关键词）
-        image: isCoverImageUrl && imageSource === "unsplash" ? "" : coverSource,
+        image:
+          isCoverImageUrl && imageSource === "unsplash" && !isCoverUnsplash
+            ? ""
+            : coverUrl || coverSource,
+        imageKeyword: coverKeyword || "",
+        imageType: imageSource,
       };
     }
     if (news) {
@@ -806,9 +933,12 @@ function NewsFormModal({
         date: news.published_at
           ? news.published_at.slice(0, 10)
           : new Date().toISOString().split("T")[0],
-        // 如果是图片 URL 且当前模式是 unsplash，则清空（避免在搜索框显示 URL）
-        // 否则使用 coverSource（图片 URL 或关键词）
-        image: isCoverImageUrl && imageSource === "unsplash" ? "" : coverSource,
+        image:
+          isCoverImageUrl && imageSource === "unsplash" && !isCoverUnsplash
+            ? ""
+            : coverUrl || coverSource,
+        imageKeyword: coverKeyword || "",
+        imageType: imageSource,
       };
     }
     return {
@@ -817,7 +947,9 @@ function NewsFormModal({
       summary: { zh: "", en: "" },
       content: { zh: "", en: "" },
       date: new Date().toISOString().split("T")[0],
-      image: "",
+      image: coverUrl || coverSource || "",
+      imageKeyword: coverKeyword || "",
+      imageType: imageSource,
     };
   });
   const [errors, setErrors] = useState<FormErrors>({});
@@ -846,7 +978,12 @@ function NewsFormModal({
     if (uploadedImage) {
       setImageSource("upload");
       setUploadedImageUrl(uploadedImage);
-      setFormData((prev) => ({ ...prev, image: uploadedImage }));
+      setFormData((prev) => ({
+        ...prev,
+        image: uploadedImage,
+        imageKeyword: "",
+        imageType: "upload",
+      }));
     }
   }, [uploadedImage]);
 
@@ -1047,20 +1184,30 @@ function NewsFormModal({
               </h3>
 
               {/* Toggle Buttons */}
-              <div className="flex gap-2 mb-4">
-                <button
-                  type="button"
+                  <div className="flex gap-2 mb-4">
+                    <button
+                      type="button"
                   onClick={() => {
                     setImageSource("upload");
+                    setUnsplashResults([]);
+                    setUnsplashError(null);
+                    setSelectedUnsplashId(null);
                     // 如果之前保存了上传的图片 URL，恢复它
                     if (uploadedImageUrl) {
                       setFormData((prev) => ({
                         ...prev,
                         image: uploadedImageUrl,
+                        imageKeyword: "",
+                        imageType: "upload",
                       }));
                     } else if (formData.image && !isImageUrl(formData.image)) {
                       // 如果 uploadedImageUrl 不存在，且当前 formData.image 是关键词（不是图片 URL），则清空
-                      setFormData((prev) => ({ ...prev, image: "" }));
+                      setFormData((prev) => ({
+                        ...prev,
+                        image: "",
+                        imageKeyword: "",
+                        imageType: "upload",
+                      }));
                     }
                   }}
                   className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all ${
@@ -1070,18 +1217,34 @@ function NewsFormModal({
                   }`}
                 >
                   {t("admin.news.form.useUpload")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setImageSource("unsplash");
-                    // 如果当前 formData.image 是图片 URL，保存到 uploadedImageUrl 并清空搜索框
-                    if (formData.image && isImageUrl(formData.image)) {
-                      setUploadedImageUrl(formData.image);
-                      setFormData((prev) => ({ ...prev, image: "" }));
-                    }
-                  }}
-                  className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all ${
+                    </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setImageSource("unsplash");
+                      setUnsplashResults([]);
+                      setUnsplashError(null);
+                      setSelectedUnsplashId(null);
+                      // 如果当前 formData.image 是图片 URL，保存到 uploadedImageUrl 并清空搜索框
+                      if (
+                        formData.image &&
+                        isImageUrl(formData.image) &&
+                        !isUnsplashUrl(formData.image)
+                      ) {
+                        setUploadedImageUrl(formData.image);
+                        setFormData((prev) => ({
+                          ...prev,
+                          image: "",
+                          imageType: "unsplash",
+                        }));
+                      }
+                      setFormData((prev) => ({
+                        ...prev,
+                        imageType: "unsplash",
+                        imageKeyword: unsplashKeyword,
+                      }));
+                    }}
+                      className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all ${
                     imageSource === "unsplash"
                       ? "bg-[#2B5F9E] text-white shadow-md"
                       : "bg-white text-gray-600 border border-gray-300 hover:border-[#2B5F9E]"
@@ -1092,27 +1255,117 @@ function NewsFormModal({
               </div>
 
               {/* Unsplash Option */}
-              {imageSource === "unsplash" && (
-                <div>
-                  <label className="block text-gray-700 mb-2">
-                    {t("admin.news.form.unsplashKeywords")}
-                  </label>
-                  <input
-                    type="text"
-                    placeholder={t(
-                      "admin.news.form.unsplashKeywordsPlaceholder"
-                    )}
-                    value={formData.image}
-                    onChange={(e) =>
-                      setFormData({ ...formData, image: e.target.value })
-                    }
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    {t("admin.news.form.unsplashHelp")}
-                  </p>
-                </div>
-              )}
+                  {imageSource === "unsplash" && (
+                    <div className="space-y-3">
+                      <label className="block text-gray-700">
+                        {t("admin.news.form.unsplashKeywords")}
+                      </label>
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <input
+                          type="text"
+                          placeholder={t(
+                            "admin.news.form.unsplashKeywordsPlaceholder"
+                          )}
+                          value={unsplashKeyword}
+                          onChange={(e) => {
+                            setUnsplashKeyword(e.target.value);
+                            setFormData((prev) => ({
+                              ...prev,
+                              imageKeyword: e.target.value,
+                            }));
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              void handleUnsplashSearch();
+                            }
+                          }}
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleUnsplashSearch}
+                          className="px-4 py-2.5 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors min-w-[120px]"
+                        >
+                          {language === "zh" ? "搜索图片" : "Search"}
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        {t("admin.news.form.unsplashHelp")}
+                      </p>
+                      {unsplashError && (
+                        <p className="text-xs text-red-600" role="alert">
+                          {unsplashError}
+                        </p>
+                      )}
+                      {unsplashLoading && (
+                        <p className="text-sm text-gray-600">
+                          {language === "zh" ? "搜索中..." : "Searching..."}
+                        </p>
+                      )}
+                      {formData.image && isImageUrl(formData.image) && (
+                        <div className="p-3 bg-white border border-gray-200 rounded-lg">
+                          <div className="flex items-center gap-2 text-sm text-green-600 mb-2">
+                            <ImageIcon className="w-4 h-4" />
+                            <span>
+                              {language === "zh"
+                                ? "已选图片预览"
+                                : "Selected image"}
+                            </span>
+                          </div>
+                          <img
+                            src={formData.image}
+                            alt="Unsplash selection"
+                            className="w-full h-48 object-cover rounded-lg"
+                          />
+                        </div>
+                      )}
+                      {unsplashResults.length > 0 && (
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                          {unsplashResults.map((photo) => {
+                            const selected = selectedUnsplashId === photo.id;
+                            return (
+                              <button
+                                type="button"
+                                key={photo.id}
+                                onClick={() => handleSelectUnsplash(photo)}
+                                className={`relative group overflow-hidden rounded-lg border ${
+                                  selected
+                                    ? "border-[#2B5F9E] ring-2 ring-[#2B5F9E]"
+                                    : "border-gray-200 hover:border-[#2B5F9E]"
+                                }`}
+                              >
+                                <img
+                                  src={
+                                    photo.urls?.small ??
+                                    photo.urls?.thumb ??
+                                    photo.urls?.regular ??
+                                    ""
+                                  }
+                                  alt={
+                                    photo.alt_description ??
+                                    photo.description ??
+                                    ""
+                                  }
+                                  className="w-full h-36 object-cover"
+                                />
+                                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <span className="absolute bottom-2 left-2 text-xs text-white bg-black/60 px-2 py-1 rounded">
+                                  {selected
+                                    ? language === "zh"
+                                      ? "已选择"
+                                      : "Selected"
+                                    : language === "zh"
+                                      ? "使用"
+                                      : "Use"}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
               {/* Upload Option */}
               {imageSource === "upload" && (

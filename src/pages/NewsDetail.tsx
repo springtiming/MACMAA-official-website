@@ -110,7 +110,12 @@ export function NewsDetail() {
         {/* Featured Image */}
         <div className="aspect-video bg-gray-200 rounded-2xl overflow-hidden mb-6">
           <ImageWithFallback
-            src={resolveNewsCover(news.cover_source, "hero")}
+            src={resolveNewsCover(
+              news.cover_source,
+              "hero",
+              news.cover_keyword,
+              news.cover_url
+            )}
             alt={pickLocalized(news.title_zh, news.title_en, language)}
             className="w-full h-full object-cover"
           />

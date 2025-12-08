@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
     const { data, error } = await supabase
       .from("articles")
       .select(
-        "id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, published_at, published, author_id"
+        "id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, cover_type, cover_keyword, cover_url, published_at, published, author_id"
       )
       .order("published_at", { ascending: false });
 

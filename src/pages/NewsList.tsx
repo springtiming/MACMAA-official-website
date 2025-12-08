@@ -74,7 +74,12 @@ export function NewsList() {
               >
                 <div className="aspect-video bg-gray-200 overflow-hidden">
                   <ImageWithFallback
-                    src={resolveNewsCover(news.cover_source, "thumb")}
+                    src={resolveNewsCover(
+                      news.cover_source,
+                      "thumb",
+                      news.cover_keyword,
+                      news.cover_url
+                    )}
                     alt={language === "zh" ? news.title_zh : news.title_en}
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                   />

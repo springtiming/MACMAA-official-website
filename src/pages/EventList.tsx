@@ -96,7 +96,7 @@ export function EventList() {
           >
             <div className="md:flex">
               <div className="md:w-2/5 relative z-10 transition-[transform,z-index] duration-300 group-hover:z-20">
-                <div className="aspect-square bg-gray-200 overflow-hidden h-full">
+                <div className="aspect-square bg-gray-200 overflow-hidden h-full relative">
                   <ImageWithFallback
                     src={resolveEventImage(
                       event.image_type ?? null,
@@ -113,11 +113,15 @@ export function EventList() {
                       isPast ? "grayscale-[0.3]" : "hover:scale-105"
                     }`}
                   />
+                  {/* 图片右侧渐变：将图片边缘淡出到白色，避免文字压在图片上 */}
+                  <div className="absolute inset-y-0 right-0 w-28 pointer-events-none bg-gradient-to-r from-transparent via-white/80 to-white" />
                 </div>
               </div>
-              <div className="md:w-3/5 p-4 sm:p-6 flex flex-col relative">
+              <div className="md:w-3/5 p-4 sm:p-6 flex flex-col relative overflow-hidden">
                 {/* 模糊背景层：覆盖文字区域，提升可读性 */}
                 <div className="pointer-events-none absolute inset-0 bg-white/70 backdrop-blur-sm z-0 transition-opacity duration-300 group-hover:opacity-80" />
+                {/* 左侧渐变：在与图片交界处再做一次淡入，防止文字压到图片边缘 */}
+                <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white via-white/85 to-transparent z-0" />
                 {/* 文字内容容器，位于模糊层之上 */}
                 <div className="relative z-10 flex flex-col h-full">
                   <div className="mb-2 flex items-center gap-2 flex-wrap">

@@ -22,8 +22,16 @@ export function buildUnsplashUrl(
 
 export function resolveNewsCover(
   coverSource: string | null,
-  size: "thumb" | "hero" = "thumb"
+  size: "thumb" | "hero" = "thumb",
+  coverKeyword?: string | null,
+  coverUrl?: string | null
 ) {
+  if (coverUrl) {
+    return coverUrl;
+  }
+  if (coverKeyword) {
+    return buildUnsplashUrl(coverKeyword, size);
+  }
   if (!coverSource) {
     return buildUnsplashUrl("community,news", size);
   }
