@@ -372,20 +372,6 @@ export function AdminNews() {
     setShowImageUploadModal(false);
   };
 
-  const handleImageUploadSuccess = (imageUrl: string) => {
-    setUploadedImage(imageUrl);
-    setUploadedImageUrl(imageUrl);
-    setFormData((prev) => ({
-      ...prev,
-      image: imageUrl,
-      imageKeyword: "",
-      imageType: "upload",
-    }));
-    setImageSource("upload");
-    setSelectedUnsplashId(null);
-    setShowImageUploadModal(false);
-  };
-
   const handleUnsplashSearch = async () => {
     const keyword = unsplashKeyword.trim();
     if (!keyword) {
@@ -1002,6 +988,20 @@ function NewsFormModal({
     setErrors({});
     setTouched({});
   }, [draft?.id, news?.id]);
+
+  const handleImageUploadSuccess = (imageUrl: string) => {
+    setUploadedImage(imageUrl);
+    setUploadedImageUrl(imageUrl);
+    setFormData((prev) => ({
+      ...prev,
+      image: imageUrl,
+      imageKeyword: "",
+      imageType: "upload",
+    }));
+    setImageSource("upload");
+    setSelectedUnsplashId(null);
+    setShowImageUploadModal(false);
+  };
 
   const normalizeFieldValue = (
     field: keyof NewsValidationFields,
