@@ -98,6 +98,36 @@ async function saveDraft(req: Request) {
       articleId = crypto.randomUUID();
     }
 
+    const coverSource =
+      body.cover_url ?? body.cover_source ?? body.cover_keyword ?? null;
+
+    // 确保 articles 表中存在对应的文章记录，避免外键约束报错
+    const { error: articleError } = await supabase
+      .from("articles")
+      .upsert({
+        id: articleId,
+        title_zh: body.title_zh,
+        title_en: body.title_en,
+        summary_zh: body.summary_zh ?? null,
+        summary_en: body.summary_en ?? null,
+        content_zh: body.content_zh ?? null,
+        content_en: body.content_en ?? null,
+        cover_source: coverSource,
+        cover_type: body.cover_type ?? null,
+        cover_keyword: body.cover_keyword ?? null,
+        cover_url: body.cover_url ?? null,
+        published: false,
+      })
+      .eq("id", articleId);
+
+    if (articleError) {
+      console.error("[news-drafts] ensure article", articleError);
+      return new Response(
+        JSON.stringify({ error: "Failed to save draft" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     // 2. 查询是否已有该 articleId 对应的草稿
     const { data: existingDraft, error: existingError } = await supabase
       .from("article_versions")
@@ -127,8 +157,7 @@ async function saveDraft(req: Request) {
           summary_en: body.summary_en ?? null,
           content_zh: body.content_zh ?? null,
           content_en: body.content_en ?? null,
-          cover_source:
-            body.cover_url ?? body.cover_source ?? body.cover_keyword ?? null,
+          cover_source: coverSource,
           cover_type: body.cover_type ?? null,
           cover_keyword: body.cover_keyword ?? null,
           cover_url: body.cover_url ?? null,
@@ -186,8 +215,7 @@ async function saveDraft(req: Request) {
         summary_en: body.summary_en ?? null,
         content_zh: body.content_zh ?? null,
         content_en: body.content_en ?? null,
-        cover_source:
-          body.cover_url ?? body.cover_source ?? body.cover_keyword ?? null,
+        cover_source: coverSource,
         cover_type: body.cover_type ?? null,
         cover_keyword: body.cover_keyword ?? null,
         cover_url: body.cover_url ?? null,
