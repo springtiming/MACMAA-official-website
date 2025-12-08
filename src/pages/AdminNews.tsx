@@ -72,6 +72,21 @@ export function AdminNews() {
     type: "delete" | "deleteDraft";
     targetId: string;
   } | null>(null);
+  const isUuid = (value?: string | null) =>
+    !!value &&
+    /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.test(
+      value
+    );
+  const createUuid = () =>
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
+  const normalizeArticleId = (
+    ...candidates: Array<string | null | undefined>
+  ) => {
+    const found = candidates.find((c) => !!c);
+    return isUuid(found) ? (found as string) : undefined;
+  };
   const {
     state: processingState,
     title: processingTitle,
@@ -217,10 +232,15 @@ export function AdminNews() {
     try {
       await runWithFeedback(messages, async () => {
         try {
+          const articleId = normalizeArticleId(
+            news.id,
+            editingArticle?.id,
+            editingDraft?.article_id
+          );
           const coverFields = buildCoverFields(news);
           const draft = await saveNewsDraft({
             // 这里的 id 代表业务上的“新闻编号”(article_id)
-            id: news.id || editingArticle?.id || editingDraft?.article_id,
+            id: articleId,
             title_zh: news.title.zh,
             title_en: news.title.en,
             summary_zh: news.summary.zh,
@@ -239,12 +259,13 @@ export function AdminNews() {
         } catch (err) {
           setError(t("common.error"));
           const localDraft: ArticleVersionRecord = {
-            id: `local-${Date.now()}`,
+            id: createUuid(),
             article_id:
-              news.id ||
-              editingArticle?.id ||
-              editingDraft?.article_id ||
-              `local-article-${Date.now()}`,
+              normalizeArticleId(
+                news.id,
+                editingArticle?.id,
+                editingDraft?.article_id
+              ) ?? createUuid(),
             title_zh: news.title.zh,
             title_en: news.title.en,
             summary_zh: news.summary.zh,
@@ -284,10 +305,15 @@ export function AdminNews() {
         try {
           let versionId = draftVersionId;
           if (!versionId) {
+            const articleId = normalizeArticleId(
+              news.id,
+              editingArticle?.id,
+              editingDraft?.article_id
+            );
             const coverFields = buildCoverFields(news);
             const draft = await saveNewsDraft({
               // 这里的 id 代表业务上的“新闻编号”(article_id)
-              id: news.id || editingArticle?.id || editingDraft?.article_id,
+              id: articleId,
               title_zh: news.title.zh,
               title_en: news.title.en,
               summary_zh: news.summary.zh,
@@ -321,7 +347,9 @@ export function AdminNews() {
         } catch (err) {
           setError(t("common.error"));
           const localArticle: NewsPostRecord = {
-            id: news.id || editingArticle?.id || `local-article-${Date.now()}`,
+            id:
+              normalizeArticleId(news.id, editingArticle?.id) ??
+              createUuid(),
             title_zh: news.title.zh,
             title_en: news.title.en,
             summary_zh: news.summary.zh,

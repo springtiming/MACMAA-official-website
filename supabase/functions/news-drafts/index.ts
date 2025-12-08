@@ -27,6 +27,11 @@ type DraftPayload = {
   cover_url?: string | null;
 };
 
+const UUID_REGEX =
+  /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+
+Deno.cron?.(); // no-op keepers
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -94,7 +99,7 @@ async function saveDraft(req: Request) {
     //    - 如果前端传入 id（表示 article_id），则复用
     //    - 否则生成一个新的 UUID，作为之后草稿和已发布新闻的统一编号
     let articleId = body.id && body.id.trim().length > 0 ? body.id : null;
-    if (!articleId) {
+    if (!articleId || !UUID_REGEX.test(articleId)) {
       articleId = crypto.randomUUID();
     }
 
