@@ -30,6 +30,9 @@ export function resolveNewsCover(
   if (coverUrl?.startsWith("blob:")) {
     coverUrl = null;
   }
+  if (coverSource?.trim().startsWith("blob:")) {
+    coverSource = null;
+  }
 
   if (coverUrl) {
     return coverUrl;
