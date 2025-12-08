@@ -132,7 +132,7 @@ export function ProcessingOverlay({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.15 }}
-        className="fixed inset-0 flex items-center justify-center p-4 z-[9999]"
+        className="fixed inset-0 flex items-center justify-center p-4 z-[99999]"
         style={{
           backgroundColor: "rgba(0,0,0,0.6)",
           backdropFilter: "blur(8px)",

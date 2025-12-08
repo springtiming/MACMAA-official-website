@@ -224,6 +224,9 @@ function toForm(e: EventRecord | null): FormState {
   };
 }
 
+const inputBaseClass =
+  "w-full h-12 border rounded-xl px-4 shadow-sm appearance-none [appearance:textfield] [::-webkit-inner-spin-button]:appearance-none [::-webkit-outer-spin-button]:appearance-none";
+
 export function AdminEvents() {
   const { language, t } = useLanguage();
   const navigate = useNavigate();
@@ -811,7 +814,7 @@ export function AdminEvents() {
                     </label>
                     <input
                       id="titleZh"
-                      className="w-full border rounded-xl px-4 py-3 shadow-sm"
+                      className={`${inputBaseClass}`}
                       value={form.titleZh}
                       onChange={(e) => {
                         setForm({ ...form, titleZh: e.target.value });
@@ -835,7 +838,7 @@ export function AdminEvents() {
                     </label>
                     <input
                       id="titleEn"
-                      className="w-full border rounded-xl px-4 py-3 shadow-sm"
+                      className={`${inputBaseClass}`}
                       value={form.titleEn}
                       onChange={(e) => {
                         setForm({ ...form, titleEn: e.target.value });
@@ -1106,7 +1109,7 @@ export function AdminEvents() {
                     <input
                       id="date"
                       type="date"
-                      className="w-full border rounded-xl px-4 py-3 shadow-sm"
+                      className={`${inputBaseClass} [::-webkit-calendar-picker-indicator]:opacity-70`}
                       value={form.date}
                       onChange={(e) => {
                         setForm({ ...form, date: e.target.value });
@@ -1132,7 +1135,7 @@ export function AdminEvents() {
                       <input
                         id="start"
                         type="time"
-                        className="w-full border rounded-xl px-4 py-3 shadow-sm"
+                        className={`${inputBaseClass} [::-webkit-calendar-picker-indicator]:opacity-70`}
                         value={form.start}
                         onChange={(e) => {
                           setForm({ ...form, start: e.target.value });
@@ -1142,7 +1145,7 @@ export function AdminEvents() {
                       />
                       <input
                         type="time"
-                        className="w-full border rounded-xl px-4 py-3 shadow-sm"
+                        className={`${inputBaseClass} [::-webkit-calendar-picker-indicator]:opacity-70`}
                         value={form.end}
                         onChange={(e) =>
                           setForm({ ...form, end: e.target.value })
@@ -1160,8 +1163,21 @@ export function AdminEvents() {
                     )}
                   </div>
                   <div>
-                    <label className="text-sm text-gray-700 flex items-center justify-between">
-                      <span>{t("admin.events.form.capacity")}</span>
+                    <label className="text-sm text-gray-700">
+                      {t("admin.events.form.capacity")}
+                    </label>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <input
+                        type="number"
+                        min={0}
+                        className={`${inputBaseClass} flex-1 min-w-[160px]`}
+                        value={form.capacity}
+                        onChange={(e) =>
+                          setForm({ ...form, capacity: e.target.value })
+                        }
+                        disabled={isUnlimited}
+                        placeholder={t("admin.events.form.unlimited")}
+                      />
                       <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
                         <input
                           type="checkbox"
@@ -1175,17 +1191,7 @@ export function AdminEvents() {
                         />
                         {t("admin.events.form.unlimited")}
                       </label>
-                    </label>
-                    <input
-                      type="number"
-                      className="w-full border rounded-xl px-4 py-3 shadow-sm"
-                      value={form.capacity}
-                      onChange={(e) =>
-                        setForm({ ...form, capacity: e.target.value })
-                      }
-                      disabled={isUnlimited}
-                      placeholder={t("admin.events.form.unlimited")}
-                    />
+                    </div>
                   </div>
                 </div>
 
@@ -1255,7 +1261,7 @@ export function AdminEvents() {
                     <input
                       id="fee"
                       type="number"
-                      className="w-full border rounded-xl px-4 py-3 shadow-sm"
+                      className={`${inputBaseClass}`}
                       value={form.fee}
                       onChange={(e) => {
                         setForm({ ...form, fee: e.target.value });
@@ -1280,7 +1286,7 @@ export function AdminEvents() {
                       </label>
                       <input
                         type="number"
-                        className="w-full border rounded-xl px-4 py-3 shadow-sm"
+                        className={`${inputBaseClass}`}
                         value={form.memberFee}
                         onChange={(e) =>
                           setForm({ ...form, memberFee: e.target.value })
