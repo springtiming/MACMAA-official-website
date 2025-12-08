@@ -372,52 +372,10 @@ export function AdminNews() {
     setShowImageUploadModal(false);
   };
 
-  const handleUnsplashSearch = async () => {
-    const keyword = unsplashKeyword.trim();
-    if (!keyword) {
-      setUnsplashError(
-        language === "zh" ? "请输入关键词后再搜索" : "Enter a keyword to search"
-      );
-      setUnsplashResults([]);
-      return;
-    }
-
-    setUnsplashLoading(true);
-    setUnsplashError(null);
-    try {
-      const res = await searchPhotos(keyword, 1, 12);
-      setUnsplashResults(res.results);
-      if (res.results.length === 0) {
-        setUnsplashError(
-          language === "zh" ? "未找到相关图片" : "No images found"
-        );
-      }
-    } catch (err) {
-      console.error("[AdminNews] unsplash search", err);
-      setUnsplashError(
-        language === "zh" ? "搜索失败，请稍后再试" : "Search failed, please try again"
-      );
-    } finally {
-      setUnsplashLoading(false);
-    }
-  };
-
-  const handleSelectUnsplash = (photo: UnsplashPhoto) => {
-    const url =
-      photo.urls?.regular ??
-      photo.urls?.full ??
-      photo.urls?.small ??
-      photo.urls?.thumb ??
-      "";
-    if (!url) return;
-    setFormData((prev) => ({
-      ...prev,
-      image: url,
-      imageKeyword: unsplashKeyword,
-      imageType: "unsplash",
-    }));
-    setImageSource("unsplash");
-    setSelectedUnsplashId(photo.id);
+  const handleImageUploadSuccess = (imageUrl: string) => {
+    setUploadedImage(imageUrl);
+    setUploadedImageUrl(imageUrl);
+    setShowImageUploadModal(false);
   };
 
   const confirmCopy = confirmDialog
@@ -949,6 +907,55 @@ function NewsFormModal({
       imageType: imageSource,
     };
   });
+
+  const handleUnsplashSearch = async () => {
+    const keyword = unsplashKeyword.trim();
+    if (!keyword) {
+      setUnsplashError(
+        language === "zh" ? "请输入关键词后再搜索" : "Enter a keyword to search"
+      );
+      setUnsplashResults([]);
+      return;
+    }
+
+    setUnsplashLoading(true);
+    setUnsplashError(null);
+    try {
+      const res = await searchPhotos(keyword, 1, 12);
+      setUnsplashResults(res.results);
+      if (res.results.length === 0) {
+        setUnsplashError(
+          language === "zh" ? "未找到相关图片" : "No images found"
+        );
+      }
+    } catch (err) {
+      console.error("[AdminNews] unsplash search", err);
+      setUnsplashError(
+        language === "zh" ? "搜索失败，请稍后再试" : "Search failed, please try again"
+      );
+    } finally {
+      setUnsplashLoading(false);
+    }
+  };
+
+  const handleSelectUnsplash = (photo: UnsplashPhoto) => {
+    const url =
+      photo.urls?.regular ??
+      photo.urls?.full ??
+      photo.urls?.small ??
+      photo.urls?.thumb ??
+      "";
+    if (!url) return;
+    setFormData((prev) => ({
+      ...prev,
+      image: url,
+      imageKeyword: unsplashKeyword,
+      imageType: "unsplash",
+    }));
+    setImageSource("unsplash");
+    setSelectedUnsplashId(photo.id);
+  };
+
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const validationConfig = useMemo<ValidationConfig<NewsValidationFields>>(
@@ -988,20 +995,6 @@ function NewsFormModal({
     setErrors({});
     setTouched({});
   }, [draft?.id, news?.id]);
-
-  const handleImageUploadSuccess = (imageUrl: string) => {
-    setUploadedImage(imageUrl);
-    setUploadedImageUrl(imageUrl);
-    setFormData((prev) => ({
-      ...prev,
-      image: imageUrl,
-      imageKeyword: "",
-      imageType: "upload",
-    }));
-    setImageSource("upload");
-    setSelectedUnsplashId(null);
-    setShowImageUploadModal(false);
-  };
 
   const normalizeFieldValue = (
     field: keyof NewsValidationFields,
