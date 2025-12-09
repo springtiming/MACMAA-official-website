@@ -1657,8 +1657,8 @@ function NewsFormModal({
             </div>
           </div>
 
-          {/* Fixed Footer with Buttons */}
-          <div className="sticky bottom-0 bg-white pt-6 mt-6 border-t flex gap-3">
+          {/* Footer with Buttons (scrolls with content) */}
+          <div className="pt-6 mt-6 border-t flex gap-3">
             <button
               type="button"
               onClick={onClose}
