@@ -80,12 +80,7 @@ export function EventRegistration() {
     );
   }
 
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setStep("payment");
-  };
-
-  const handlePaymentConfirm = async () => {
+  const submitRegistration = async () => {
     if (!loadedEvent) return;
     if (loadedEvent.fee > 0 && !paymentMethod) return;
     setSubmitting(true);
@@ -121,6 +116,21 @@ export function EventRegistration() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (loadedEvent?.fee === 0) {
+      // 免费活动直接提交
+      await submitRegistration();
+    } else {
+      // 付费活动进入支付步骤
+      setStep("payment");
+    }
+  };
+
+  const handlePaymentConfirm = async () => {
+    await submitRegistration();
   };
 
   const paymentOptions = [
