@@ -239,6 +239,7 @@ function buildAdminApiUrl(path: string) {
   return `${normalizedBase}${normalizedPath}`;
 }
 
+const PAYMENTS_API_BASE = buildAdminApiUrl("/payments");
 const ADMIN_NEWS_API_BASE = buildAdminApiUrl("/news");
 const ADMIN_ACCOUNTS_API_BASE = buildAdminApiUrl("/admin-accounts");
 const NOTIFICATIONS_API_BASE = buildAdminApiUrl("/notifications");
@@ -791,6 +792,41 @@ export async function createMemberApplication(payload: MemberApplicationInput) {
     throw error;
   }
   return null;
+}
+
+export type CreateStripeCheckoutSessionInput = {
+  eventId: string;
+  tickets: number;
+  name: string;
+  email?: string;
+  phone?: string;
+  notes?: string;
+  successUrl?: string;
+  cancelUrl?: string;
+};
+
+export type CreateStripeCheckoutSessionResponse = {
+  sessionId: string;
+  url: string | null;
+};
+
+export async function createStripeCheckoutSession(
+  payload: CreateStripeCheckoutSessionInput
+): Promise<CreateStripeCheckoutSessionResponse> {
+  const res = await fetch(`${PAYMENTS_API_BASE}/create-checkout-session`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(
+      detail || "Failed to create Stripe checkout session"
+    );
+  }
+
+  return (await res.json()) as CreateStripeCheckoutSessionResponse;
 }
 
 // helper to set handled_by when available

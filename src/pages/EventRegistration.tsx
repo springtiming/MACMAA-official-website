@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { ArrowLeft, CreditCard, Building, Check, Wallet } from "lucide-react";
 import {
   createEventRegistration,
+  createStripeCheckoutSession,
   fetchEventById,
   notifyEventRegistration,
   type EventRecord,
@@ -130,6 +131,48 @@ export function EventRegistration() {
   };
 
   const handlePaymentConfirm = async () => {
+    if (!loadedEvent) return;
+
+    if (loadedEvent.fee === 0) {
+      await submitRegistration();
+      return;
+    }
+
+    if (paymentMethod === "card") {
+      setSubmitting(true);
+      setSubmitError(null);
+      const tickets = Number(formData.participants) || 1;
+      try {
+        const session = await createStripeCheckoutSession({
+          eventId: loadedEvent.id,
+          tickets,
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
+          notes: formData.notes.trim() || undefined,
+          successUrl: `${window.location.origin}/events/${loadedEvent.id}/register?status=success`,
+          cancelUrl: `${window.location.origin}/events/${loadedEvent.id}/register?status=cancel`,
+        });
+
+        if (session.url) {
+          window.location.href = session.url;
+          return;
+        }
+
+        throw new Error("Missing checkout session URL");
+      } catch (err) {
+        console.error("[events] stripe checkout failed", err);
+        setSubmitError(
+          language === "zh"
+            ? "支付创建失败，请稍后再试。"
+            : "Could not start payment, please try again."
+        );
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
+
     await submitRegistration();
   };
 
