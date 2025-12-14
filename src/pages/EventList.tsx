@@ -16,6 +16,39 @@ import {
   resolveEventImage,
 } from "../lib/supabaseHelpers";
 
+function EventImageContainer({ 
+  imageSrc, 
+  imageAlt, 
+  isPast 
+}: { 
+  imageSrc: string; 
+  imageAlt: string; 
+  isPast: boolean;
+}) {
+  const [zIndex, setZIndex] = useState(0);
+  
+  return (
+    <div 
+      className="md:w-2/5 relative"
+      style={{ zIndex }}
+      onMouseEnter={() => setZIndex(100)}
+      onMouseLeave={() => setZIndex(0)}
+    >
+      <div className="aspect-square bg-gray-200 overflow-hidden h-full relative">
+        <ImageWithFallback
+          src={imageSrc}
+          alt={imageAlt}
+          className={`w-full h-full object-cover transition-transform duration-300 ${
+            isPast ? "grayscale-[0.3]" : "hover:scale-105"
+          }`}
+        />
+        {/* 右侧边缘渐变层 - 从透明到白色 */}
+        <div className="absolute inset-y-0 right-0 w-32 pointer-events-none bg-gradient-to-r from-transparent via-white/50 to-white" />
+      </div>
+    </div>
+  );
+}
+
 export function EventList() {
   const { language, t } = useLanguage();
   const [activeTab, setActiveTab] = useState<"upcoming" | "past">("upcoming");
@@ -95,35 +128,25 @@ export function EventList() {
             className="group bg-white rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden relative"
           >
             <div className="md:flex">
-              <div className="md:w-2/5 relative z-10 transition-[transform,z-index] duration-300 group-hover:z-20">
-                <div className="aspect-square bg-gray-200 overflow-hidden h-full relative">
-                  <ImageWithFallback
-                    src={resolveEventImage(
-                      event.image_type ?? null,
-                      event.image_keyword,
-                      event.image_url,
-                      "thumb"
-                    )}
-                    alt={pickLocalized(
-                      event.title_zh,
-                      event.title_en,
-                      language
-                    )}
-                    className={`w-full h-full object-cover transition-transform duration-300 ${
-                      isPast ? "grayscale-[0.3]" : "hover:scale-105"
-                    }`}
-                  />
-                  {/* 图片右侧渐变：将图片边缘淡出到白色，避免文字压在图片上 */}
-                  <div className="absolute inset-y-0 right-0 w-28 pointer-events-none bg-gradient-to-r from-transparent via-white/80 to-white" />
-                </div>
-              </div>
-              <div className="md:w-3/5 p-4 sm:p-6 flex flex-col relative overflow-hidden">
-                {/* 模糊背景层：覆盖文字区域，提升可读性 */}
-                <div className="pointer-events-none absolute inset-0 bg-white/70 backdrop-blur-sm z-0 transition-opacity duration-300 group-hover:opacity-80" />
-                {/* 左侧渐变：在与图片交界处再做一次淡入，防止文字压到图片边缘 */}
-                <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white via-white/85 to-transparent z-0" />
-                {/* 文字内容容器，位于模糊层之上 */}
-                <div className="relative z-10 flex flex-col h-full">
+              <EventImageContainer
+                imageSrc={resolveEventImage(
+                  event.image_type ?? null,
+                  event.image_keyword,
+                  event.image_url,
+                  "thumb"
+                )}
+                imageAlt={pickLocalized(
+                  event.title_zh,
+                  event.title_en,
+                  language
+                )}
+                isPast={isPast}
+              />
+              <div className="md:w-3/5 p-4 sm:p-6 flex flex-col relative overflow-hidden bg-white">
+                {/* 左侧边缘渐变层 - 确保文字区域边缘也有渐变 */}
+                <div className="absolute inset-y-0 left-0 w-20 pointer-events-none bg-gradient-to-r from-white via-white/90 to-transparent z-10" />
+                {/* 文字内容容器 */}
+                <div className="relative flex flex-col h-full z-20">
                   <div className="mb-2 flex items-center gap-2 flex-wrap">
                     <span
                       className={`inline-block px-2.5 sm:px-3 py-1 text-xs sm:text-sm rounded-full ${
