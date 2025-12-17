@@ -147,3 +147,6 @@ const sendTestEmail = (testEmail) => {
   console.log('');
   console.log('Test completed!');
 })();
+
+
+
