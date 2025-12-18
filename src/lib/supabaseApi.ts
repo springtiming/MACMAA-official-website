@@ -59,6 +59,7 @@ export type UpsertEventInput = {
   image_keyword?: string | null;
   image_url?: string | null;
   published?: boolean;
+  author_id?: string | null;
 };
 
 export interface ArticleVersionRecord {
@@ -309,13 +310,21 @@ export async function fetchAdminEvents() {
 }
 
 export async function saveEvent(payload: UpsertEventInput) {
+  const authorId =
+    payload.author_id ??
+    (typeof sessionStorage !== "undefined"
+      ? sessionStorage.getItem("adminId")
+      : null);
   const res = await callEdgeFunction("events-admin", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      ...payload,
+      author_id: authorId ?? undefined,
+    }),
   });
 
   if (!res.ok) {
@@ -599,16 +608,25 @@ export type NewsDraftInput = {
   cover_type?: "unsplash" | "upload" | null;
   cover_keyword?: string | null;
   cover_url?: string | null;
+  author_id?: string | null;
 };
 
 export async function saveNewsDraft(payload: NewsDraftInput) {
+  const authorId =
+    payload.author_id ??
+    (typeof sessionStorage !== "undefined"
+      ? sessionStorage.getItem("adminId")
+      : null);
   const res = await callEdgeFunction("news-drafts", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      ...payload,
+      author_id: authorId ?? undefined,
+    }),
   });
 
   if (!res.ok) {

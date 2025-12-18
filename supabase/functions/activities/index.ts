@@ -54,6 +54,11 @@ type EventRow = {
   created_at: string | null;
   access_type: "members-only" | "all-welcome" | null;
   published: boolean | null;
+  admin_accounts:
+    | {
+        username: string | null;
+      }
+    | null;
 };
 
 Deno.serve(async (req) => {
@@ -106,7 +111,7 @@ Deno.serve(async (req) => {
     const eventsPromise = supabase
       .from("events")
       .select(
-        "id, title_zh, title_en, created_at, access_type, published"
+        "id, title_zh, title_en, created_at, access_type, published, admin_accounts (username)"
       )
       .eq("published", true)
       .gte("created_at", since)
@@ -200,6 +205,7 @@ Deno.serve(async (req) => {
         const titleZh = e.title_zh ?? "";
         const titleEn = e.title_en ?? "";
         const primaryTitle = titleZh || titleEn;
+        const author = e.admin_accounts?.username || "Admin";
 
         const zhAction = primaryTitle
           ? `发布了活动“${primaryTitle}”`
@@ -212,7 +218,7 @@ Deno.serve(async (req) => {
           id: `event-${e.id}`,
           type: "event",
           timestamp: e.created_at ?? new Date().toISOString(),
-          user: "Admin",
+          user: author,
           action: {
             zh: zhAction,
             en: enAction,

@@ -57,6 +57,7 @@ Deno.serve(async (req) => {
         image_keyword?: string | null;
         image_url?: string | null;
         published?: boolean;
+        author_id?: string | null;
       } | null;
 
       if (
@@ -67,6 +68,24 @@ Deno.serve(async (req) => {
         !payload.location
       ) {
         return json({ error: "Missing required fields" }, 400);
+      }
+
+      let createdBy = payload.author_id ?? null;
+      if (payload.id) {
+        const { data: existingEvent, error: existingEventError } = await supabase
+          .from("events")
+          .select("created_by")
+          .eq("id", payload.id)
+          .maybeSingle();
+
+        if (existingEventError) {
+          console.error("[events-admin] fetch existing event", existingEventError);
+          return json({ error: "Failed to save event" }, 500);
+        }
+
+        if (existingEvent) {
+          createdBy = existingEvent.created_by ?? null;
+        }
       }
 
       const { data, error } = await supabase
@@ -89,6 +108,7 @@ Deno.serve(async (req) => {
           image_keyword: payload.image_keyword ?? null,
           image_url: payload.image_url ?? null,
           published: payload.published ?? true,
+          created_by: createdBy,
         })
         .select(
           "id, title_zh, title_en, description_zh, description_en, event_date, start_time, end_time, location, fee, member_fee, capacity, access_type, image_type, image_keyword, image_url, created_by, created_at, updated_at, published"

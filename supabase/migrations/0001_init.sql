@@ -84,15 +84,40 @@ create table if not exists public.event_registrations (
   phone text not null,
   email text,
   tickets integer not null check (tickets > 0),
-  payment_method text check (payment_method in ('card', 'cash', 'transfer')),
+  payment_method text check (payment_method in ('card', 'cash', 'transfer', 'payid')),
+  payment_status text default 'confirmed' check (payment_status in ('pending', 'confirmed', 'expired', 'cancelled')),
+  reference_code text unique,
+  amount numeric(10, 2),
+  confirmed_at timestamptz,
+  confirmed_by uuid references public.admin_accounts (id),
+  notes text,
   registration_date date not null default now(),
   created_at timestamptz not null default now()
 );
+
+-- 生成唯一 reference_code 的函数
+create or replace function public.generate_reference_code()
+returns text
+language plpgsql
+as $$
+declare
+  chars text := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  result text := 'VMCA-';
+  i int;
+begin
+  for i in 1..6 loop
+    result := result || substr(chars, floor(random() * length(chars) + 1)::int, 1);
+  end loop;
+  return result;
+end;
+$$;
 
 -- 索引
 create index if not exists idx_news_posts_published_at on public.news_posts (published_at desc);
 create index if not exists idx_events_event_date on public.events (event_date);
 create index if not exists idx_event_registrations_event_id on public.event_registrations (event_id);
+create index if not exists idx_event_registrations_payment_status on public.event_registrations (payment_status);
+create index if not exists idx_event_registrations_reference_code on public.event_registrations (reference_code) where reference_code is not null;
 
 -- 更新时间戳触发器
 create or replace function public.set_current_timestamp()

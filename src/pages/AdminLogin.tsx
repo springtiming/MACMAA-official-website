@@ -33,6 +33,7 @@ export function AdminLogin() {
     try {
       const body = await adminAuthLogin(credentials);
       sessionStorage.setItem("adminAuth", "true");
+      sessionStorage.setItem("adminId", body.id);
       sessionStorage.setItem("adminRole", body.role);
       sessionStorage.setItem("adminUsername", body.username);
       navigate("/admin/dashboard");

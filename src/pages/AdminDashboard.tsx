@@ -37,6 +37,8 @@ export function AdminDashboard() {
   // Get current user role
   const currentUserRole =
     (sessionStorage.getItem("adminRole") as "owner" | "admin") || "admin";
+  const adminUsername =
+    sessionStorage.getItem("adminUsername") || "Admin";
 
   useEffect(() => {
     // Check authentication
@@ -237,7 +239,7 @@ export function AdminDashboard() {
           className="mb-8"
         >
           <h2 className="text-gray-900 mb-2">
-            {t("admin.dashboard.welcome")}, Admin
+            {t("admin.dashboard.welcome")}, {adminUsername}
           </h2>
           <p className="text-gray-600">
             {language === "zh"

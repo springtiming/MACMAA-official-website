@@ -25,6 +25,7 @@ type DraftPayload = {
   cover_type?: "unsplash" | "upload" | null;
   cover_keyword?: string | null;
   cover_url?: string | null;
+  author_id?: string | null;
 };
 
 const UUID_REGEX =
@@ -119,6 +120,25 @@ async function saveDraft(req: Request) {
     const coverSource =
       body.cover_url ?? body.cover_source ?? body.cover_keyword ?? null;
 
+    const { data: existingArticle, error: existingArticleError } = await supabase
+      .from("articles")
+      .select("author_id")
+      .eq("id", articleId)
+      .maybeSingle();
+
+    if (existingArticleError) {
+      console.error("[news-drafts] fetch article author", {
+        articleId,
+        error: existingArticleError,
+      });
+      return new Response(
+        JSON.stringify({ error: "Failed to fetch article author", detail: existingArticleError.message }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    const authorId = existingArticle?.author_id ?? body.author_id ?? null;
+
     // 确保 articles 表中存在对应的文章记录，避免外键约束报错
     const { error: articleError } = await supabase
       .from("articles")
@@ -135,6 +155,7 @@ async function saveDraft(req: Request) {
         cover_keyword: body.cover_keyword ?? null,
         cover_url: body.cover_url ?? null,
         published: false,
+        author_id: authorId,
       })
       .eq("id", articleId);
 
@@ -246,6 +267,7 @@ async function saveDraft(req: Request) {
         cover_url: body.cover_url ?? null,
         status: "draft",
         version_number: versionNumber,
+        created_by: authorId,
       })
       .select(
         "id, article_id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, cover_type, cover_keyword, cover_url, status, version_number, created_by, created_at, updated_at",

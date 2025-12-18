@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
     const { data: draft, error: draftError } = await supabase
       .from("article_versions")
       .select(
-        "id, article_id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, cover_type, cover_keyword, cover_url, status, version_number"
+        "id, article_id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, cover_type, cover_keyword, cover_url, status, version_number, created_by"
       )
       .eq("id", versionId)
       .maybeSingle();
@@ -75,6 +75,22 @@ Deno.serve(async (req) => {
       }
     }
 
+    const { data: existingArticle, error: existingArticleError } = await supabase
+      .from("articles")
+      .select("author_id")
+      .eq("id", articleId)
+      .maybeSingle();
+
+    if (existingArticleError) {
+      console.error("[news-publish] fetch article author", existingArticleError);
+      return new Response(
+        JSON.stringify({ error: "Failed to resolve article author" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    const authorId = draft.created_by ?? existingArticle?.author_id ?? null;
+
     const { data: article, error: articleError } = await supabase
       .from("articles")
       .upsert({
@@ -93,6 +109,7 @@ Deno.serve(async (req) => {
         cover_url: draft.cover_url ?? null,
         published: true,
         published_at: publishedAt,
+        author_id: authorId,
       })
       .select(
         "id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, cover_type, cover_keyword, cover_url, published_at, published, author_id"

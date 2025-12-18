@@ -94,6 +94,10 @@ export function AdminNews() {
     runWithFeedback,
     reset: resetProcessing,
   } = useProcessingFeedback();
+  const adminId =
+    typeof sessionStorage !== "undefined"
+      ? sessionStorage.getItem("adminId")
+      : null;
 
   const getFeedbackMessages = (
     action: "save" | "publish" | "delete" | "deleteDraft"
@@ -247,6 +251,7 @@ export function AdminNews() {
             content_zh: news.content.zh,
             content_en: news.content.en,
             ...coverFields,
+            author_id: adminId ?? undefined,
           });
           // 记录当前正在编辑的草稿版本以及对应的新闻编号
           setDraftVersionId(draft.id);
@@ -320,6 +325,7 @@ export function AdminNews() {
               content_zh: news.content.zh,
               content_en: news.content.en,
               ...coverFields,
+              author_id: adminId ?? undefined,
             });
             versionId = draft.id;
             setEditingDraft(draft);

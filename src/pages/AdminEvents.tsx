@@ -266,6 +266,10 @@ export function AdminEvents() {
     runWithFeedback,
     reset: resetProcessing,
   } = useProcessingFeedback();
+  const adminId =
+    typeof sessionStorage !== "undefined"
+      ? sessionStorage.getItem("adminId")
+      : null;
   const isUnlimited = form.capacity === "";
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [formTouched, setFormTouched] = useState<Record<string, boolean>>({});
@@ -547,6 +551,7 @@ export function AdminEvents() {
             form.imageType === "unsplash" ? form.imageKeyword || null : null,
           image_url: form.imageUrl ? form.imageUrl : null,
           published: true,
+          author_id: adminId ?? undefined,
         };
         const saved = await saveEvent(payload);
         setEvents((prev) => {
