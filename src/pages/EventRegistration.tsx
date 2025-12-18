@@ -32,9 +32,19 @@ export function EventRegistration() {
     notes: "",
   });
 
-  // Handle Stripe redirect: check URL status param
+  // Handle Stripe redirect: check URL status param and restore form data
   useEffect(() => {
     if (searchParams.get("status") === "success") {
+      const saved = localStorage.getItem("pendingEventRegistration");
+      if (saved) {
+        try {
+          const data = JSON.parse(saved);
+          setFormData((prev) => ({ ...prev, ...data }));
+        } catch {
+          // ignore parse error
+        }
+        localStorage.removeItem("pendingEventRegistration");
+      }
       setStep("success");
     }
   }, [searchParams]);
@@ -152,6 +162,15 @@ export function EventRegistration() {
       const tickets = Number(formData.participants) || 1;
       const successUrl = `${window.location.origin}/events/${loadedEvent.id}/register?status=success`;
       const cancelUrl = `${window.location.origin}/events/${loadedEvent.id}/register?status=cancel`;
+      // Save form data to localStorage before redirecting to Stripe
+      localStorage.setItem(
+        "pendingEventRegistration",
+        JSON.stringify({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          participants: formData.participants,
+        })
+      );
       try {
         const session = await createStripeCheckoutSession({
           eventId: loadedEvent.id,
