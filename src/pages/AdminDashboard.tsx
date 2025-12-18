@@ -37,8 +37,7 @@ export function AdminDashboard() {
   // Get current user role
   const currentUserRole =
     (sessionStorage.getItem("adminRole") as "owner" | "admin") || "admin";
-  const adminUsername =
-    sessionStorage.getItem("adminUsername") || "Admin";
+  const adminUsername = sessionStorage.getItem("adminUsername") || "Admin";
 
   useEffect(() => {
     // Check authentication

@@ -477,7 +477,6 @@ export function EventRegistration() {
                     {submitError}
                   </p>
                 )}
-
               </div>
             </motion.div>
           )}
