@@ -91,9 +91,11 @@ drop policy if exists articles_public_read on public.articles;
 create policy articles_public_read on public.articles
 for select using (published = true);
 
+drop policy if exists articles_admin_read on public.articles;
 create policy articles_admin_read on public.articles
 for select using (public.is_admin());
 
+drop policy if exists articles_admin_write on public.articles;
 create policy articles_admin_write on public.articles
 for all using (public.is_admin()) with check (public.is_admin());
 

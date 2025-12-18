@@ -15,6 +15,10 @@ where v.article_id = a.id
 
 -- RLS: drafts only visible to creator; admins can access all
 drop policy if exists article_versions_admin on public.article_versions;
+drop policy if exists article_versions_select on public.article_versions;
+drop policy if exists article_versions_insert on public.article_versions;
+drop policy if exists article_versions_update on public.article_versions;
+drop policy if exists article_versions_delete on public.article_versions;
 
 create policy article_versions_select on public.article_versions
 for select

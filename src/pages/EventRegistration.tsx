@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import { motion, AnimatePresence } from "motion/react";
 import { ArrowLeft, CreditCard, Building, Check } from "lucide-react";
@@ -15,6 +15,7 @@ type PaymentMethod = "card" | "cash" | "transfer" | null;
 
 export function EventRegistration() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const { language, t } = useLanguage();
   const [loadedEvent, setLoadedEvent] = useState<EventRecord | null>(null);
   const [loading, setLoading] = useState(true);
@@ -30,6 +31,13 @@ export function EventRegistration() {
     participants: "1",
     notes: "",
   });
+
+  // Handle Stripe redirect: check URL status param
+  useEffect(() => {
+    if (searchParams.get("status") === "success") {
+      setStep("success");
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!id) {
@@ -142,6 +150,8 @@ export function EventRegistration() {
       setSubmitting(true);
       setSubmitError(null);
       const tickets = Number(formData.participants) || 1;
+      const successUrl = `${window.location.origin}/events/${loadedEvent.id}/register?status=success`;
+      const cancelUrl = `${window.location.origin}/events/${loadedEvent.id}/register?status=cancel`;
       try {
         const session = await createStripeCheckoutSession({
           eventId: loadedEvent.id,
@@ -150,8 +160,8 @@ export function EventRegistration() {
           email: formData.email.trim(),
           phone: formData.phone.trim(),
           notes: formData.notes.trim() || undefined,
-          successUrl: `${window.location.origin}/events/${loadedEvent.id}/register?status=success`,
-          cancelUrl: `${window.location.origin}/events/${loadedEvent.id}/register?status=cancel`,
+          successUrl,
+          cancelUrl,
         });
 
         if (session.url) {
