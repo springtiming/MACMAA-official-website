@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import type Stripe from "stripe";
-import { getStripeClient, getStripeWebhookSecret } from "../../server/stripe";
-import { getServiceRoleSupabase } from "../../server/supabaseClient";
+import { getStripeClient, getStripeWebhookSecret } from "../_stripe";
+import { getServiceRoleSupabase } from "../_supabaseAdminClient";
 import { sendEventRegistrationEmails } from "../_emailService.js";
 
 export const config = {

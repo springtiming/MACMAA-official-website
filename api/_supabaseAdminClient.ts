@@ -37,3 +37,6 @@ export function logSupabaseError(context: string, error: PostgrestError | Error 
   const message = error instanceof Error ? error.message : pgError.message ?? "Unknown Supabase error";
   console.error(`[Supabase] ${context}: ${message}`, error);
 }
+
+// Alias for compatibility with payments module
+export const getServiceRoleSupabase = getSupabaseServiceClient;

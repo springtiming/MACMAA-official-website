@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowLeft, CreditCard, Building, Check, Wallet } from "lucide-react";
+import { ArrowLeft, CreditCard, Building, Check } from "lucide-react";
 import {
   createEventRegistration,
   createStripeCheckoutSession,
@@ -183,13 +183,6 @@ export function EventRegistration() {
       title: t("register.payment.online"),
       desc: language === "zh" ? "信用卡/借记卡" : "Credit/Debit Card",
       color: "#2B5F9E",
-    },
-    {
-      id: "cash" as PaymentMethod,
-      icon: Wallet,
-      title: t("register.payment.onsite"),
-      desc: language === "zh" ? "活动现场支付" : "Pay at event",
-      color: "#6BA868",
     },
     {
       id: "transfer" as PaymentMethod,
@@ -456,11 +449,6 @@ export function EventRegistration() {
                   </p>
                 )}
 
-                <p className="text-sm text-gray-500 mt-4 text-center">
-                  {language === "zh"
-                    ? "* 实际系统将集成Stripe或PayPal支付网关"
-                    : "* Production system will integrate Stripe or PayPal gateway"}
-                </p>
               </div>
             </motion.div>
           )}
