@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getStripeClient, STRIPE_DEFAULT_CURRENCY } from "../_stripe";
-import { getServiceRoleSupabase } from "../_supabaseAdminClient";
+import { getStripeClient, STRIPE_DEFAULT_CURRENCY } from "../_stripe.js";
+import { getServiceRoleSupabase } from "../_supabaseAdminClient.js";
 
 type CreateCheckoutPayload = {
   eventId?: string;
