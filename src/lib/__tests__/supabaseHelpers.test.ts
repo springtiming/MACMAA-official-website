@@ -21,7 +21,12 @@ describe("supabaseHelpers", () => {
   });
 
   it("resolves news cover preferring url then keyword", () => {
-    const blobFallback = resolveNewsCover(null, "thumb", "hello", "blob:http://localhost/foo");
+    const blobFallback = resolveNewsCover(
+      null,
+      "thumb",
+      "hello",
+      "blob:http://localhost/foo"
+    );
     expect(blobFallback).toContain("hello");
 
     const keywordUrl = resolveNewsCover(null, "thumb", "hello world", null);

@@ -29,8 +29,10 @@
 :root {
   /* 字体配置 - 通过 fontConfig.ts 中的 CURRENT_FONT 控制 */
   /* 这个值会在运行时通过 JavaScript 动态设置 */
-  --app-font-family: 'Inter', 'Noto Sans SC', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  
+  --app-font-family:
+    "Inter", "Noto Sans SC", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+
   --font-size: 16px;
   --background: #ffffff;
   --foreground: oklch(0.145 0 0);

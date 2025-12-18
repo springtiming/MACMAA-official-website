@@ -806,513 +806,585 @@ export function AdminEvents() {
                         </button>
                       </div>
 
-              <div className="p-6 overflow-y-auto">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm text-gray-700">
-                      {t("admin.events.form.titleZh")}
-                    </label>
-                    <input
-                      id="titleZh"
-                      className={`${inputBaseClass}`}
-                      value={form.titleZh}
-                      onChange={(e) => {
-                        setForm({ ...form, titleZh: e.target.value });
-                        handleEventFieldChange("titleZh", e.target.value);
-                      }}
-                      onBlur={() => handleEventFieldBlur("titleZh")}
-                    />
-                    {formTouched.titleZh && formErrors.titleZh && (
-                      <p className="text-xs text-red-600 mt-1" role="alert">
-                        {getErrorMessage(
-                          formErrors.titleZh,
-                          eventValidationConfig.errorMessages,
-                          language
-                        )}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-700">
-                      {t("admin.events.form.titleEn")}
-                    </label>
-                    <input
-                      id="titleEn"
-                      className={`${inputBaseClass}`}
-                      value={form.titleEn}
-                      onChange={(e) => {
-                        setForm({ ...form, titleEn: e.target.value });
-                        handleEventFieldChange("titleEn", e.target.value);
-                      }}
-                      onBlur={() => handleEventFieldBlur("titleEn")}
-                    />
-                    {formTouched.titleEn && formErrors.titleEn && (
-                      <p className="text-xs text-red-600 mt-1" role="alert">
-                        {getErrorMessage(
-                          formErrors.titleEn,
-                          eventValidationConfig.errorMessages,
-                          language
-                        )}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-700">中文简介</label>
-                    <textarea
-                      id="descZh"
-                      className="w-full border rounded-xl px-4 py-3 shadow-sm"
-                      value={form.descZh}
-                      onChange={(e) => {
-                        setForm({ ...form, descZh: e.target.value });
-                        handleEventFieldChange("descZh", e.target.value);
-                      }}
-                      onBlur={() => handleEventFieldBlur("descZh")}
-                    />
-                    {formTouched.descZh && formErrors.descZh && (
-                      <p className="text-xs text-red-600 mt-1" role="alert">
-                        {getErrorMessage(
-                          formErrors.descZh,
-                          eventValidationConfig.errorMessages,
-                          language
-                        )}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-700">英文简介</label>
-                    <textarea
-                      id="descEn"
-                      className="w-full border rounded-xl px-4 py-3 shadow-sm"
-                      value={form.descEn}
-                      onChange={(e) => {
-                        setForm({ ...form, descEn: e.target.value });
-                        handleEventFieldChange("descEn", e.target.value);
-                      }}
-                      onBlur={() => handleEventFieldBlur("descEn")}
-                    />
-                    {formTouched.descEn && formErrors.descEn && (
-                      <p className="text-xs text-red-600 mt-1" role="alert">
-                        {getErrorMessage(
-                          formErrors.descEn,
-                          eventValidationConfig.errorMessages,
-                          language
-                        )}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Cover Image (Unsplash / Upload) */}
-                <div
-                  id="imageUrl"
-                  className="mt-4 border border-gray-200 rounded-xl p-4 bg-gray-50"
-                >
-                  <h3 className="text-gray-700 mb-3">
-                    {t("admin.news.form.coverImageSettings")}
-                  </h3>
-
-                  <div className="flex gap-2 mb-4">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setImageSource("upload");
-                        setForm((prev) => ({ ...prev, imageType: "upload" }));
-                      }}
-                      className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all ${
-                        imageSource === "upload"
-                          ? "bg-[#2B5F9E] text-white shadow-md"
-                          : "bg-white text-gray-600 border border-gray-300 hover:border-[#2B5F9E]"
-                      }`}
-                    >
-                      {t("admin.news.form.useUpload")}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setImageSource("unsplash");
-                        setUnsplashResults([]);
-                        setUnsplashError(null);
-                        setSelectedUnsplashId(null);
-                        setForm((prev) => ({ ...prev, imageType: "unsplash" }));
-                      }}
-                      className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all ${
-                        imageSource === "unsplash"
-                          ? "bg-[#2B5F9E] text-white shadow-md"
-                          : "bg-white text-gray-600 border border-gray-300 hover:border-[#2B5F9E]"
-                      }`}
-                    >
-                      {t("admin.news.form.useUnsplash")}
-                    </button>
-                  </div>
-
-                  {imageSource === "unsplash" && (
-                    <div className="space-y-3">
-                      <label className="block text-gray-700">
-                        {t("admin.news.form.unsplashKeywords")}
-                      </label>
-                      <div className="flex flex-col sm:flex-row gap-2">
-                        <input
-                          type="text"
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
-                          placeholder={t(
-                            "admin.news.form.unsplashKeywordsPlaceholder"
-                          )}
-                          value={form.imageKeyword}
-                          onChange={(e) =>
-                            setForm((prev) => ({
-                              ...prev,
-                              imageKeyword: e.target.value,
-                            }))
-                          }
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              void handleUnsplashSearch();
-                            }
-                          }}
-                        />
-                        <button
-                          type="button"
-                          onClick={handleUnsplashSearch}
-                          className="px-4 py-2.5 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors min-w-[120px]"
-                        >
-                          {language === "zh" ? "搜索图片" : "Search"}
-                        </button>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        {t("admin.news.form.unsplashHelp")}
-                      </p>
-                      {unsplashError && (
-                        <p className="text-xs text-red-600" role="alert">
-                          {unsplashError}
-                        </p>
-                      )}
-                      {unsplashLoading && (
-                        <p className="text-sm text-gray-600">
-                          {language === "zh" ? "搜索中..." : "Searching..."}
-                        </p>
-                      )}
-                      {form.imageUrl && (
-                        <div className="p-3 bg-white border border-gray-200 rounded-lg">
-                          <div className="flex items-center gap-2 text-sm text-green-600 mb-2">
-                            <ImageIcon className="w-4 h-4" />
-                            <span>
-                              {language === "zh"
-                                ? "已选图片预览"
-                                : "Selected image"}
-                            </span>
+                      <div className="p-6 overflow-y-auto">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-sm text-gray-700">
+                              {t("admin.events.form.titleZh")}
+                            </label>
+                            <input
+                              id="titleZh"
+                              className={`${inputBaseClass}`}
+                              value={form.titleZh}
+                              onChange={(e) => {
+                                setForm({ ...form, titleZh: e.target.value });
+                                handleEventFieldChange(
+                                  "titleZh",
+                                  e.target.value
+                                );
+                              }}
+                              onBlur={() => handleEventFieldBlur("titleZh")}
+                            />
+                            {formTouched.titleZh && formErrors.titleZh && (
+                              <p
+                                className="text-xs text-red-600 mt-1"
+                                role="alert"
+                              >
+                                {getErrorMessage(
+                                  formErrors.titleZh,
+                                  eventValidationConfig.errorMessages,
+                                  language
+                                )}
+                              </p>
+                            )}
                           </div>
-                          <img
-                            src={form.imageUrl}
-                            alt="Unsplash selection"
-                            className="w-full h-48 object-cover rounded-lg"
-                          />
+                          <div>
+                            <label className="text-sm text-gray-700">
+                              {t("admin.events.form.titleEn")}
+                            </label>
+                            <input
+                              id="titleEn"
+                              className={`${inputBaseClass}`}
+                              value={form.titleEn}
+                              onChange={(e) => {
+                                setForm({ ...form, titleEn: e.target.value });
+                                handleEventFieldChange(
+                                  "titleEn",
+                                  e.target.value
+                                );
+                              }}
+                              onBlur={() => handleEventFieldBlur("titleEn")}
+                            />
+                            {formTouched.titleEn && formErrors.titleEn && (
+                              <p
+                                className="text-xs text-red-600 mt-1"
+                                role="alert"
+                              >
+                                {getErrorMessage(
+                                  formErrors.titleEn,
+                                  eventValidationConfig.errorMessages,
+                                  language
+                                )}
+                              </p>
+                            )}
+                          </div>
+                          <div>
+                            <label className="text-sm text-gray-700">
+                              中文简介
+                            </label>
+                            <textarea
+                              id="descZh"
+                              className="w-full border rounded-xl px-4 py-3 shadow-sm"
+                              value={form.descZh}
+                              onChange={(e) => {
+                                setForm({ ...form, descZh: e.target.value });
+                                handleEventFieldChange(
+                                  "descZh",
+                                  e.target.value
+                                );
+                              }}
+                              onBlur={() => handleEventFieldBlur("descZh")}
+                            />
+                            {formTouched.descZh && formErrors.descZh && (
+                              <p
+                                className="text-xs text-red-600 mt-1"
+                                role="alert"
+                              >
+                                {getErrorMessage(
+                                  formErrors.descZh,
+                                  eventValidationConfig.errorMessages,
+                                  language
+                                )}
+                              </p>
+                            )}
+                          </div>
+                          <div>
+                            <label className="text-sm text-gray-700">
+                              英文简介
+                            </label>
+                            <textarea
+                              id="descEn"
+                              className="w-full border rounded-xl px-4 py-3 shadow-sm"
+                              value={form.descEn}
+                              onChange={(e) => {
+                                setForm({ ...form, descEn: e.target.value });
+                                handleEventFieldChange(
+                                  "descEn",
+                                  e.target.value
+                                );
+                              }}
+                              onBlur={() => handleEventFieldBlur("descEn")}
+                            />
+                            {formTouched.descEn && formErrors.descEn && (
+                              <p
+                                className="text-xs text-red-600 mt-1"
+                                role="alert"
+                              >
+                                {getErrorMessage(
+                                  formErrors.descEn,
+                                  eventValidationConfig.errorMessages,
+                                  language
+                                )}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                      )}
-                      {unsplashResults.length > 0 && (
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                          {unsplashResults.map((photo) => {
-                            const selected = selectedUnsplashId === photo.id;
-                            return (
+
+                        {/* Cover Image (Unsplash / Upload) */}
+                        <div
+                          id="imageUrl"
+                          className="mt-4 border border-gray-200 rounded-xl p-4 bg-gray-50"
+                        >
+                          <h3 className="text-gray-700 mb-3">
+                            {t("admin.news.form.coverImageSettings")}
+                          </h3>
+
+                          <div className="flex gap-2 mb-4">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setImageSource("upload");
+                                setForm((prev) => ({
+                                  ...prev,
+                                  imageType: "upload",
+                                }));
+                              }}
+                              className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all ${
+                                imageSource === "upload"
+                                  ? "bg-[#2B5F9E] text-white shadow-md"
+                                  : "bg-white text-gray-600 border border-gray-300 hover:border-[#2B5F9E]"
+                              }`}
+                            >
+                              {t("admin.news.form.useUpload")}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setImageSource("unsplash");
+                                setUnsplashResults([]);
+                                setUnsplashError(null);
+                                setSelectedUnsplashId(null);
+                                setForm((prev) => ({
+                                  ...prev,
+                                  imageType: "unsplash",
+                                }));
+                              }}
+                              className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all ${
+                                imageSource === "unsplash"
+                                  ? "bg-[#2B5F9E] text-white shadow-md"
+                                  : "bg-white text-gray-600 border border-gray-300 hover:border-[#2B5F9E]"
+                              }`}
+                            >
+                              {t("admin.news.form.useUnsplash")}
+                            </button>
+                          </div>
+
+                          {imageSource === "unsplash" && (
+                            <div className="space-y-3">
+                              <label className="block text-gray-700">
+                                {t("admin.news.form.unsplashKeywords")}
+                              </label>
+                              <div className="flex flex-col sm:flex-row gap-2">
+                                <input
+                                  type="text"
+                                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
+                                  placeholder={t(
+                                    "admin.news.form.unsplashKeywordsPlaceholder"
+                                  )}
+                                  value={form.imageKeyword}
+                                  onChange={(e) =>
+                                    setForm((prev) => ({
+                                      ...prev,
+                                      imageKeyword: e.target.value,
+                                    }))
+                                  }
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                      e.preventDefault();
+                                      void handleUnsplashSearch();
+                                    }
+                                  }}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={handleUnsplashSearch}
+                                  className="px-4 py-2.5 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors min-w-[120px]"
+                                >
+                                  {language === "zh" ? "搜索图片" : "Search"}
+                                </button>
+                              </div>
+                              <p className="text-xs text-gray-500">
+                                {t("admin.news.form.unsplashHelp")}
+                              </p>
+                              {unsplashError && (
+                                <p
+                                  className="text-xs text-red-600"
+                                  role="alert"
+                                >
+                                  {unsplashError}
+                                </p>
+                              )}
+                              {unsplashLoading && (
+                                <p className="text-sm text-gray-600">
+                                  {language === "zh"
+                                    ? "搜索中..."
+                                    : "Searching..."}
+                                </p>
+                              )}
+                              {form.imageUrl && (
+                                <div className="p-3 bg-white border border-gray-200 rounded-lg">
+                                  <div className="flex items-center gap-2 text-sm text-green-600 mb-2">
+                                    <ImageIcon className="w-4 h-4" />
+                                    <span>
+                                      {language === "zh"
+                                        ? "已选图片预览"
+                                        : "Selected image"}
+                                    </span>
+                                  </div>
+                                  <img
+                                    src={form.imageUrl}
+                                    alt="Unsplash selection"
+                                    className="w-full h-48 object-cover rounded-lg"
+                                  />
+                                </div>
+                              )}
+                              {unsplashResults.length > 0 && (
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                  {unsplashResults.map((photo) => {
+                                    const selected =
+                                      selectedUnsplashId === photo.id;
+                                    return (
+                                      <button
+                                        type="button"
+                                        key={photo.id}
+                                        onClick={() =>
+                                          handleSelectUnsplash(photo)
+                                        }
+                                        className={`relative group overflow-hidden rounded-lg border ${
+                                          selected
+                                            ? "border-[#2B5F9E] ring-2 ring-[#2B5F9E]"
+                                            : "border-gray-200 hover:border-[#2B5F9E]"
+                                        }`}
+                                      >
+                                        <img
+                                          src={
+                                            photo.urls?.small ??
+                                            photo.urls?.thumb ??
+                                            photo.urls?.regular ??
+                                            ""
+                                          }
+                                          alt={
+                                            photo.alt_description ??
+                                            photo.description ??
+                                            ""
+                                          }
+                                          className="w-full h-36 object-cover"
+                                        />
+                                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        <span className="absolute bottom-2 left-2 text-xs text-white bg-black/60 px-2 py-1 rounded">
+                                          {selected
+                                            ? language === "zh"
+                                              ? "已选择"
+                                              : "Selected"
+                                            : language === "zh"
+                                              ? "使用"
+                                              : "Use"}
+                                        </span>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {imageSource === "upload" && (
+                            <div>
+                              <label className="block text-gray-700 mb-2">
+                                {language === "zh"
+                                  ? "上传封面图片"
+                                  : "Upload Cover Image"}
+                              </label>
                               <button
                                 type="button"
-                                key={photo.id}
-                                onClick={() => handleSelectUnsplash(photo)}
-                                className={`relative group overflow-hidden rounded-lg border ${
-                                  selected
-                                    ? "border-[#2B5F9E] ring-2 ring-[#2B5F9E]"
-                                    : "border-gray-200 hover:border-[#2B5F9E]"
-                                }`}
+                                onClick={openImageUpload}
+                                className="flex items-center gap-2 px-4 py-2.5 bg-[#6BA868] text-white rounded-lg hover:bg-[#5a9157] transition-colors"
                               >
-                                <img
-                                  src={
-                                    photo.urls?.small ??
-                                    photo.urls?.thumb ??
-                                    photo.urls?.regular ??
-                                    ""
-                                  }
-                                  alt={
-                                    photo.alt_description ??
-                                    photo.description ??
-                                    ""
-                                  }
-                                  className="w-full h-36 object-cover"
-                                />
-                                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                <span className="absolute bottom-2 left-2 text-xs text-white bg-black/60 px-2 py-1 rounded">
-                                  {selected
-                                    ? language === "zh"
-                                      ? "已选择"
-                                      : "Selected"
-                                    : language === "zh"
-                                      ? "使用"
-                                      : "Use"}
+                                <Upload className="w-5 h-5" />
+                                <span>
+                                  {t("admin.news.form.uploadImageBtn")}
                                 </span>
                               </button>
-                            );
-                          })}
+                              <p className="text-xs text-gray-500 mt-1">
+                                {t("admin.news.form.uploadHelp")}
+                              </p>
+
+                              {(uploadedImage || form.imageUrl) && (
+                                <div className="mt-3 p-3 bg-white border border-gray-200 rounded-lg">
+                                  <div className="flex items-center gap-2 text-sm text-green-600 mb-2">
+                                    <ImageIcon className="w-4 h-4" />
+                                    <span>
+                                      {t("admin.news.form.imagePreview")}
+                                    </span>
+                                  </div>
+                                  <img
+                                    src={uploadedImage || form.imageUrl}
+                                    alt="Preview"
+                                    className="w-full h-48 object-cover rounded-lg"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          {formTouched.imageUrl && formErrors.imageUrl && (
+                            <p
+                              className="text-xs text-red-600 mt-2"
+                              role="alert"
+                            >
+                              {getErrorMessage(
+                                formErrors.imageUrl,
+                                eventValidationConfig.errorMessages,
+                                language
+                              )}
+                            </p>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  )}
 
-                  {imageSource === "upload" && (
-                    <div>
-                      <label className="block text-gray-700 mb-2">
-                        {language === "zh"
-                          ? "上传封面图片"
-                          : "Upload Cover Image"}
-                      </label>
-                      <button
-                        type="button"
-                        onClick={openImageUpload}
-                        className="flex items-center gap-2 px-4 py-2.5 bg-[#6BA868] text-white rounded-lg hover:bg-[#5a9157] transition-colors"
-                      >
-                        <Upload className="w-5 h-5" />
-                        <span>{t("admin.news.form.uploadImageBtn")}</span>
-                      </button>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {t("admin.news.form.uploadHelp")}
-                      </p>
-
-                      {(uploadedImage || form.imageUrl) && (
-                        <div className="mt-3 p-3 bg-white border border-gray-200 rounded-lg">
-                          <div className="flex items-center gap-2 text-sm text-green-600 mb-2">
-                            <ImageIcon className="w-4 h-4" />
-                            <span>{t("admin.news.form.imagePreview")}</span>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                          <div>
+                            <label className="text-sm text-gray-700">
+                              {t("admin.events.form.date")}
+                            </label>
+                            <input
+                              id="date"
+                              type="date"
+                              className={`${inputBaseClass} [::-webkit-calendar-picker-indicator]:opacity-70`}
+                              value={form.date}
+                              onChange={(e) => {
+                                setForm({ ...form, date: e.target.value });
+                                handleEventFieldChange("date", e.target.value);
+                              }}
+                              onBlur={() => handleEventFieldBlur("date")}
+                            />
+                            {formTouched.date && formErrors.date && (
+                              <p
+                                className="text-xs text-red-600 mt-1"
+                                role="alert"
+                              >
+                                {getErrorMessage(
+                                  formErrors.date,
+                                  eventValidationConfig.errorMessages,
+                                  language
+                                )}
+                              </p>
+                            )}
                           </div>
-                          <img
-                            src={uploadedImage || form.imageUrl}
-                            alt="Preview"
-                            className="w-full h-48 object-cover rounded-lg"
-                          />
+                          <div>
+                            <label className="text-sm text-gray-700">
+                              {t("admin.events.form.time")}
+                            </label>
+                            <div className="flex gap-2">
+                              <input
+                                id="start"
+                                type="time"
+                                className={`${inputBaseClass} [::-webkit-calendar-picker-indicator]:opacity-70`}
+                                value={form.start}
+                                onChange={(e) => {
+                                  setForm({ ...form, start: e.target.value });
+                                  handleEventFieldChange(
+                                    "start",
+                                    e.target.value
+                                  );
+                                }}
+                                onBlur={() => handleEventFieldBlur("start")}
+                              />
+                              <input
+                                type="time"
+                                className={`${inputBaseClass} [::-webkit-calendar-picker-indicator]:opacity-70`}
+                                value={form.end}
+                                onChange={(e) =>
+                                  setForm({ ...form, end: e.target.value })
+                                }
+                              />
+                            </div>
+                            {formTouched.start && formErrors.start && (
+                              <p
+                                className="text-xs text-red-600 mt-1"
+                                role="alert"
+                              >
+                                {getErrorMessage(
+                                  formErrors.start,
+                                  eventValidationConfig.errorMessages,
+                                  language
+                                )}
+                              </p>
+                            )}
+                          </div>
+                          <div>
+                            <label className="text-sm text-gray-700">
+                              {t("admin.events.form.capacity")}
+                            </label>
+                            <div className="flex flex-wrap items-center gap-3">
+                              <input
+                                type="number"
+                                min={0}
+                                className={`${inputBaseClass} flex-1 min-w-[160px]`}
+                                value={form.capacity}
+                                onChange={(e) =>
+                                  setForm({ ...form, capacity: e.target.value })
+                                }
+                                disabled={isUnlimited}
+                                placeholder={t("admin.events.form.unlimited")}
+                              />
+                              <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
+                                <input
+                                  type="checkbox"
+                                  checked={isUnlimited}
+                                  onChange={(e) =>
+                                    setForm({
+                                      ...form,
+                                      capacity: e.target.checked ? "" : "0",
+                                    })
+                                  }
+                                />
+                                {t("admin.events.form.unlimited")}
+                              </label>
+                            </div>
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  )}
-                  {formTouched.imageUrl && formErrors.imageUrl && (
-                    <p className="text-xs text-red-600 mt-2" role="alert">
-                      {getErrorMessage(
-                        formErrors.imageUrl,
-                        eventValidationConfig.errorMessages,
-                        language
-                      )}
-                    </p>
-                  )}
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                  <div>
-                    <label className="text-sm text-gray-700">
-                      {t("admin.events.form.date")}
-                    </label>
-                    <input
-                      id="date"
-                      type="date"
-                      className={`${inputBaseClass} [::-webkit-calendar-picker-indicator]:opacity-70`}
-                      value={form.date}
-                      onChange={(e) => {
-                        setForm({ ...form, date: e.target.value });
-                        handleEventFieldChange("date", e.target.value);
-                      }}
-                      onBlur={() => handleEventFieldBlur("date")}
-                    />
-                    {formTouched.date && formErrors.date && (
-                      <p className="text-xs text-red-600 mt-1" role="alert">
-                        {getErrorMessage(
-                          formErrors.date,
-                          eventValidationConfig.errorMessages,
-                          language
-                        )}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-700">
-                      {t("admin.events.form.time")}
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        id="start"
-                        type="time"
-                        className={`${inputBaseClass} [::-webkit-calendar-picker-indicator]:opacity-70`}
-                        value={form.start}
-                        onChange={(e) => {
-                          setForm({ ...form, start: e.target.value });
-                          handleEventFieldChange("start", e.target.value);
-                        }}
-                        onBlur={() => handleEventFieldBlur("start")}
-                      />
-                      <input
-                        type="time"
-                        className={`${inputBaseClass} [::-webkit-calendar-picker-indicator]:opacity-70`}
-                        value={form.end}
-                        onChange={(e) =>
-                          setForm({ ...form, end: e.target.value })
-                        }
-                      />
-                    </div>
-                    {formTouched.start && formErrors.start && (
-                      <p className="text-xs text-red-600 mt-1" role="alert">
-                        {getErrorMessage(
-                          formErrors.start,
-                          eventValidationConfig.errorMessages,
-                          language
-                        )}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-700">
-                      {t("admin.events.form.capacity")}
-                    </label>
-                    <div className="flex flex-wrap items-center gap-3">
-                      <input
-                        type="number"
-                        min={0}
-                        className={`${inputBaseClass} flex-1 min-w-[160px]`}
-                        value={form.capacity}
-                        onChange={(e) =>
-                          setForm({ ...form, capacity: e.target.value })
-                        }
-                        disabled={isUnlimited}
-                        placeholder={t("admin.events.form.unlimited")}
-                      />
-                      <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
-                        <input
-                          type="checkbox"
-                          checked={isUnlimited}
-                          onChange={(e) =>
-                            setForm({
-                              ...form,
-                              capacity: e.target.checked ? "" : "0",
-                            })
-                          }
-                        />
-                        {t("admin.events.form.unlimited")}
-                      </label>
-                    </div>
-                  </div>
-                </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                          <div>
+                            <label className="text-sm text-gray-700">
+                              {t("admin.events.form.location")}
+                            </label>
+                            <input
+                              id="location"
+                              className="w-full border rounded-xl px-4 py-3 shadow-sm"
+                              value={form.location}
+                              onChange={(e) => {
+                                setForm({ ...form, location: e.target.value });
+                                handleEventFieldChange(
+                                  "location",
+                                  e.target.value
+                                );
+                              }}
+                              onBlur={() => handleEventFieldBlur("location")}
+                            />
+                            {formTouched.location && formErrors.location && (
+                              <p
+                                className="text-xs text-red-600 mt-1"
+                                role="alert"
+                              >
+                                {getErrorMessage(
+                                  formErrors.location,
+                                  eventValidationConfig.errorMessages,
+                                  language
+                                )}
+                              </p>
+                            )}
+                          </div>
+                          <div>
+                            <label className="text-sm text-gray-700">
+                              {t("admin.events.form.accessType")}
+                            </label>
+                            <div className="flex gap-3 mt-2 text-sm text-gray-700">
+                              <label className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  checked={form.access === "all-welcome"}
+                                  onChange={() =>
+                                    setForm({ ...form, access: "all-welcome" })
+                                  }
+                                />
+                                {t("admin.events.form.allWelcome")}
+                              </label>
+                              <label className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  checked={form.access === "members-only"}
+                                  onChange={() =>
+                                    setForm({
+                                      ...form,
+                                      access: "members-only",
+                                      memberFee: "",
+                                    })
+                                  }
+                                />
+                                {t("admin.events.form.membersOnly")}
+                              </label>
+                            </div>
+                          </div>
+                        </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <div>
-                    <label className="text-sm text-gray-700">
-                      {t("admin.events.form.location")}
-                    </label>
-                    <input
-                      id="location"
-                      className="w-full border rounded-xl px-4 py-3 shadow-sm"
-                      value={form.location}
-                      onChange={(e) => {
-                        setForm({ ...form, location: e.target.value });
-                        handleEventFieldChange("location", e.target.value);
-                      }}
-                      onBlur={() => handleEventFieldBlur("location")}
-                    />
-                    {formTouched.location && formErrors.location && (
-                      <p className="text-xs text-red-600 mt-1" role="alert">
-                        {getErrorMessage(
-                          formErrors.location,
-                          eventValidationConfig.errorMessages,
-                          language
-                        )}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-700">
-                      {t("admin.events.form.accessType")}
-                    </label>
-                    <div className="flex gap-3 mt-2 text-sm text-gray-700">
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          checked={form.access === "all-welcome"}
-                          onChange={() =>
-                            setForm({ ...form, access: "all-welcome" })
-                          }
-                        />
-                        {t("admin.events.form.allWelcome")}
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          checked={form.access === "members-only"}
-                          onChange={() =>
-                            setForm({
-                              ...form,
-                              access: "members-only",
-                              memberFee: "",
-                            })
-                          }
-                        />
-                        {t("admin.events.form.membersOnly")}
-                      </label>
-                    </div>
-                  </div>
-                </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                          <div>
+                            <label className="text-sm text-gray-700">
+                              {t("admin.events.form.nonMemberPrice")}
+                            </label>
+                            <input
+                              id="fee"
+                              type="number"
+                              className={`${inputBaseClass}`}
+                              value={form.fee}
+                              onChange={(e) => {
+                                setForm({ ...form, fee: e.target.value });
+                                handleEventFieldChange("fee", e.target.value);
+                              }}
+                              onBlur={() => handleEventFieldBlur("fee")}
+                            />
+                            {formTouched.fee && formErrors.fee && (
+                              <p
+                                className="text-xs text-red-600 mt-1"
+                                role="alert"
+                              >
+                                {getErrorMessage(
+                                  formErrors.fee,
+                                  eventValidationConfig.errorMessages,
+                                  language
+                                )}
+                              </p>
+                            )}
+                          </div>
+                          {form.access === "all-welcome" && (
+                            <div>
+                              <label className="text-sm text-gray-700">
+                                {t("admin.events.form.memberPrice")}
+                              </label>
+                              <input
+                                type="number"
+                                className={`${inputBaseClass}`}
+                                value={form.memberFee}
+                                onChange={(e) =>
+                                  setForm({
+                                    ...form,
+                                    memberFee: e.target.value,
+                                  })
+                                }
+                              />
+                            </div>
+                          )}
+                        </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <div>
-                    <label className="text-sm text-gray-700">
-                      {t("admin.events.form.nonMemberPrice")}
-                    </label>
-                    <input
-                      id="fee"
-                      type="number"
-                      className={`${inputBaseClass}`}
-                      value={form.fee}
-                      onChange={(e) => {
-                        setForm({ ...form, fee: e.target.value });
-                        handleEventFieldChange("fee", e.target.value);
-                      }}
-                      onBlur={() => handleEventFieldBlur("fee")}
-                    />
-                    {formTouched.fee && formErrors.fee && (
-                      <p className="text-xs text-red-600 mt-1" role="alert">
-                        {getErrorMessage(
-                          formErrors.fee,
-                          eventValidationConfig.errorMessages,
-                          language
-                        )}
-                      </p>
-                    )}
-                  </div>
-                  {form.access === "all-welcome" && (
-                    <div>
-                      <label className="text-sm text-gray-700">
-                        {t("admin.events.form.memberPrice")}
-                      </label>
-                      <input
-                        type="number"
-                        className={`${inputBaseClass}`}
-                        value={form.memberFee}
-                        onChange={(e) =>
-                          setForm({ ...form, memberFee: e.target.value })
-                        }
-                      />
-                    </div>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 mt-6">
-                  <button
-                    onClick={() => setShowForm(false)}
-                    type="button"
-                    className="w-full px-4 py-3 border rounded-xl shadow-sm hover:bg-gray-50"
-                  >
-                    {t("common.cancel")}
-                  </button>
-                  <button
-                    onClick={handleSave}
-                    type="button"
-                    className="w-full px-4 py-3 bg-gradient-to-r from-[#2B5F9E] to-[#6BA868] text-white rounded-xl shadow-md hover:shadow-lg transition-all"
-                  >
-                    {form.id ? t("admin.events.save") : t("admin.events.add")}
-                  </button>
-                </div>
-              </div>
+                        <div className="grid grid-cols-2 gap-3 mt-6">
+                          <button
+                            onClick={() => setShowForm(false)}
+                            type="button"
+                            className="w-full px-4 py-3 border rounded-xl shadow-sm hover:bg-gray-50"
+                          >
+                            {t("common.cancel")}
+                          </button>
+                          <button
+                            onClick={handleSave}
+                            type="button"
+                            className="w-full px-4 py-3 bg-gradient-to-r from-[#2B5F9E] to-[#6BA868] text-white rounded-xl shadow-md hover:shadow-lg transition-all"
+                          >
+                            {form.id
+                              ? t("admin.events.save")
+                              : t("admin.events.add")}
+                          </button>
+                        </div>
+                      </div>
                     </motion.div>
                   </motion.div>,
                   document.body
@@ -1372,74 +1444,79 @@ export function AdminEvents() {
                         </button>
                       </div>
 
-              <div className="p-6 overflow-y-auto space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-gray-700">
-                    {language === "zh"
-                      ? `总报名人数：${registrations.length}`
-                      : `Total registrations: ${registrations.length}`}
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={exportRegistrations}
-                      disabled={registrations.length === 0}
-                      className="px-4 py-2 rounded-lg bg-[#2B5F9E] text-white hover:bg-[#234a7e] disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {language === "zh" ? "导出 Excel" : "Export CSV"}
-                    </button>
-                  </div>
-                </div>
+                      <div className="p-6 overflow-y-auto space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="text-sm text-gray-700">
+                            {language === "zh"
+                              ? `总报名人数：${registrations.length}`
+                              : `Total registrations: ${registrations.length}`}
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={exportRegistrations}
+                              disabled={registrations.length === 0}
+                              className="px-4 py-2 rounded-lg bg-[#2B5F9E] text-white hover:bg-[#234a7e] disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {language === "zh" ? "导出 Excel" : "Export CSV"}
+                            </button>
+                          </div>
+                        </div>
 
-                {regsLoading && (
-                  <p className="text-gray-600">
-                    {language === "zh" ? "加载中..." : "Loading..."}
-                  </p>
-                )}
-                {regsError && (
-                  <p className="text-red-600" role="alert">
-                    {regsError}
-                  </p>
-                )}
-                {!regsLoading && !regsError && registrations.length === 0 && (
-                  <p className="text-gray-500">
-                    {language === "zh" ? "暂无报名" : "No registrations yet"}
-                  </p>
-                )}
-                {!regsLoading && registrations.length > 0 && (
-                  <div className="space-y-2">
-                    {registrations.map((reg) => (
-                      <div
-                        key={reg.id}
-                        className="border border-gray-200 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
-                      >
-                        <div>
-                          <p className="text-[#2B5F9E] font-medium">
-                            {reg.name}
+                        {regsLoading && (
+                          <p className="text-gray-600">
+                            {language === "zh" ? "加载中..." : "Loading..."}
                           </p>
-                          <p className="text-sm text-gray-600">
-                            {language === "zh" ? "电话" : "Phone"}: {reg.phone}
-                            {reg.email ? ` · Email: ${reg.email}` : ""}
+                        )}
+                        {regsError && (
+                          <p className="text-red-600" role="alert">
+                            {regsError}
                           </p>
-                          <p className="text-sm text-gray-600">
-                            {language === "zh" ? "报名日期" : "Date"}:{" "}
-                            {reg.registration_date}
-                          </p>
-                        </div>
-                        <div className="text-sm text-gray-700">
-                          <p>
-                            {language === "zh" ? "票数" : "Tickets"}:{" "}
-                            {reg.tickets}
-                          </p>
-                          <p>
-                            {language === "zh" ? "付款" : "Payment"}:{" "}
-                            {reg.payment_method ?? "-"}
-                          </p>
-                        </div>
+                        )}
+                        {!regsLoading &&
+                          !regsError &&
+                          registrations.length === 0 && (
+                            <p className="text-gray-500">
+                              {language === "zh"
+                                ? "暂无报名"
+                                : "No registrations yet"}
+                            </p>
+                          )}
+                        {!regsLoading && registrations.length > 0 && (
+                          <div className="space-y-2">
+                            {registrations.map((reg) => (
+                              <div
+                                key={reg.id}
+                                className="border border-gray-200 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+                              >
+                                <div>
+                                  <p className="text-[#2B5F9E] font-medium">
+                                    {reg.name}
+                                  </p>
+                                  <p className="text-sm text-gray-600">
+                                    {language === "zh" ? "电话" : "Phone"}:{" "}
+                                    {reg.phone}
+                                    {reg.email ? ` · Email: ${reg.email}` : ""}
+                                  </p>
+                                  <p className="text-sm text-gray-600">
+                                    {language === "zh" ? "报名日期" : "Date"}:{" "}
+                                    {reg.registration_date}
+                                  </p>
+                                </div>
+                                <div className="text-sm text-gray-700">
+                                  <p>
+                                    {language === "zh" ? "票数" : "Tickets"}:{" "}
+                                    {reg.tickets}
+                                  </p>
+                                  <p>
+                                    {language === "zh" ? "付款" : "Payment"}:{" "}
+                                    {reg.payment_method ?? "-"}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
                     </motion.div>
                   </motion.div>,
                   document.body

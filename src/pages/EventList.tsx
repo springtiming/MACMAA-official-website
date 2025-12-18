@@ -4,31 +4,33 @@ import { motion } from "motion/react";
 import { Calendar, MapPin, Users, DollarSign } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/ui/tabs";
-import { EventSkeleton } from "../components/EventSkeleton";
 import {
-  fetchEvents,
-  type EventRecord,
-} from "../lib/supabaseApi";
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "../components/ui/tabs";
+import { EventSkeleton } from "../components/EventSkeleton";
+import { fetchEvents, type EventRecord } from "../lib/supabaseApi";
 import {
   formatEventDateTime,
   pickLocalized,
   resolveEventImage,
 } from "../lib/supabaseHelpers";
 
-function EventImageContainer({ 
-  imageSrc, 
-  imageAlt, 
-  isPast 
-}: { 
-  imageSrc: string; 
-  imageAlt: string; 
+function EventImageContainer({
+  imageSrc,
+  imageAlt,
+  isPast,
+}: {
+  imageSrc: string;
+  imageAlt: string;
   isPast: boolean;
 }) {
   const [zIndex, setZIndex] = useState(0);
-  
+
   return (
-    <div 
+    <div
       className="md:w-2/5 relative"
       style={{ zIndex }}
       onMouseEnter={() => setZIndex(100)}
@@ -89,8 +91,7 @@ export function EventList() {
         .filter((event) => new Date(event.event_date) >= now)
         .sort(
           (a, b) =>
-            new Date(a.event_date).getTime() -
-            new Date(b.event_date).getTime()
+            new Date(a.event_date).getTime() - new Date(b.event_date).getTime()
         ),
     [events, now]
   );
@@ -101,8 +102,7 @@ export function EventList() {
         .filter((event) => new Date(event.event_date) < now)
         .sort(
           (a, b) =>
-            new Date(b.event_date).getTime() -
-            new Date(a.event_date).getTime()
+            new Date(b.event_date).getTime() - new Date(a.event_date).getTime()
         ),
     [events, now]
   );
@@ -150,7 +150,9 @@ export function EventList() {
                   <div className="mb-2 flex items-center gap-2 flex-wrap">
                     <span
                       className={`inline-block px-2.5 sm:px-3 py-1 text-xs sm:text-sm rounded-full ${
-                        isPast ? "bg-gray-400 text-white" : "bg-[#6BA868] text-white"
+                        isPast
+                          ? "bg-gray-400 text-white"
+                          : "bg-[#6BA868] text-white"
                       }`}
                     >
                       {isPast ? t("events.ended") : t("events.upcoming")}
@@ -269,19 +271,13 @@ export function EventList() {
         <h1 className="text-[#2B5F9E] mb-3 sm:mb-4 text-3xl sm:text-4xl px-2">
           {t("events.title")}
         </h1>
-        {error && (
-          <p className="text-red-600 text-sm px-2">
-            {error}
-          </p>
-        )}
+        {error && <p className="text-red-600 text-sm px-2">{error}</p>}
       </motion.div>
 
       <Tabs
         value={activeTab}
         className="w-full"
-        onValueChange={(value) =>
-          setActiveTab(value as "upcoming" | "past")
-        }
+        onValueChange={(value) => setActiveTab(value as "upcoming" | "past")}
       >
         <div className="flex justify-center mb-8">
           <TabsList className="tabs-gray">
@@ -316,9 +312,7 @@ export function EventList() {
               ) : (
                 <div className="text-center py-20 px-6 text-gray-500 bg-[#fbfcfd] rounded-3xl max-w-5xl mx-auto shadow-[0_8px_18px_-16px_rgba(0,0,0,0.25)]">
                   <p className="text-lg">
-                    {language === "zh"
-                      ? "近期暂无活动"
-                      : "No upcoming events"}
+                    {language === "zh" ? "近期暂无活动" : "No upcoming events"}
                   </p>
                 </div>
               )}
@@ -330,9 +324,7 @@ export function EventList() {
               ) : (
                 <div className="text-center py-20 px-6 text-gray-500 bg-[#fbfcfd] rounded-3xl max-w-5xl mx-auto shadow-[0_8px_18px_-16px_rgba(0,0,0,0.25)]">
                   <p className="text-lg">
-                    {language === "zh"
-                      ? "暂无往期活动"
-                      : "No past events"}
+                    {language === "zh" ? "暂无往期活动" : "No past events"}
                   </p>
                 </div>
               )}

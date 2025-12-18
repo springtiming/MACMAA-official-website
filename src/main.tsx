@@ -9,6 +9,9 @@ import "./lib/fontImports";
 import { getFontFamilyCSS } from "./lib/fontLoader";
 
 // 在 DOM 加载后设置字体 CSS 变量
-document.documentElement.style.setProperty("--app-font-family", getFontFamilyCSS());
+document.documentElement.style.setProperty(
+  "--app-font-family",
+  getFontFamilyCSS()
+);
 
 createRoot(document.getElementById("root")!).render(<App />);

@@ -11,7 +11,7 @@ import { getCurrentFont } from "../config/fontConfig";
  */
 export function loadFonts() {
   const currentFont = getCurrentFont();
-  
+
   // 动态导入所有需要的字体 CSS 文件
   currentFont.cssImports.forEach((cssPath) => {
     // 使用动态 import 加载字体 CSS

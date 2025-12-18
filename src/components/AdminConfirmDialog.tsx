@@ -117,5 +117,3 @@ export function AdminConfirmDialog({
 
   return createPortal(dialog, document.body);
 }
-
-

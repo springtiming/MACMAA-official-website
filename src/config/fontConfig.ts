@@ -1,6 +1,6 @@
 /**
  * 字体配置
- * 
+ *
  * 要更换字体，只需修改 CURRENT_FONT 的值即可
  * 确保对应的字体包已通过 npm 安装
  */
@@ -21,7 +21,8 @@ export interface FontConfig {
 export const AVAILABLE_FONTS: Record<string, FontConfig> = {
   inter: {
     name: "Inter",
-    family: "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    family:
+      "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     npmPackage: "@fontsource/inter",
     cssImports: [
       "@fontsource/inter/300.css",
@@ -34,7 +35,8 @@ export const AVAILABLE_FONTS: Record<string, FontConfig> = {
   },
   poppins: {
     name: "Poppins",
-    family: "'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    family:
+      "'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     npmPackage: "@fontsource/poppins",
     cssImports: [
       "@fontsource/poppins/300.css",
@@ -47,7 +49,8 @@ export const AVAILABLE_FONTS: Record<string, FontConfig> = {
   },
   roboto: {
     name: "Roboto",
-    family: "'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    family:
+      "'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     npmPackage: "@fontsource/roboto",
     cssImports: [
       "@fontsource/roboto/300.css",
@@ -59,7 +62,8 @@ export const AVAILABLE_FONTS: Record<string, FontConfig> = {
   },
   sourceSansPro: {
     name: "Source Sans Pro",
-    family: "'Source Sans Pro', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    family:
+      "'Source Sans Pro', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     npmPackage: "@fontsource/source-sans-pro",
     cssImports: [
       "@fontsource/source-sans-pro/300.css",
@@ -71,7 +75,8 @@ export const AVAILABLE_FONTS: Record<string, FontConfig> = {
   },
   workSans: {
     name: "Work Sans",
-    family: "'Work Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    family:
+      "'Work Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     npmPackage: "@fontsource/work-sans",
     cssImports: [
       "@fontsource/work-sans/300.css",
@@ -84,7 +89,8 @@ export const AVAILABLE_FONTS: Record<string, FontConfig> = {
   },
   lato: {
     name: "Lato",
-    family: "'Lato', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    family:
+      "'Lato', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     npmPackage: "@fontsource/lato",
     cssImports: [
       "@fontsource/lato/300.css",
@@ -95,7 +101,8 @@ export const AVAILABLE_FONTS: Record<string, FontConfig> = {
   },
   notoSansSC: {
     name: "Noto Sans SC",
-    family: "'Noto Sans SC', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    family:
+      "'Noto Sans SC', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     npmPackage: "@fontsource/noto-sans-sc",
     cssImports: [
       "@fontsource/noto-sans-sc/300.css",
@@ -107,7 +114,8 @@ export const AVAILABLE_FONTS: Record<string, FontConfig> = {
   },
   interNotoSansSC: {
     name: "Inter + Noto Sans SC",
-    family: "'Inter', 'Noto Sans SC', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    family:
+      "'Inter', 'Noto Sans SC', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     npmPackage: ["@fontsource/inter", "@fontsource/noto-sans-sc"],
     cssImports: [
       "@fontsource/inter/300.css",

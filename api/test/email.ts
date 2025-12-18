@@ -154,7 +154,25 @@ export default async function handler(
     }
 
     // 检查结果并返回详细信息
-    const response: any = {
+    const response: {
+      ok: boolean;
+      type: string;
+      to: string;
+      result: unknown;
+      config: {
+        hasApiKey: boolean;
+        defaultFrom: string;
+        adminEmail: string;
+      };
+      diagnosis?: {
+        issue?: string;
+        suggestions?: string[];
+        success?: boolean;
+        message?: string;
+        emailId?: string;
+        nextSteps?: string[];
+      };
+    } = {
       ok: true,
       type,
       to: testEmail,
@@ -211,6 +229,7 @@ export default async function handler(
     });
   }
 }
+
 
 
 

@@ -54,7 +54,8 @@ const fonts: FontOption[] = [
   {
     name: "Inter",
     // 使用 @fontsource/inter 提供的 Inter 字体
-    family: "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    family:
+      "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     originalFamily: "'Inter', sans-serif",
     npmPackage: "@fontsource/inter",
     description:
@@ -63,7 +64,8 @@ const fonts: FontOption[] = [
   },
   {
     name: "Poppins",
-    family: "'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    family:
+      "'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     originalFamily: "'Poppins', sans-serif",
     npmPackage: "@fontsource/poppins",
     description:
@@ -72,7 +74,8 @@ const fonts: FontOption[] = [
   },
   {
     name: "Roboto",
-    family: "'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    family:
+      "'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     originalFamily: "'Roboto', sans-serif",
     npmPackage: "@fontsource/roboto",
     description:
@@ -91,7 +94,8 @@ const fonts: FontOption[] = [
   },
   {
     name: "Work Sans",
-    family: "'Work Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    family:
+      "'Work Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     originalFamily: "'Work Sans', sans-serif",
     npmPackage: "@fontsource/work-sans",
     description:
@@ -100,7 +104,8 @@ const fonts: FontOption[] = [
   },
   {
     name: "Lato",
-    family: "'Lato', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    family:
+      "'Lato', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     originalFamily: "'Lato', sans-serif",
     npmPackage: "@fontsource/lato",
     description:

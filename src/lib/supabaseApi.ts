@@ -268,7 +268,10 @@ async function callEdgeFunction(path: string, init?: RequestInit) {
   };
   return fetch(url, { ...init, headers });
 }
-export async function adminAuthLogin(payload: { username: string; password: string }) {
+export async function adminAuthLogin(payload: {
+  username: string;
+  password: string;
+}) {
   const res = await callEdgeFunction("admin-auth", {
     method: "POST",
     headers: {
@@ -284,7 +287,11 @@ export async function adminAuthLogin(payload: { username: string; password: stri
   if (!res.ok) {
     throw new Error("login-failed");
   }
-  const body = (await res.json()) as { id: string; username: string; role: "owner" | "admin" };
+  const body = (await res.json()) as {
+    id: string;
+    username: string;
+    role: "owner" | "admin";
+  };
   return body;
 }
 
@@ -821,9 +828,7 @@ export async function createStripeCheckoutSession(
 
   if (!res.ok) {
     const detail = await res.text();
-    throw new Error(
-      detail || "Failed to create Stripe checkout session"
-    );
+    throw new Error(detail || "Failed to create Stripe checkout session");
   }
 
   return (await res.json()) as CreateStripeCheckoutSessionResponse;

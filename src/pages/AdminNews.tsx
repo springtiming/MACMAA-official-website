@@ -211,8 +211,7 @@ export function AdminNews() {
 
   const buildCoverFields = (news: NewsFormState) => {
     const type = news.imageType || "upload";
-    const keyword =
-      type === "unsplash" ? news.imageKeyword.trim() : "";
+    const keyword = type === "unsplash" ? news.imageKeyword.trim() : "";
     const url =
       type === "upload"
         ? news.image || uploadedImage || uploadedImageUrl || ""
@@ -347,9 +346,7 @@ export function AdminNews() {
         } catch (err) {
           setError(t("common.error"));
           const localArticle: NewsPostRecord = {
-            id:
-              normalizeArticleId(news.id, editingArticle?.id) ??
-              createUuid(),
+            id: normalizeArticleId(news.id, editingArticle?.id) ?? createUuid(),
             title_zh: news.title.zh,
             title_en: news.title.en,
             summary_zh: news.summary.zh,
@@ -836,9 +833,7 @@ function NewsFormModal({
   const initialCoverKeyword =
     draft?.cover_keyword ||
     news?.cover_keyword ||
-    (!initialCoverUrl
-      ? (draft?.cover_source ?? news?.cover_source ?? "")
-      : "");
+    (!initialCoverUrl ? (draft?.cover_source ?? news?.cover_source ?? "") : "");
   const initialCoverType =
     draft?.cover_type ||
     news?.cover_type ||
@@ -959,7 +954,9 @@ function NewsFormModal({
     } catch (err) {
       console.error("[AdminNews] unsplash search", err);
       setUnsplashError(
-        language === "zh" ? "搜索失败，请稍后再试" : "Search failed, please try again"
+        language === "zh"
+          ? "搜索失败，请稍后再试"
+          : "Search failed, please try again"
       );
     } finally {
       setUnsplashLoading(false);
@@ -1017,7 +1014,7 @@ function NewsFormModal({
         imageType: "upload",
       }));
     }
-  }, [uploadedImage]);
+  }, [uploadedImage, setUploadedImageUrl]);
 
   useEffect(() => {
     setErrors({});
@@ -1216,9 +1213,9 @@ function NewsFormModal({
               </h3>
 
               {/* Toggle Buttons */}
-                  <div className="flex gap-2 mb-4">
-                    <button
-                      type="button"
+              <div className="flex gap-2 mb-4">
+                <button
+                  type="button"
                   onClick={() => {
                     setImageSource("upload");
                     setUnsplashResults([]);
@@ -1249,34 +1246,34 @@ function NewsFormModal({
                   }`}
                 >
                   {t("admin.news.form.useUpload")}
-                    </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setImageSource("unsplash");
-                      setUnsplashResults([]);
-                      setUnsplashError(null);
-                      setSelectedUnsplashId(null);
-                      // 如果当前 formData.image 是图片 URL，保存到 uploadedImageUrl 并清空搜索框
-                      if (
-                        formData.image &&
-                        isImageUrl(formData.image) &&
-                        !isUnsplashUrl(formData.image)
-                      ) {
-                        setUploadedImageUrl(formData.image);
-                        setFormData((prev) => ({
-                          ...prev,
-                          image: "",
-                          imageType: "unsplash",
-                        }));
-                      }
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setImageSource("unsplash");
+                    setUnsplashResults([]);
+                    setUnsplashError(null);
+                    setSelectedUnsplashId(null);
+                    // 如果当前 formData.image 是图片 URL，保存到 uploadedImageUrl 并清空搜索框
+                    if (
+                      formData.image &&
+                      isImageUrl(formData.image) &&
+                      !isUnsplashUrl(formData.image)
+                    ) {
+                      setUploadedImageUrl(formData.image);
                       setFormData((prev) => ({
                         ...prev,
+                        image: "",
                         imageType: "unsplash",
-                        imageKeyword: unsplashKeyword,
                       }));
-                    }}
-                      className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all ${
+                    }
+                    setFormData((prev) => ({
+                      ...prev,
+                      imageType: "unsplash",
+                      imageKeyword: unsplashKeyword,
+                    }));
+                  }}
+                  className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all ${
                     imageSource === "unsplash"
                       ? "bg-[#2B5F9E] text-white shadow-md"
                       : "bg-white text-gray-600 border border-gray-300 hover:border-[#2B5F9E]"
@@ -1287,117 +1284,115 @@ function NewsFormModal({
               </div>
 
               {/* Unsplash Option */}
-                  {imageSource === "unsplash" && (
-                    <div className="space-y-3">
-                      <label className="block text-gray-700">
-                        {t("admin.news.form.unsplashKeywords")}
-                      </label>
-                      <div className="flex flex-col sm:flex-row gap-2">
-                        <input
-                          type="text"
-                          placeholder={t(
-                            "admin.news.form.unsplashKeywordsPlaceholder"
-                          )}
-                          value={unsplashKeyword}
-                          onChange={(e) => {
-                            setUnsplashKeyword(e.target.value);
-                            setFormData((prev) => ({
-                              ...prev,
-                              imageKeyword: e.target.value,
-                            }));
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              void handleUnsplashSearch();
-                            }
-                          }}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleUnsplashSearch}
-                          className="px-4 py-2.5 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors min-w-[120px]"
-                        >
-                          {language === "zh" ? "搜索图片" : "Search"}
-                        </button>
+              {imageSource === "unsplash" && (
+                <div className="space-y-3">
+                  <label className="block text-gray-700">
+                    {t("admin.news.form.unsplashKeywords")}
+                  </label>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <input
+                      type="text"
+                      placeholder={t(
+                        "admin.news.form.unsplashKeywordsPlaceholder"
+                      )}
+                      value={unsplashKeyword}
+                      onChange={(e) => {
+                        setUnsplashKeyword(e.target.value);
+                        setFormData((prev) => ({
+                          ...prev,
+                          imageKeyword: e.target.value,
+                        }));
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          void handleUnsplashSearch();
+                        }
+                      }}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleUnsplashSearch}
+                      className="px-4 py-2.5 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors min-w-[120px]"
+                    >
+                      {language === "zh" ? "搜索图片" : "Search"}
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    {t("admin.news.form.unsplashHelp")}
+                  </p>
+                  {unsplashError && (
+                    <p className="text-xs text-red-600" role="alert">
+                      {unsplashError}
+                    </p>
+                  )}
+                  {unsplashLoading && (
+                    <p className="text-sm text-gray-600">
+                      {language === "zh" ? "搜索中..." : "Searching..."}
+                    </p>
+                  )}
+                  {formData.image && isImageUrl(formData.image) && (
+                    <div className="p-3 bg-white border border-gray-200 rounded-lg">
+                      <div className="flex items-center gap-2 text-sm text-green-600 mb-2">
+                        <ImageIcon className="w-4 h-4" />
+                        <span>
+                          {language === "zh"
+                            ? "已选图片预览"
+                            : "Selected image"}
+                        </span>
                       </div>
-                      <p className="text-xs text-gray-500">
-                        {t("admin.news.form.unsplashHelp")}
-                      </p>
-                      {unsplashError && (
-                        <p className="text-xs text-red-600" role="alert">
-                          {unsplashError}
-                        </p>
-                      )}
-                      {unsplashLoading && (
-                        <p className="text-sm text-gray-600">
-                          {language === "zh" ? "搜索中..." : "Searching..."}
-                        </p>
-                      )}
-                      {formData.image && isImageUrl(formData.image) && (
-                        <div className="p-3 bg-white border border-gray-200 rounded-lg">
-                          <div className="flex items-center gap-2 text-sm text-green-600 mb-2">
-                            <ImageIcon className="w-4 h-4" />
-                            <span>
-                              {language === "zh"
-                                ? "已选图片预览"
-                                : "Selected image"}
-                            </span>
-                          </div>
-                          <img
-                            src={formData.image}
-                            alt="Unsplash selection"
-                            className="w-full h-48 object-cover rounded-lg"
-                          />
-                        </div>
-                      )}
-                      {unsplashResults.length > 0 && (
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                          {unsplashResults.map((photo) => {
-                            const selected = selectedUnsplashId === photo.id;
-                            return (
-                              <button
-                                type="button"
-                                key={photo.id}
-                                onClick={() => handleSelectUnsplash(photo)}
-                                className={`relative group overflow-hidden rounded-lg border ${
-                                  selected
-                                    ? "border-[#2B5F9E] ring-2 ring-[#2B5F9E]"
-                                    : "border-gray-200 hover:border-[#2B5F9E]"
-                                }`}
-                              >
-                                <img
-                                  src={
-                                    photo.urls?.small ??
-                                    photo.urls?.thumb ??
-                                    photo.urls?.regular ??
-                                    ""
-                                  }
-                                  alt={
-                                    photo.alt_description ??
-                                    photo.description ??
-                                    ""
-                                  }
-                                  className="w-full h-36 object-cover"
-                                />
-                                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                <span className="absolute bottom-2 left-2 text-xs text-white bg-black/60 px-2 py-1 rounded">
-                                  {selected
-                                    ? language === "zh"
-                                      ? "已选择"
-                                      : "Selected"
-                                    : language === "zh"
-                                      ? "使用"
-                                      : "Use"}
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
+                      <img
+                        src={formData.image}
+                        alt="Unsplash selection"
+                        className="w-full h-48 object-cover rounded-lg"
+                      />
                     </div>
                   )}
+                  {unsplashResults.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {unsplashResults.map((photo) => {
+                        const selected = selectedUnsplashId === photo.id;
+                        return (
+                          <button
+                            type="button"
+                            key={photo.id}
+                            onClick={() => handleSelectUnsplash(photo)}
+                            className={`relative group overflow-hidden rounded-lg border ${
+                              selected
+                                ? "border-[#2B5F9E] ring-2 ring-[#2B5F9E]"
+                                : "border-gray-200 hover:border-[#2B5F9E]"
+                            }`}
+                          >
+                            <img
+                              src={
+                                photo.urls?.small ??
+                                photo.urls?.thumb ??
+                                photo.urls?.regular ??
+                                ""
+                              }
+                              alt={
+                                photo.alt_description ?? photo.description ?? ""
+                              }
+                              className="w-full h-36 object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <span className="absolute bottom-2 left-2 text-xs text-white bg-black/60 px-2 py-1 rounded">
+                              {selected
+                                ? language === "zh"
+                                  ? "已选择"
+                                  : "Selected"
+                                : language === "zh"
+                                  ? "使用"
+                                  : "Use"}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Upload Option */}
               {imageSource === "upload" && (

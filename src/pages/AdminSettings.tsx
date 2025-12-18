@@ -502,7 +502,9 @@ export function AdminSettings() {
                   <input
                     type="checkbox"
                     checked={eventNotesNotifications}
-                    onChange={(e) => setEventNotesNotifications(e.target.checked)}
+                    onChange={(e) =>
+                      setEventNotesNotifications(e.target.checked)
+                    }
                     className="sr-only peer"
                   />
                   <div
@@ -512,7 +514,9 @@ export function AdminSettings() {
                   >
                     <div
                       className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full transition-transform ${
-                        eventNotesNotifications ? "translate-x-7" : "translate-x-0"
+                        eventNotesNotifications
+                          ? "translate-x-7"
+                          : "translate-x-0"
                       }`}
                     />
                   </div>

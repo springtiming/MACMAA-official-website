@@ -384,7 +384,8 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.settings.eventNotifications": "活动报名通知",
     "admin.settings.eventNotificationsDesc": "有新的活动报名时发送邮件通知",
     "admin.settings.eventNotesNotifications": "活动报名备注通知",
-    "admin.settings.eventNotesNotificationsDesc": "当用户报名活动时填写了备注，发送邮件通知",
+    "admin.settings.eventNotesNotificationsDesc":
+      "当用户报名活动时填写了备注，发送邮件通知",
     "admin.settings.saveNotifications": "保存通知设置",
     "admin.settings.notificationsUpdated": "通知设置已保存",
     "admin.settings.emailLanguageSection": "邮件语言偏好",
@@ -879,7 +880,8 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.settings.eventNotifications": "Event Registration Notifications",
     "admin.settings.eventNotificationsDesc":
       "Send email notifications when there is a new event registration",
-    "admin.settings.eventNotesNotifications": "Event Registration Notes Notifications",
+    "admin.settings.eventNotesNotifications":
+      "Event Registration Notes Notifications",
     "admin.settings.eventNotesNotificationsDesc":
       "Send email notifications when users include notes in event registrations",
     "admin.settings.saveNotifications": "Save Notification Settings",

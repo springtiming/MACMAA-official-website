@@ -383,7 +383,9 @@ export function EventRegistration() {
                 <p className="text-gray-600 mb-6">
                   {language === "zh"
                     ? `活动费用：${
-                        loadedEvent.fee === 0 ? "免费" : `$${loadedEvent.fee} AUD`
+                        loadedEvent.fee === 0
+                          ? "免费"
+                          : `$${loadedEvent.fee} AUD`
                       }`
                     : `Event fee: ${
                         loadedEvent.fee === 0
@@ -424,20 +426,28 @@ export function EventRegistration() {
 
                 <motion.button
                   onClick={handlePaymentConfirm}
-                  disabled={(loadedEvent.fee > 0 && !paymentMethod) || submitting}
+                  disabled={
+                    (loadedEvent.fee > 0 && !paymentMethod) || submitting
+                  }
                   className={`w-full px-6 py-3 rounded-lg transition-colors ${
                     loadedEvent.fee > 0 && !paymentMethod
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                       : "bg-[#2B5F9E] text-white hover:bg-[#234a7e]"
                   }`}
                   whileHover={
-                    loadedEvent.fee === 0 || paymentMethod ? { scale: 1.02 } : {}
+                    loadedEvent.fee === 0 || paymentMethod
+                      ? { scale: 1.02 }
+                      : {}
                   }
                   whileTap={
-                    loadedEvent.fee === 0 || paymentMethod ? { scale: 0.98 } : {}
+                    loadedEvent.fee === 0 || paymentMethod
+                      ? { scale: 0.98 }
+                      : {}
                   }
                 >
-                  {submitting ? t("common.loading") : t("register.payment.confirm")}
+                  {submitting
+                    ? t("common.loading")
+                    : t("register.payment.confirm")}
                 </motion.button>
 
                 {submitError && (
