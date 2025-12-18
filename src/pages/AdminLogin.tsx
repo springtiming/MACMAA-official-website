@@ -149,14 +149,6 @@ export function AdminLogin() {
                 : t("admin.login.submit")}
             </motion.button>
           </form>
-
-          <div className="mt-6 p-4 bg-[#F5EFE6] rounded-lg text-sm text-gray-700">
-            <p className="mb-2 text-gray-800">
-              {language === "zh"
-                ? "账号将通过后台数据库校验。若登录失败，请检查用户名/密码或联系管理员重置。"
-                : "Credentials are verified against the backend database. If login fails, check your username/password or contact an admin to reset."}
-            </p>
-          </div>
         </motion.div>
       </motion.div>
     </div>

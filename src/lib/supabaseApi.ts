@@ -863,20 +863,19 @@ export async function createEventRegistration(payload: {
   payment_method?: "card" | "cash" | "transfer" | null;
 }) {
   const supabase = getSupabaseClient();
-  const { data, error } = await supabase
-    .from("event_registrations")
-    .insert({
+  const { error } = await supabase.from("event_registrations").insert(
+    {
       ...payload,
       payment_method: payload.payment_method ?? null,
-    })
-    .select()
-    .single();
+    },
+    { returning: "minimal" } as never
+  );
 
   if (error) {
     logSupabaseError("createEventRegistration", error);
     throw error;
   }
-  return data as EventRegistrationRecord;
+  return null;
 }
 
 export async function notifyMemberApplication(payload: {
