@@ -97,7 +97,7 @@ export function AdminLogin() {
                     setCredentials({ ...credentials, username: e.target.value })
                   }
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
-                  placeholder="admin"
+                  placeholder={t("admin.login.username")}
                 />
               </div>
             </div>
@@ -118,7 +118,7 @@ export function AdminLogin() {
                     setCredentials({ ...credentials, password: e.target.value })
                   }
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
-                  placeholder="demo123"
+                  placeholder={t("admin.login.password")}
                 />
               </div>
             </div>

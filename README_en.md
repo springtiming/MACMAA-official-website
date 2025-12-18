@@ -45,15 +45,11 @@ See the [LICENSE](LICENSE) file for details.
 
 ## Client Assets
 
-All text, images, logos, and design materials belong to
-
-Manningham Australian Chinese Mutual Aid Association.
+All text, images, logos, and design materials belong to Manningham Australian Chinese Mutual Aid Association.
 
 These assets are included for portfolio demonstration only and are not licensed for reuse.
 
 ## Authorization
 
-This repository is published with the permission of
-
-Manningham Australian Chinese Mutual Aid Association for portfolio purposes only.
+This repository is published with the permission of Manningham Australian Chinese Mutual Aid Association for portfolio purposes only.
 
