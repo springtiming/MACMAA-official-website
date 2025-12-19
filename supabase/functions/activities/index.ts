@@ -28,6 +28,7 @@ type Activity = {
 type RegistrationWithEvent = {
   id: string;
   name: string | null;
+  user_id: string | null;
   created_at: string;
   event_id: string;
   events: {
@@ -85,7 +86,7 @@ Deno.serve(async (req) => {
     const registrationsPromise = supabase
       .from("event_registrations")
       .select(
-        "id, name, created_at, event_id, events (title_zh, title_en)"
+        "id, name, user_id, created_at, event_id, events (title_zh, title_en)"
       )
       .gte("created_at", since)
       .order("created_at", { ascending: false })
@@ -93,7 +94,7 @@ Deno.serve(async (req) => {
 
     const membersPromise = supabase
       .from("members")
-      .select("id, chinese_name, english_name, created_at")
+      .select("id, auth_user_id, chinese_name, english_name, created_at")
       .gte("created_at", since)
       .order("created_at", { ascending: false })
       .limit(perQueryLimit);
@@ -141,16 +142,37 @@ Deno.serve(async (req) => {
       );
     }
 
+    // 创建 user_id 到会员信息的映射表
+    const memberMap = new Map<string, { chinese_name: string; english_name: string }>();
+    memberData?.forEach((m) => {
+      if (m.auth_user_id) {
+        memberMap.set(m.auth_user_id, {
+          chinese_name: m.chinese_name,
+          english_name: m.english_name,
+        });
+      }
+    });
+
     const registrations: Activity[] =
       regData?.map((r: RegistrationWithEvent) => {
         const event = r.events ?? { title_zh: null, title_en: null };
         const titleZh = event.title_zh ?? "";
         const titleEn = event.title_en ?? "";
+        
+        // 优先使用会员信息，如果没有则使用报名表单中的name
+        let displayName = r.name || "Guest";
+        if (r.user_id) {
+          const member = memberMap.get(r.user_id);
+          if (member) {
+            displayName = member.chinese_name || member.english_name || r.name || "Guest";
+          }
+        }
+        
         return {
           id: `registration-${r.id}`,
           type: "registration",
           timestamp: r.created_at,
-          user: r.name || "Guest",
+          user: displayName,
           action: {
             zh: titleZh ? `报名了“${titleZh}”` : "提交了活动报名",
             en: titleEn ? `registered for "${titleEn}"` : "registered for an event",

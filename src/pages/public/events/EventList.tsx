@@ -4,12 +4,7 @@ import { motion } from "motion/react";
 import { Calendar, MapPin, Users, DollarSign } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { EventSkeleton } from "@/components/EventSkeleton";
 import { fetchEvents, type EventRecord } from "@/lib/supabaseApi";
 import {

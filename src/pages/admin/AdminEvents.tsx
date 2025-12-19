@@ -1522,7 +1522,8 @@ export function AdminEvents() {
                                     {reg.tickets}
                                   </p>
                                   <p>
-                                    {language === "zh" ? "付款方式" : "Payment"}:{" "}
+                                    {language === "zh" ? "付款方式" : "Payment"}
+                                    :{" "}
                                     {getPaymentMethodLabel(reg.payment_method)}
                                   </p>
                                 </div>
