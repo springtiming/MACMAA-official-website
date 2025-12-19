@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { useLanguage } from "../contexts/LanguageContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { motion, AnimatePresence } from "motion/react";
 import { ArrowLeft, CreditCard, Building, Check } from "lucide-react";
 import {
@@ -9,7 +9,7 @@ import {
   fetchEventById,
   notifyEventRegistration,
   type EventRecord,
-} from "../lib/supabaseApi";
+} from "@/lib/supabaseApi";
 
 type PaymentMethod = "card" | "cash" | "transfer" | null;
 

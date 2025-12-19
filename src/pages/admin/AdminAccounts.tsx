@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useLanguage } from "../contexts/LanguageContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { motion, AnimatePresence } from "motion/react";
 import {
   ArrowLeft,
@@ -16,9 +16,9 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -26,23 +26,23 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "../components/ui/dialog";
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../components/ui/select";
+} from "@/components/ui/select";
 import {
   fetchAdminAccounts,
   createAdminAccount,
   deleteAdminAccount,
   type AdminAccountRecord,
-} from "../lib/supabaseApi";
-import { ProcessingOverlay } from "../components/ProcessingOverlay";
-import { useProcessingFeedback } from "../hooks/useProcessingFeedback";
-import { AdminConfirmDialog } from "../components/AdminConfirmDialog";
+} from "@/lib/supabaseApi";
+import { ProcessingOverlay } from "@/components/ProcessingOverlay";
+import { useProcessingFeedback } from "@/hooks/useProcessingFeedback";
+import { AdminConfirmDialog } from "@/components/AdminConfirmDialog";
 
 export function AdminAccounts() {
   const navigate = useNavigate();

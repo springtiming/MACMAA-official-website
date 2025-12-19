@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useLanguage } from "../contexts/LanguageContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "motion/react";
 import {
   Heart,
@@ -11,10 +11,10 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import { useState, useEffect, useMemo } from "react";
-import { ParallaxBackground } from "../components/ParallaxBackground";
-import heroImage from "../assets/hero.jpg";
+import { ParallaxBackground } from "@/components/ParallaxBackground";
+import heroImage from "@/assets/hero.jpg";
 import groupPhoto from "figma:asset/4e1018159bf5b416cdd05a50c6634f65d81400fe.png";
 import consulPhoto from "figma:asset/02ce48a06b4eb30c56fbf30084752dbc46f6e5e8.png";
 import performancePhoto from "figma:asset/8ba07f20524fc73fdf6468451fb157940959f60e.png";

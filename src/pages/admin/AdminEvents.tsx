@@ -16,8 +16,8 @@ import {
   Upload,
   Image as ImageIcon,
 } from "lucide-react";
-import { useLanguage } from "../contexts/LanguageContext";
-import { searchPhotos, type UnsplashPhoto } from "../lib/unsplashApi";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { searchPhotos, type UnsplashPhoto } from "@/lib/unsplashApi";
 import {
   fetchAdminEvents,
   saveEvent,
@@ -26,12 +26,12 @@ import {
   type EventRecord,
   type UpsertEventInput,
   type EventRegistrationRecord,
-} from "../lib/supabaseApi";
-import { pickLocalized } from "../lib/supabaseHelpers";
-import { ImageUploadModal } from "../components/ImageUploadModal";
-import { ProcessingOverlay } from "../components/ProcessingOverlay";
-import { useProcessingFeedback } from "../hooks/useProcessingFeedback";
-import { AdminConfirmDialog } from "../components/AdminConfirmDialog";
+} from "@/lib/supabaseApi";
+import { pickLocalized } from "@/lib/supabaseHelpers";
+import { ImageUploadModal } from "@/components/ImageUploadModal";
+import { ProcessingOverlay } from "@/components/ProcessingOverlay";
+import { useProcessingFeedback } from "@/hooks/useProcessingFeedback";
+import { AdminConfirmDialog } from "@/components/AdminConfirmDialog";
 import {
   type ErrorMessages,
   type FormErrors,
@@ -41,7 +41,7 @@ import {
   scrollToFirstError,
   validateField as validateFieldUtil,
   validateForm as validateFormUtil,
-} from "../lib/formValidation";
+} from "@/lib/formValidation";
 
 type FormState = {
   id: string;
@@ -492,6 +492,15 @@ export function AdminEvents() {
     setRegsError(null);
   };
 
+  const getPaymentMethodLabel = (paymentMethod: string | null): string => {
+    if (!paymentMethod) {
+      return t("admin.events.payment.none");
+    }
+    const key = `admin.events.payment.${paymentMethod}`;
+    const translated = t(key);
+    return translated !== key ? translated : paymentMethod;
+  };
+
   const exportRegistrations = () => {
     if (!activeRegEvent || registrations.length === 0) return;
     const header = [
@@ -507,7 +516,7 @@ export function AdminEvents() {
       r.phone,
       r.email ?? "",
       r.tickets,
-      r.payment_method ?? "",
+      getPaymentMethodLabel(r.payment_method),
       r.registration_date,
     ]);
     const csv = [header, ...rows]
@@ -1513,8 +1522,8 @@ export function AdminEvents() {
                                     {reg.tickets}
                                   </p>
                                   <p>
-                                    {language === "zh" ? "付款" : "Payment"}:{" "}
-                                    {reg.payment_method ?? "-"}
+                                    {language === "zh" ? "付款方式" : "Payment"}:{" "}
+                                    {getPaymentMethodLabel(reg.payment_method)}
                                   </p>
                                 </div>
                               </div>

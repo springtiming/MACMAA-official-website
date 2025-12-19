@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { useLanguage } from "../contexts/LanguageContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -20,11 +20,11 @@ import { createPortal } from "react-dom";
 import ReactQuill from "react-quill@2.0.0-beta.2";
 import type { ReactQuillProps } from "react-quill@2.0.0-beta.2";
 import "react-quill@2.0.0-beta.2/dist/quill.snow.css";
-import { ImageUploadModal } from "../components/ImageUploadModal";
-import { ProcessingOverlay } from "../components/ProcessingOverlay";
-import { useProcessingFeedback } from "../hooks/useProcessingFeedback";
-import { AdminConfirmDialog } from "../components/AdminConfirmDialog";
-import { searchPhotos, type UnsplashPhoto } from "../lib/unsplashApi";
+import { ImageUploadModal } from "@/components/ImageUploadModal";
+import { ProcessingOverlay } from "@/components/ProcessingOverlay";
+import { useProcessingFeedback } from "@/hooks/useProcessingFeedback";
+import { AdminConfirmDialog } from "@/components/AdminConfirmDialog";
+import { searchPhotos, type UnsplashPhoto } from "@/lib/unsplashApi";
 import {
   fetchAdminNewsPosts,
   fetchMyDrafts,
@@ -34,8 +34,8 @@ import {
   deleteDraft,
   type NewsPostRecord,
   type ArticleVersionRecord,
-} from "../lib/supabaseApi";
-import { pickLocalized } from "../lib/supabaseHelpers";
+} from "@/lib/supabaseApi";
+import { pickLocalized } from "@/lib/supabaseHelpers";
 import {
   type ErrorMessages,
   type FormErrors,
@@ -45,7 +45,7 @@ import {
   scrollToFirstError,
   validateField as validateFieldUtil,
   validateForm as validateFormUtil,
-} from "../lib/formValidation";
+} from "@/lib/formValidation";
 
 export function AdminNews() {
   const { language, t } = useLanguage();

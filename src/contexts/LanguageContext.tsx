@@ -201,6 +201,7 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.events.payment.card": "信用卡/借记卡",
     "admin.events.payment.cash": "现金",
     "admin.events.payment.transfer": "银行转账",
+    "admin.events.payment.none": "未支付",
     "admin.events.confirm.delete.title": "确认删除活动",
     "admin.events.confirm.delete.message":
       "确定要删除该活动吗？此操作无法撤销。",
@@ -674,6 +675,7 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.events.payment.card": "Credit Card/Debit Card",
     "admin.events.payment.cash": "Cash",
     "admin.events.payment.transfer": "Bank Transfer",
+    "admin.events.payment.none": "Unpaid",
     "admin.events.confirm.delete.title": "Confirm Event Deletion",
     "admin.events.confirm.delete.message":
       "This action will permanently delete the event. Continue?",

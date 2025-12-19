@@ -1,12 +1,12 @@
 import { Link } from "react-router-dom";
-import { useLanguage } from "../contexts/LanguageContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "motion/react";
 import { Calendar, ArrowRight } from "lucide-react";
-import { ImageWithFallback } from "../components/figma/ImageWithFallback";
-import { NewsSkeleton } from "../components/NewsSkeleton";
+import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
+import { NewsSkeleton } from "@/components/NewsSkeleton";
 import { useState, useEffect } from "react";
-import { fetchNewsPosts, type NewsPostRecord } from "../lib/supabaseApi";
-import { resolveNewsCover } from "../lib/supabaseHelpers";
+import { fetchNewsPosts, type NewsPostRecord } from "@/lib/supabaseApi";
+import { resolveNewsCover } from "@/lib/supabaseHelpers";
 
 export function NewsList() {
   const { language, t } = useLanguage();

@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { useLanguage } from "../contexts/LanguageContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { motion, AnimatePresence } from "motion/react";
 import { Users, Check, AlertCircle } from "lucide-react";
 import {
   createMemberApplication,
   notifyMemberApplication,
-} from "../lib/supabaseApi";
+} from "@/lib/supabaseApi";
 
 // Validation error types (language-independent)
 type ErrorType =

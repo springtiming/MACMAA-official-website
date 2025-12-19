@@ -1,4 +1,4 @@
-import { useLanguage } from "../contexts/LanguageContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "motion/react";
 import { Target, Sparkles, Check } from "lucide-react";
 import businessCard from "figma:asset/2aee091727a5d832328a3b5cf9e2dcdf4f43542d.png";

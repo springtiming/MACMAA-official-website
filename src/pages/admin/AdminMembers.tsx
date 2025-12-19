@@ -20,11 +20,11 @@ import {
   fetchMembers,
   updateMemberStatus,
   type MemberRecord,
-} from "../lib/supabaseApi";
-import { useLanguage } from "../contexts/LanguageContext";
-import { ProcessingOverlay } from "../components/ProcessingOverlay";
-import { useProcessingFeedback } from "../hooks/useProcessingFeedback";
-import { AdminConfirmDialog } from "../components/AdminConfirmDialog";
+} from "@/lib/supabaseApi";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { ProcessingOverlay } from "@/components/ProcessingOverlay";
+import { useProcessingFeedback } from "@/hooks/useProcessingFeedback";
+import { AdminConfirmDialog } from "@/components/AdminConfirmDialog";
 import * as XLSX from "xlsx";
 
 type MemberFilter = "all" | "pending" | "approved" | "rejected";

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLanguage } from "../contexts/LanguageContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import {
@@ -18,9 +18,9 @@ import {
   fetchAdminAccounts,
   updateAdminAccount,
   type AdminAccountRecord,
-} from "../lib/supabaseApi";
-import { ProcessingOverlay } from "../components/ProcessingOverlay";
-import { useProcessingFeedback } from "../hooks/useProcessingFeedback";
+} from "@/lib/supabaseApi";
+import { ProcessingOverlay } from "@/components/ProcessingOverlay";
+import { useProcessingFeedback } from "@/hooks/useProcessingFeedback";
 
 export function AdminSettings() {
   const { t } = useLanguage();

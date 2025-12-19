@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useLanguage } from "../contexts/LanguageContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "motion/react";
 import {
   Calendar,
@@ -19,7 +19,7 @@ import {
   fetchMembers,
   fetchAdminEventRegistrations,
   type ActivityRecord,
-} from "../lib/supabaseApi";
+} from "@/lib/supabaseApi";
 
 export function AdminDashboard() {
   const navigate = useNavigate();

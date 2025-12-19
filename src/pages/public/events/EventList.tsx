@@ -2,21 +2,21 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "motion/react";
 import { Calendar, MapPin, Users, DollarSign } from "lucide-react";
-import { useLanguage } from "../contexts/LanguageContext";
-import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import {
   Tabs,
   TabsList,
   TabsTrigger,
   TabsContent,
-} from "../components/ui/tabs";
-import { EventSkeleton } from "../components/EventSkeleton";
-import { fetchEvents, type EventRecord } from "../lib/supabaseApi";
+} from "@/components/ui/tabs";
+import { EventSkeleton } from "@/components/EventSkeleton";
+import { fetchEvents, type EventRecord } from "@/lib/supabaseApi";
 import {
   formatEventDateTime,
   pickLocalized,
   resolveEventImage,
-} from "../lib/supabaseHelpers";
+} from "@/lib/supabaseHelpers";
 
 function EventImageContainer({
   imageSrc,

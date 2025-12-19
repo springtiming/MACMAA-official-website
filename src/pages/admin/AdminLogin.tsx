@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useLanguage } from "../contexts/LanguageContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "motion/react";
 import { Lock, User } from "lucide-react";
 import logo from "figma:asset/486cb6c21a188aae71ad06b3d541eb54ff86e307.png";
-import { adminAuthLogin } from "../lib/supabaseApi";
+import { adminAuthLogin } from "@/lib/supabaseApi";
 
 export function AdminLogin() {
   const navigate = useNavigate();

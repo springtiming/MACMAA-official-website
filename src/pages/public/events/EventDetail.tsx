@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { useLanguage } from "../contexts/LanguageContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "motion/react";
 import { Calendar, MapPin, Users, DollarSign, ArrowLeft } from "lucide-react";
-import { fetchEventById, type EventRecord } from "../lib/supabaseApi";
+import { fetchEventById, type EventRecord } from "@/lib/supabaseApi";
 import {
   formatEventDateTime,
   pickLocalized,
   resolveEventImage,
-} from "../lib/supabaseHelpers";
-import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+} from "@/lib/supabaseHelpers";
+import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 
 export function EventDetail() {
   const { id } = useParams();

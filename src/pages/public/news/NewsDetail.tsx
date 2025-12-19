@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useLanguage } from "../contexts/LanguageContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "motion/react";
 import { Calendar, ArrowLeft, Share2 } from "lucide-react";
-import { fetchNewsPostById, type NewsPostRecord } from "../lib/supabaseApi";
-import { pickLocalized, resolveNewsCover } from "../lib/supabaseHelpers";
-import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import { fetchNewsPostById, type NewsPostRecord } from "@/lib/supabaseApi";
+import { pickLocalized, resolveNewsCover } from "@/lib/supabaseHelpers";
+import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 
 export function NewsDetail() {
   const { id } = useParams();
