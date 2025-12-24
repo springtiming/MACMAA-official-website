@@ -102,7 +102,7 @@ Deno.serve(async (req) => {
     const newsPromise = supabase
       .from("articles")
       .select(
-        "id, title_zh, title_en, published_at, published, admin_accounts (username)"
+        "id, title_zh, title_en, published_at, published, admin_accounts!articles_author_id_fkey (username)"
       )
       .eq("published", true)
       .gte("published_at", since)
@@ -112,7 +112,7 @@ Deno.serve(async (req) => {
     const eventsPromise = supabase
       .from("events")
       .select(
-        "id, title_zh, title_en, created_at, access_type, published, admin_accounts (username)"
+        "id, title_zh, title_en, created_at, access_type, published, admin_accounts!events_created_by_fkey (username)"
       )
       .eq("published", true)
       .gte("created_at", since)
