@@ -53,7 +53,7 @@ export function AdminLogin() {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
+    <div className="min-h-[80vh] flex items-center justify-center px-4 py-12 bg-gray-50">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

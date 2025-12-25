@@ -348,7 +348,7 @@ export function Membership() {
   };
 
   return (
-    <div className="bg-gradient-to-b from-[#2B5F9E] via-[#6BA868] to-[#F5EFE6] min-h-screen">
+    <div className="bg-gray-50 min-h-screen">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <AnimatePresence mode="wait">
           {!submitted ? (
