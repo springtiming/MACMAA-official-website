@@ -34,9 +34,7 @@ Deno.serve(async (req) => {
   try {
     let query = supabase
       .from("event_registrations")
-      .select(
-        "id, event_id, user_id, name, phone, email, tickets, payment_method, registration_date, created_at"
-      )
+      .select("*")
       .order("registration_date", { ascending: false });
 
     if (eventId) {

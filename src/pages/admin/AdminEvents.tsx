@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
@@ -10,11 +10,14 @@ import {
   Calendar,
   MapPin,
   DollarSign,
+  FileCheck,
   ArrowLeft,
   X,
   Users,
   Upload,
   Image as ImageIcon,
+  CheckCircle,
+  XCircle,
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { searchPhotos, type UnsplashPhoto } from "@/lib/unsplashApi";
@@ -244,6 +247,14 @@ export function AdminEvents() {
   const [activeRegEvent, setActiveRegEvent] = useState<EventRecord | null>(
     null
   );
+  const [allRegistrations, setAllRegistrations] = useState<
+    EventRegistrationRecord[]
+  >([]);
+  const [allRegsLoading, setAllRegsLoading] = useState(false);
+  const [allRegsError, setAllRegsError] = useState<string | null>(null);
+  const [activePaymentEvent, setActivePaymentEvent] =
+    useState<EventRecord | null>(null);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [imageSource, setImageSource] = useState<"unsplash" | "upload">(
     emptyForm.imageType
   );
@@ -385,6 +396,31 @@ export function AdminEvents() {
     };
   }, [t]);
 
+  useEffect(() => {
+    let active = true;
+    setAllRegsLoading(true);
+    setAllRegsError(null);
+    fetchAdminEventRegistrations()
+      .then((data) => {
+        if (active) {
+          setAllRegistrations(data);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setAllRegsError(t("common.error"));
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setAllRegsLoading(false);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [t]);
+
   const filtered = useMemo(() => {
     const term = search.toLowerCase();
     return events.filter(
@@ -499,6 +535,77 @@ export function AdminEvents() {
     const key = `admin.events.payment.${paymentMethod}`;
     const translated = t(key);
     return translated !== key ? translated : paymentMethod;
+  };
+
+  const getPaymentProofUrl = useCallback(
+    (reg: EventRegistrationRecord) =>
+      reg.payment_proof ??
+      reg.payment_proof_url ??
+      reg.paymentProof ??
+      reg.paymentProofUrl ??
+      "",
+    []
+  );
+
+  const getPaymentStatus = useCallback(
+    (reg: EventRegistrationRecord) =>
+      reg.payment_status ?? reg.paymentStatus ?? null,
+    []
+  );
+
+  const isPendingPayment = useCallback(
+    (reg: EventRegistrationRecord) => {
+      const proofUrl = getPaymentProofUrl(reg);
+      if (!proofUrl) return false;
+      const status = getPaymentStatus(reg);
+      if (!status) return true;
+      return status === "pending";
+    },
+    [getPaymentProofUrl, getPaymentStatus]
+  );
+
+  const pendingPaymentsByEvent = useMemo(() => {
+    const counts: Record<string, number> = {};
+    allRegistrations.forEach((reg) => {
+      if (!isPendingPayment(reg)) return;
+      counts[reg.event_id] = (counts[reg.event_id] ?? 0) + 1;
+    });
+    return counts;
+  }, [allRegistrations, isPendingPayment]);
+
+  const pendingPaymentsForActiveEvent = useMemo(() => {
+    if (!activePaymentEvent) return [];
+    return allRegistrations.filter(
+      (reg) => reg.event_id === activePaymentEvent.id && isPendingPayment(reg)
+    );
+  }, [activePaymentEvent, allRegistrations, isPendingPayment]);
+
+  const openPaymentReview = (event: EventRecord) => {
+    setActivePaymentEvent(event);
+    setLightboxImage(null);
+  };
+
+  const closePaymentReview = () => {
+    setActivePaymentEvent(null);
+    setLightboxImage(null);
+  };
+
+  const handlePaymentDecision = (
+    registrationId: string,
+    decision: "approve" | "reject"
+  ) => {
+    const nextStatus = decision === "approve" ? "confirmed" : "cancelled";
+    setAllRegistrations((prev) =>
+      prev.map((reg) =>
+        reg.id === registrationId
+          ? {
+              ...reg,
+              payment_status: nextStatus,
+              paymentStatus: nextStatus,
+            }
+          : reg
+      )
+    );
   };
 
   const exportRegistrations = () => {
@@ -680,97 +787,118 @@ export function AdminEvents() {
 
         {/* Event list */}
         <div className="space-y-4">
-          {filtered.map((event) => (
-            <div key={event.id} className="bg-white rounded-xl shadow-md p-6">
-              <div className="flex flex-col lg:flex-row gap-6">
-                <div className="flex-1 space-y-3">
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <h3 className="text-xl text-[#2B5F9E]">
-                      {pickLocalized(event.title_zh, event.title_en, language)}
-                    </h3>
-                    <span
-                      className={`text-xs px-3 py-1 rounded-full ${
-                        event.access_type === "members-only"
-                          ? "bg-[#EB8C3A] text-white"
-                          : "bg-[#7BA3C7] text-white"
-                      }`}
+          {filtered.map((event) => {
+            const pendingCount = pendingPaymentsByEvent[event.id] ?? 0;
+            return (
+              <div key={event.id} className="bg-white rounded-xl shadow-md p-6">
+                <div className="flex flex-col lg:flex-row gap-6">
+                  <div className="flex-1 space-y-3">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <h3 className="text-xl text-[#2B5F9E]">
+                        {pickLocalized(
+                          event.title_zh,
+                          event.title_en,
+                          language
+                        )}
+                      </h3>
+                      <span
+                        className={`text-xs px-3 py-1 rounded-full ${
+                          event.access_type === "members-only"
+                            ? "bg-[#EB8C3A] text-white"
+                            : "bg-[#7BA3C7] text-white"
+                        }`}
+                      >
+                        {event.access_type === "members-only"
+                          ? t("events.memberOnly")
+                          : t("events.allWelcome")}
+                      </span>
+                    </div>
+                    <p className="text-gray-700">
+                      {pickLocalized(
+                        event.description_zh,
+                        event.description_en,
+                        language
+                      )}
+                    </p>
+                    <div className="space-y-2 text-sm text-gray-700">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-[#EB8C3A]" />
+                        <span>
+                          {event.event_date}{" "}
+                          {event.start_time?.slice(0, 5) ?? ""}{" "}
+                          {event.end_time
+                            ? `- ${event.end_time.slice(0, 5)}`
+                            : ""}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-[#6BA868]" />
+                        <span>{event.location}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="w-4 h-4 text-[#2B5F9E]" />
+                        <span>
+                          {event.fee === 0 ? t("common.free") : `$${event.fee}`}
+                          {event.member_fee != null
+                            ? ` (${t("events.memberFee")}: $${event.member_fee})`
+                            : ""}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex md:flex-col gap-2 items-stretch lg:self-center">
+                    <button
+                      onClick={() => openRegistrations(event)}
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors min-w-[140px]"
                     >
-                      {event.access_type === "members-only"
-                        ? t("events.memberOnly")
-                        : t("events.allWelcome")}
-                    </span>
-                  </div>
-                  <p className="text-gray-700">
-                    {pickLocalized(
-                      event.description_zh,
-                      event.description_en,
-                      language
+                      <Users className="w-4 h-4" />
+                      <span>
+                        {language === "zh" ? "查看报名" : "View registrations"}
+                      </span>
+                    </button>
+                    {pendingCount > 0 && (
+                      <button
+                        onClick={() => openPaymentReview(event)}
+                        className="glass-btn glass-btn-warning min-w-[140px]"
+                        aria-label={t("admin.events.reviewPayments")}
+                      >
+                        <FileCheck className="w-4 h-4" />
+                        <span className="hidden sm:inline">
+                          {t("admin.events.reviewPayments")}
+                        </span>
+                        <span className="glass-btn-badge">{pendingCount}</span>
+                      </button>
                     )}
-                  </p>
-                  <div className="space-y-2 text-sm text-gray-700">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-[#EB8C3A]" />
-                      <span>
-                        {event.event_date} {event.start_time?.slice(0, 5) ?? ""}{" "}
-                        {event.end_time
-                          ? `- ${event.end_time.slice(0, 5)}`
-                          : ""}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-[#6BA868]" />
-                      <span>{event.location}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="w-4 h-4 text-[#2B5F9E]" />
-                      <span>
-                        {event.fee === 0 ? t("common.free") : `$${event.fee}`}
-                        {event.member_fee != null
-                          ? ` (${t("events.memberFee")}: $${event.member_fee})`
-                          : ""}
-                      </span>
-                    </div>
+                    <button
+                      onClick={() => {
+                        setForm(toForm(event));
+                        setImageSource(
+                          (event.image_type as "unsplash" | "upload") ||
+                            (event.image_url ? "upload" : "unsplash")
+                        );
+                        setUploadedImage(event.image_url ?? "");
+                        setUnsplashResults([]);
+                        setUnsplashError(null);
+                        setSelectedUnsplashId(null);
+                        setShowForm(true);
+                      }}
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-[#6BA868] text-white rounded-lg hover:bg-[#5a9157] transition-colors min-w-[140px]"
+                    >
+                      <Edit className="w-4 h-4" />
+                      <span>{t("admin.events.edit")}</span>
+                    </button>
+                    <button
+                      onClick={() => handleDelete(event.id)}
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors min-w-[140px]"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span>{t("common.delete")}</span>
+                    </button>
                   </div>
-                </div>
-                <div className="flex md:flex-col gap-2 items-stretch lg:self-center">
-                  <button
-                    onClick={() => openRegistrations(event)}
-                    className="flex items-center justify-center gap-2 px-4 py-2 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors min-w-[140px]"
-                  >
-                    <Users className="w-4 h-4" />
-                    <span>
-                      {language === "zh" ? "查看报名" : "View registrations"}
-                    </span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setForm(toForm(event));
-                      setImageSource(
-                        (event.image_type as "unsplash" | "upload") ||
-                          (event.image_url ? "upload" : "unsplash")
-                      );
-                      setUploadedImage(event.image_url ?? "");
-                      setUnsplashResults([]);
-                      setUnsplashError(null);
-                      setSelectedUnsplashId(null);
-                      setShowForm(true);
-                    }}
-                    className="flex items-center justify-center gap-2 px-4 py-2 bg-[#6BA868] text-white rounded-lg hover:bg-[#5a9157] transition-colors min-w-[140px]"
-                  >
-                    <Edit className="w-4 h-4" />
-                    <span>{t("admin.events.edit")}</span>
-                  </button>
-                  <button
-                    onClick={() => handleDelete(event.id)}
-                    className="flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors min-w-[140px]"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    <span>{t("common.delete")}</span>
-                  </button>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
           {filtered.length === 0 && !loading && (
             <p className="text-center text-gray-500 py-8">
               {language === "zh" ? "没有找到活动" : "No events found"}
@@ -1414,6 +1542,273 @@ export function AdminEvents() {
             onSuccess={handleImageUploadSuccess}
           />
         )}
+
+        {/* Payment Review Modal */}
+        <AnimatePresence>
+          {activePaymentEvent && (
+            <>
+              {typeof document !== "undefined" &&
+                createPortal(
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+                    onMouseDown={(e) => {
+                      if (e.target === e.currentTarget) closePaymentReview();
+                    }}
+                  >
+                    <motion.div
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{
+                        scale: 0.9,
+                        opacity: 0,
+                        transition: { duration: 0.3, ease: "easeIn" },
+                      }}
+                      transition={{ duration: 0.3, ease: "easeOut" }}
+                      className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col"
+                      onMouseDown={(e) => e.stopPropagation()}
+                      role="dialog"
+                      aria-modal="true"
+                    >
+                      <div className="bg-gradient-to-r from-[#EB8C3A] to-[#D3772A] text-white p-6 flex items-start justify-between">
+                        <div>
+                          <h2 className="text-xl sm:text-2xl font-semibold">
+                            {t("admin.events.reviewPayments.title")}
+                          </h2>
+                          <p className="text-base opacity-90">
+                            {pickLocalized(
+                              activePaymentEvent.title_zh,
+                              activePaymentEvent.title_en,
+                              language
+                            )}
+                          </p>
+                          <p className="text-sm opacity-80">
+                            {t("admin.events.reviewPayments.pending")}:{" "}
+                            {pendingPaymentsForActiveEvent.length}
+                          </p>
+                        </div>
+                        <button
+                          onClick={closePaymentReview}
+                          className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                          aria-label={t("admin.events.reviewPayments.close")}
+                        >
+                          <X className="w-6 h-6" />
+                        </button>
+                      </div>
+
+                      <div className="flex-1 p-6 overflow-y-auto">
+                        {allRegsLoading && (
+                          <p className="text-gray-600">{t("common.loading")}</p>
+                        )}
+                        {allRegsError && (
+                          <p className="text-red-600" role="alert">
+                            {allRegsError}
+                          </p>
+                        )}
+                        {!allRegsLoading &&
+                          !allRegsError &&
+                          pendingPaymentsForActiveEvent.length === 0 && (
+                            <p className="text-center text-gray-500">
+                              {t("admin.events.reviewPayments.noPending")}
+                            </p>
+                          )}
+                        {!allRegsLoading &&
+                          !allRegsError &&
+                          pendingPaymentsForActiveEvent.length > 0 && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              {pendingPaymentsForActiveEvent.map(
+                                (reg, index) => {
+                                  const proofUrl = getPaymentProofUrl(reg);
+                                  const registrationDate =
+                                    reg.registration_date || reg.created_at;
+                                  return (
+                                    <motion.div
+                                      key={reg.id}
+                                      initial={{ opacity: 0, y: 20 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      transition={{
+                                        duration: 0.3,
+                                        ease: "easeOut",
+                                        delay: Math.min(index * 0.05, 0.05),
+                                      }}
+                                      className="border-2 border-gray-200 rounded-xl p-4 bg-white shadow-sm hover:shadow-lg transition-shadow"
+                                    >
+                                      <div className="flex items-center justify-between">
+                                        <h3 className="text-lg font-semibold text-[#2B5F9E]">
+                                          {reg.name}
+                                        </h3>
+                                        <span className="text-xs px-2.5 py-1 rounded-full bg-yellow-100 text-yellow-700 font-medium">
+                                          {t("admin.events.reviewPayments.pending")}
+                                        </span>
+                                      </div>
+
+                                      <div className="mt-3 space-y-1 text-sm text-gray-600">
+                                        <p>
+                                          {t("admin.events.registrations.phone")}
+                                          : {reg.phone}
+                                        </p>
+                                        <p>
+                                          {t("admin.events.registrations.email")}
+                                          : {reg.email || "-"}
+                                        </p>
+                                        <p>
+                                          {t(
+                                            "admin.events.registrations.tickets"
+                                          )}
+                                          : {reg.tickets}
+                                        </p>
+                                        <p>
+                                          {t(
+                                            "admin.events.registrations.payment"
+                                          )}
+                                          :{" "}
+                                          {getPaymentMethodLabel(
+                                            reg.payment_method
+                                          )}
+                                        </p>
+                                        <p>
+                                          {t(
+                                            "admin.events.registrations.registrationDate"
+                                          )}
+                                          : {registrationDate}
+                                        </p>
+                                      </div>
+
+                                      <div className="mt-4">
+                                        <p className="text-sm text-gray-700 mb-2">
+                                          {t(
+                                            "admin.events.reviewPayments.paymentProof"
+                                          )}
+                                          :
+                                        </p>
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            setLightboxImage(proofUrl)
+                                          }
+                                          className="group relative w-full"
+                                        >
+                                          <img
+                                            src={proofUrl}
+                                            alt={
+                                              language === "zh"
+                                                ? `${reg.name}的支付凭证`
+                                                : `Payment proof from ${reg.name}`
+                                            }
+                                            className="w-full h-48 object-cover rounded-lg"
+                                            loading="lazy"
+                                          />
+                                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                                            <ImageIcon className="w-8 h-8 text-white" />
+                                          </div>
+                                        </button>
+                                        <p className="mt-2 text-xs text-gray-500 text-center">
+                                          {t(
+                                            "admin.events.reviewPayments.clickToEnlarge"
+                                          )}
+                                        </p>
+                                      </div>
+
+                                      <div className="mt-4 flex gap-2">
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            handlePaymentDecision(
+                                              reg.id,
+                                              "approve"
+                                            )
+                                          }
+                                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-[#10B981] text-white rounded-lg hover:bg-[#059669] transition-colors"
+                                        >
+                                          <CheckCircle className="w-4 h-4" />
+                                          <span>
+                                            {t(
+                                              "admin.events.reviewPayments.approve"
+                                            )}
+                                          </span>
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            handlePaymentDecision(
+                                              reg.id,
+                                              "reject"
+                                            )
+                                          }
+                                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-[#EF4444] text-white rounded-lg hover:bg-[#DC2626] transition-colors"
+                                        >
+                                          <XCircle className="w-4 h-4" />
+                                          <span>
+                                            {t(
+                                              "admin.events.reviewPayments.reject"
+                                            )}
+                                          </span>
+                                        </button>
+                                      </div>
+                                    </motion.div>
+                                  );
+                                }
+                              )}
+                            </div>
+                          )}
+                      </div>
+
+                      <div className="bg-gray-50 p-6">
+                        <button
+                          onClick={closePaymentReview}
+                          type="button"
+                          className="w-full px-4 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                        >
+                          {t("admin.events.reviewPayments.close")}
+                        </button>
+                      </div>
+                    </motion.div>
+                  </motion.div>,
+                  document.body
+                )}
+            </>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {lightboxImage && (
+            <>
+              {typeof document !== "undefined" &&
+                createPortal(
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-[60]"
+                    onMouseDown={() => setLightboxImage(null)}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setLightboxImage(null)}
+                      className="absolute top-4 right-4 p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                      aria-label={t("admin.events.reviewPayments.close")}
+                    >
+                      <X className="w-6 h-6 text-white" />
+                    </button>
+                    <div onMouseDown={(e) => e.stopPropagation()}>
+                      <img
+                        src={lightboxImage}
+                        alt={
+                          language === "zh"
+                            ? "支付凭证大图"
+                            : "Payment proof"
+                        }
+                        className="max-w-full max-h-[calc(100vh-32px)] object-contain rounded-lg"
+                      />
+                    </div>
+                  </motion.div>,
+                  document.body
+                )}
+            </>
+          )}
+        </AnimatePresence>
 
         {/* Registrations Modal */}
         <AnimatePresence>

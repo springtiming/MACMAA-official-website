@@ -230,9 +230,9 @@ export function EventRegistration() {
       >
         {/* Progress Steps */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-2 w-full">
             {["form", "payment", "success"].map((s, index) => (
-              <div key={s} className="flex items-center flex-1">
+              <div key={s} className={`flex items-center ${index < 2 ? "flex-1" : ""}`}>
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center ${
                     step === s

@@ -91,6 +91,12 @@ export interface EventRegistrationRecord {
   email: string | null;
   tickets: number;
   payment_method: "card" | "cash" | "transfer" | null;
+  payment_status?: string | null;
+  payment_proof?: string | null;
+  payment_proof_url?: string | null;
+  paymentStatus?: string | null;
+  paymentProof?: string | null;
+  paymentProofUrl?: string | null;
   registration_date: string;
   created_at: string;
 }
