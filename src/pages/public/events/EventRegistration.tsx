@@ -2,7 +2,17 @@ import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowLeft, CreditCard, Building, Check } from "lucide-react";
+import {
+  ArrowLeft,
+  CreditCard,
+  Building,
+  Check,
+  Upload,
+  X,
+  Copy,
+  CheckCircle,
+  Wallet,
+} from "lucide-react";
 import {
   createEventRegistration,
   createStripeCheckoutSession,
@@ -12,6 +22,7 @@ import {
 } from "@/lib/supabaseApi";
 
 type PaymentMethod = "card" | "cash" | "transfer" | null;
+type TransferMethod = "payid" | "traditional" | null;
 
 export function EventRegistration() {
   const { id } = useParams();
@@ -22,6 +33,10 @@ export function EventRegistration() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [step, setStep] = useState<"form" | "payment" | "success">("form");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(null);
+  const [transferMethod, setTransferMethod] = useState<TransferMethod>(null);
+  const [paymentProof, setPaymentProof] = useState<string | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -99,12 +114,70 @@ export function EventRegistration() {
     );
   }
 
+  const transferDetails = {
+    payId: "macmaa@payid.com.au",
+    accountName:
+      "Manningham Australian Chinese Mutual Aid Association Inc.",
+    bsb: "063-000",
+    accountNumber: "1234 5678",
+  };
+
+  const resetTransferData = () => {
+    setTransferMethod(null);
+    setPaymentProof(null);
+    setCopiedField(null);
+    setUploadError(null);
+  };
+
+  const handleCopyToClipboard = (text: string, field: string) => {
+    if (!navigator?.clipboard?.writeText) {
+      setCopiedField(field);
+      setTimeout(() => setCopiedField(null), 2000);
+      return;
+    }
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedField(field);
+      setTimeout(() => setCopiedField(null), 2000);
+    });
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadError(null);
+    if (!file.type.startsWith("image/")) {
+      setUploadError(
+        language === "zh" ? "请上传图片文件" : "Please upload an image file"
+      );
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError(
+        language === "zh"
+          ? "图片大小不能超过 5MB"
+          : "Image size must be less than 5MB"
+      );
+      return;
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPaymentProof(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const submitRegistration = async () => {
     if (!loadedEvent) return;
     if (loadedEvent.fee > 0 && !paymentMethod) return;
     setSubmitting(true);
     setSubmitError(null);
     const tickets = Number(formData.participants) || 1;
+    const resolvedPaymentMethod =
+      paymentMethod === "transfer" && transferMethod === "payid"
+        ? "payid"
+        : paymentMethod;
+    const needsReview =
+      resolvedPaymentMethod === "transfer" || resolvedPaymentMethod === "payid";
     try {
       await createEventRegistration({
         event_id: loadedEvent.id,
@@ -112,7 +185,9 @@ export function EventRegistration() {
         phone: formData.phone.trim(),
         email: formData.email.trim(),
         tickets,
-        payment_method: paymentMethod,
+        payment_method: resolvedPaymentMethod,
+        payment_status: needsReview ? "pending" : undefined,
+        payment_proof: needsReview ? paymentProof : undefined,
       });
       void notifyEventRegistration({
         eventTitleZh: loadedEvent.title_zh,
@@ -120,7 +195,7 @@ export function EventRegistration() {
         name: formData.name.trim(),
         email: formData.email.trim(),
         tickets,
-        paymentMethod,
+        paymentMethod: resolvedPaymentMethod,
         notes: formData.notes.trim() || null,
         notifyAdminNotes: Boolean(formData.notes),
       });
@@ -154,6 +229,17 @@ export function EventRegistration() {
     if (loadedEvent.fee === 0) {
       await submitRegistration();
       return;
+    }
+
+    if (paymentMethod === "transfer") {
+      if (!transferMethod) {
+        alert(t("register.payment.selectTransfer"));
+        return;
+      }
+      if (!paymentProof) {
+        alert(t("register.payment.pleaseUpload"));
+        return;
+      }
     }
 
     if (paymentMethod === "card") {
@@ -210,7 +296,10 @@ export function EventRegistration() {
       id: "card" as PaymentMethod,
       icon: CreditCard,
       title: t("register.payment.online"),
-      desc: language === "zh" ? "信用卡/借记卡" : "Credit/Debit Card",
+      desc:
+        language === "zh"
+          ? "信用卡/借记卡（含手续费）"
+          : "Credit/Debit Card (incl. fee)",
       color: "#2B5F9E",
     },
     {
@@ -417,11 +506,16 @@ export function EventRegistration() {
                 </p>
 
                 {loadedEvent.fee > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     {paymentOptions.map((option) => (
                       <motion.button
                         key={option.id}
-                        onClick={() => setPaymentMethod(option.id)}
+                        onClick={() => {
+                          setPaymentMethod(option.id);
+                          if (option.id !== "transfer") {
+                            resetTransferData();
+                          }
+                        }}
                         className={`p-6 rounded-xl border-2 transition-all ${
                           paymentMethod === option.id
                             ? "border-[#2B5F9E] bg-[#F5EFE6]"
@@ -445,6 +539,347 @@ export function EventRegistration() {
                     ))}
                   </div>
                 ) : null}
+
+                <AnimatePresence>
+                  {paymentMethod === "transfer" && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mb-6"
+                    >
+                      <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl p-6 border-2 border-orange-200">
+                        <h3 className="text-lg text-[#EB8C3A] mb-4">
+                          {t("register.payment.selectTransfer")}
+                        </h3>
+
+                        <div className="grid grid-cols-2 gap-3 mb-6">
+                          <button
+                            type="button"
+                            onClick={() => setTransferMethod("payid")}
+                            className={`p-4 rounded-lg border-2 transition-all ${
+                              transferMethod === "payid"
+                                ? "border-[#EB8C3A] bg-white shadow-md"
+                                : "border-orange-200 bg-white/50 hover:border-[#EB8C3A]/50"
+                            }`}
+                          >
+                            <Wallet className="w-6 h-6 mx-auto mb-2 text-[#EB8C3A]" />
+                            <p className="text-sm">
+                              {t("register.payment.payid")}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {t("register.payment.payid.instant")}
+                            </p>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setTransferMethod("traditional")}
+                            className={`p-4 rounded-lg border-2 transition-all ${
+                              transferMethod === "traditional"
+                                ? "border-[#EB8C3A] bg-white shadow-md"
+                                : "border-orange-200 bg-white/50 hover:border-[#EB8C3A]/50"
+                            }`}
+                          >
+                            <Building className="w-6 h-6 mx-auto mb-2 text-[#EB8C3A]" />
+                            <p className="text-sm">
+                              {t("register.payment.traditional")}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {t("register.payment.traditional.bsb")}
+                            </p>
+                          </button>
+                        </div>
+
+                        <AnimatePresence mode="wait">
+                          {transferMethod === "payid" && (
+                            <motion.div
+                              key="payid"
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                              className="bg-white rounded-lg p-5 mb-4 border border-orange-200"
+                            >
+                              <h4 className="text-sm text-gray-600 mb-3">
+                                {t("register.payment.details.payid")}
+                              </h4>
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                                  <div>
+                                    <p className="text-xs text-gray-500 mb-1">
+                                      {t("register.payment.payid")}
+                                    </p>
+                                    <p className="text-sm font-mono">
+                                      {transferDetails.payId}
+                                    </p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleCopyToClipboard(
+                                        transferDetails.payId,
+                                        "payid"
+                                      )
+                                    }
+                                    className="p-2 hover:bg-white rounded-lg transition-colors"
+                                  >
+                                    {copiedField === "payid" ? (
+                                      <CheckCircle className="w-4 h-4 text-green-500" />
+                                    ) : (
+                                      <Copy className="w-4 h-4 text-gray-400" />
+                                    )}
+                                  </button>
+                                </div>
+
+                                <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                                  <div>
+                                    <p className="text-xs text-gray-500 mb-1">
+                                      {t("register.payment.accountName")}
+                                    </p>
+                                    <p className="text-sm">
+                                      {transferDetails.accountName}
+                                    </p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleCopyToClipboard(
+                                        transferDetails.accountName,
+                                        "accountName"
+                                      )
+                                    }
+                                    className="p-2 hover:bg-white rounded-lg transition-colors"
+                                  >
+                                    {copiedField === "accountName" ? (
+                                      <CheckCircle className="w-4 h-4 text-green-500" />
+                                    ) : (
+                                      <Copy className="w-4 h-4 text-gray-400" />
+                                    )}
+                                  </button>
+                                </div>
+
+                                <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                                  <div>
+                                    <p className="text-xs text-gray-500 mb-1">
+                                      {t("register.payment.amount")}
+                                    </p>
+                                    <p className="text-lg text-[#EB8C3A]">
+                                      ${loadedEvent.fee} AUD
+                                    </p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleCopyToClipboard(
+                                        String(loadedEvent.fee),
+                                        "amount"
+                                      )
+                                    }
+                                    className="p-2 hover:bg-white rounded-lg transition-colors"
+                                  >
+                                    {copiedField === "amount" ? (
+                                      <CheckCircle className="w-4 h-4 text-green-500" />
+                                    ) : (
+                                      <Copy className="w-4 h-4 text-gray-400" />
+                                    )}
+                                  </button>
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+
+                          {transferMethod === "traditional" && (
+                            <motion.div
+                              key="traditional"
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                              className="bg-white rounded-lg p-5 mb-4 border border-orange-200"
+                            >
+                              <h4 className="text-sm text-gray-600 mb-3">
+                                {t("register.payment.details.traditional")}
+                              </h4>
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                                  <div>
+                                    <p className="text-xs text-gray-500 mb-1">
+                                      {t("register.payment.bsb")}
+                                    </p>
+                                    <p className="text-sm font-mono">
+                                      {transferDetails.bsb}
+                                    </p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleCopyToClipboard(
+                                        transferDetails.bsb,
+                                        "bsb"
+                                      )
+                                    }
+                                    className="p-2 hover:bg-white rounded-lg transition-colors"
+                                  >
+                                    {copiedField === "bsb" ? (
+                                      <CheckCircle className="w-4 h-4 text-green-500" />
+                                    ) : (
+                                      <Copy className="w-4 h-4 text-gray-400" />
+                                    )}
+                                  </button>
+                                </div>
+
+                                <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                                  <div>
+                                    <p className="text-xs text-gray-500 mb-1">
+                                      {t("register.payment.accountNumber")}
+                                    </p>
+                                    <p className="text-sm font-mono">
+                                      {transferDetails.accountNumber}
+                                    </p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleCopyToClipboard(
+                                        transferDetails.accountNumber.replace(
+                                          /\s/g,
+                                          ""
+                                        ),
+                                        "accountNumber"
+                                      )
+                                    }
+                                    className="p-2 hover:bg-white rounded-lg transition-colors"
+                                  >
+                                    {copiedField === "accountNumber" ? (
+                                      <CheckCircle className="w-4 h-4 text-green-500" />
+                                    ) : (
+                                      <Copy className="w-4 h-4 text-gray-400" />
+                                    )}
+                                  </button>
+                                </div>
+
+                                <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                                  <div>
+                                    <p className="text-xs text-gray-500 mb-1">
+                                      {t("register.payment.accountName")}
+                                    </p>
+                                    <p className="text-sm">
+                                      {transferDetails.accountName}
+                                    </p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleCopyToClipboard(
+                                        transferDetails.accountName,
+                                        "accountName"
+                                      )
+                                    }
+                                    className="p-2 hover:bg-white rounded-lg transition-colors"
+                                  >
+                                    {copiedField === "accountName" ? (
+                                      <CheckCircle className="w-4 h-4 text-green-500" />
+                                    ) : (
+                                      <Copy className="w-4 h-4 text-gray-400" />
+                                    )}
+                                  </button>
+                                </div>
+
+                                <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                                  <div>
+                                    <p className="text-xs text-gray-500 mb-1">
+                                      {t("register.payment.amount")}
+                                    </p>
+                                    <p className="text-lg text-[#EB8C3A]">
+                                      ${loadedEvent.fee} AUD
+                                    </p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleCopyToClipboard(
+                                        String(loadedEvent.fee),
+                                        "amount"
+                                      )
+                                    }
+                                    className="p-2 hover:bg-white rounded-lg transition-colors"
+                                  >
+                                    {copiedField === "amount" ? (
+                                      <CheckCircle className="w-4 h-4 text-green-500" />
+                                    ) : (
+                                      <Copy className="w-4 h-4 text-gray-400" />
+                                    )}
+                                  </button>
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+
+                        {transferMethod && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                          >
+                            <h4 className="text-sm text-gray-600 mb-3">
+                              {t("register.payment.uploadProof")}
+                            </h4>
+                            {!paymentProof ? (
+                              <label className="block cursor-pointer">
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleFileUpload}
+                                  className="hidden"
+                                />
+                                <div className="border-2 border-dashed border-orange-300 rounded-lg p-8 text-center hover:border-[#EB8C3A] hover:bg-orange-50/50 transition-all">
+                                  <Upload className="w-12 h-12 mx-auto mb-3 text-[#EB8C3A]" />
+                                  <p className="text-sm text-gray-700 mb-1">
+                                    {t("register.payment.uploadClick")}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    {t("register.payment.uploadFormat")}
+                                  </p>
+                                </div>
+                              </label>
+                            ) : (
+                              <div className="relative">
+                                <img
+                                  src={paymentProof}
+                                  alt={t("register.payment.uploadProof")}
+                                  className="w-full h-48 object-cover rounded-lg"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setPaymentProof(null);
+                                    setUploadError(null);
+                                  }}
+                                  className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                                <div className="mt-2 flex items-center gap-2 text-green-600">
+                                  <CheckCircle className="w-4 h-4" />
+                                  <span className="text-sm">
+                                    {t("register.payment.uploadSuccess")}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+                            {uploadError && (
+                              <p className="text-xs text-red-600 mt-2">
+                                {uploadError}
+                              </p>
+                            )}
+                            <p className="text-xs text-gray-500 mt-3">
+                              {t("register.payment.uploadWarning")}
+                            </p>
+                          </motion.div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 <motion.button
                   onClick={handlePaymentConfirm}

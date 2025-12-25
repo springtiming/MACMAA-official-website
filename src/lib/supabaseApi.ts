@@ -90,7 +90,7 @@ export interface EventRegistrationRecord {
   phone: string;
   email: string | null;
   tickets: number;
-  payment_method: "card" | "cash" | "transfer" | null;
+  payment_method: "card" | "cash" | "transfer" | "payid" | null;
   payment_status?: string | null;
   payment_proof?: string | null;
   payment_proof_url?: string | null;
@@ -866,16 +866,24 @@ export async function createEventRegistration(payload: {
   phone: string;
   email?: string | null;
   tickets: number;
-  payment_method?: "card" | "cash" | "transfer" | null;
+  payment_method?: "card" | "cash" | "transfer" | "payid" | null;
+  payment_status?: "pending" | "confirmed" | "expired" | "cancelled" | null;
+  payment_proof?: string | null;
 }) {
   const supabase = getSupabaseClient();
-  const { error } = await supabase.from("event_registrations").insert(
-    {
-      ...payload,
-      payment_method: payload.payment_method ?? null,
-    },
-    { returning: "minimal" } as never
-  );
+  const insertPayload: Record<string, unknown> = {
+    ...payload,
+    payment_method: payload.payment_method ?? null,
+  };
+  if (payload.payment_status != null) {
+    insertPayload.payment_status = payload.payment_status;
+  }
+  if (payload.payment_proof != null) {
+    insertPayload.payment_proof = payload.payment_proof;
+  }
+  const { error } = await supabase
+    .from("event_registrations")
+    .insert(insertPayload, { returning: "minimal" } as never);
 
   if (error) {
     logSupabaseError("createEventRegistration", error);
