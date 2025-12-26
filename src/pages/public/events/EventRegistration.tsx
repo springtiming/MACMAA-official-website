@@ -21,6 +21,7 @@ import {
   uploadPaymentProof,
   type EventRecord,
 } from "@/lib/supabaseApi";
+import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 
 type PaymentMethod = "card" | "cash" | "transfer" | null;
 type TransferMethod = "payid" | "traditional" | null;
@@ -1314,10 +1315,21 @@ export function EventRegistration() {
                               </label>
                             ) : (
                               <div className="relative">
-                                <img
-                                  src={paymentProofPreview}
+                                <ImageWithFallback
+                                  src={paymentProofPreview || undefined}
                                   alt={t("register.payment.uploadProof")}
                                   className="w-full h-48 object-cover rounded-lg"
+                                  onError={() => {
+                                    // 如果 blob URL 失效，清除预览
+                                    if (paymentProofPreview?.startsWith("blob:")) {
+                                      setPaymentProofPreview((prev) => {
+                                        if (prev && typeof URL !== "undefined") {
+                                          URL.revokeObjectURL(prev);
+                                        }
+                                        return null;
+                                      });
+                                    }
+                                  }}
                                 />
                                 <button
                                   type="button"
