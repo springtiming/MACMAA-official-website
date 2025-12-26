@@ -79,6 +79,7 @@ export function EventRegistration() {
   const [verificationCode, setVerificationCode] = useState("");
   const [codeSent, setCodeSent] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -281,8 +282,17 @@ export function EventRegistration() {
     setMemberEmail("");
     setVerificationCode("");
     setCodeSent(false);
+    setResendCooldown(0);
     setIsVerifying(false);
   };
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = window.setTimeout(() => {
+      setResendCooldown((prev) => Math.max(prev - 1, 0));
+    }, 1000);
+    return () => window.clearTimeout(timer);
+  }, [resendCooldown]);
 
   const handleSendVerificationCode = async () => {
     if (!memberEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(memberEmail)) {
@@ -298,6 +308,8 @@ export function EventRegistration() {
       });
       if (response.ok) {
         setCodeSent(true);
+        setVerificationCode("");
+        setResendCooldown(60);
         alert(t("register.member.sendSuccess"));
       } else {
         const error = await response.json();
@@ -864,10 +876,12 @@ export function EventRegistration() {
                                       type="button"
                                       onClick={handleSendVerificationCode}
                                       disabled={
-                                        !memberEmail || codeSent || isVerifying
+                                        !memberEmail ||
+                                        isVerifying ||
+                                        resendCooldown > 0
                                       }
                                       className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap transition-colors ${
-                                        codeSent || isVerifying
+                                        isVerifying || resendCooldown > 0
                                           ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                                           : "bg-green-600 text-white hover:bg-green-700"
                                       }`}
@@ -875,7 +889,11 @@ export function EventRegistration() {
                                       {isVerifying
                                         ? t("register.member.sending")
                                         : codeSent
-                                          ? t("register.member.sent")
+                                          ? resendCooldown > 0
+                                            ? language === "zh"
+                                              ? `重新发送(${resendCooldown}s)`
+                                              : `Resend (${resendCooldown}s)`
+                                            : t("register.member.resendCode")
                                           : t("register.member.sendCode")}
                                     </button>
                                   </div>

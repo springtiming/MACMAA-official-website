@@ -2,9 +2,10 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { sendEmail } from "./_emailService.js";
 import { getSupabaseServiceClient } from "./_supabaseAdminClient.js";
 import {
+  CODE_TTL_MS,
   generateVerificationCode,
+  hashVerificationCode,
   normalizeEmail,
-  setVerificationCode,
 } from "./_memberVerificationStore.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -34,6 +35,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const supabase = getSupabaseServiceClient();
+    const now = new Date().toISOString();
+    await supabase
+      .from("member_verification_codes")
+      .delete()
+      .lt("expires_at", now);
     const { data: member, error } = await supabase
       .from("members")
       .select("email, status, chinese_name, english_name")
@@ -51,7 +57,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const code = generateVerificationCode();
-    setVerificationCode(email, code);
+    const codeHash = hashVerificationCode(code);
+    const expiresAt = new Date(Date.now() + CODE_TTL_MS).toISOString();
+
+    const { error: upsertError } = await supabase
+      .from("member_verification_codes")
+      .upsert(
+        {
+          email,
+          code_hash: codeHash,
+          expires_at: expiresAt,
+          updated_at: now,
+        },
+        { onConflict: "email" }
+      );
+
+    if (upsertError) {
+      return res.status(500).json({ error: "Failed to save verification code" });
+    }
 
     const result = await sendEmail({
       to: email,

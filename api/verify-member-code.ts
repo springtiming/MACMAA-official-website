@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getSupabaseServiceClient } from "./_supabaseAdminClient.js";
-import { normalizeEmail, verifyCode } from "./_memberVerificationStore.js";
+import { hashVerificationCode, normalizeEmail } from "./_memberVerificationStore.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "OPTIONS") {
@@ -31,15 +31,43 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: "Invalid verification code" });
   }
 
-  const verification = verifyCode(email, code);
-  if (!verification.ok) {
-    return res
-      .status(400)
-      .json({ error: "Invalid or expired verification code" });
-  }
-
   try {
     const supabase = getSupabaseServiceClient();
+    const { data: verification, error: verificationError } = await supabase
+      .from("member_verification_codes")
+      .select("code_hash, expires_at")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (verificationError) {
+      return res.status(500).json({ error: "Failed to verify code" });
+    }
+
+    if (!verification) {
+      return res
+        .status(400)
+        .json({ error: "Invalid or expired verification code" });
+    }
+
+    const isExpired =
+      new Date(verification.expires_at).getTime() <= Date.now();
+    if (isExpired) {
+      await supabase
+        .from("member_verification_codes")
+        .delete()
+        .eq("email", email);
+      return res
+        .status(400)
+        .json({ error: "Invalid or expired verification code" });
+    }
+
+    const codeHash = hashVerificationCode(code);
+    if (verification.code_hash !== codeHash) {
+      return res
+        .status(400)
+        .json({ error: "Invalid or expired verification code" });
+    }
+
     const { data: member, error } = await supabase
       .from("members")
       .select("email, status, chinese_name, english_name")
@@ -57,6 +85,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const name = member.chinese_name || member.english_name || "Member";
+    await supabase
+      .from("member_verification_codes")
+      .delete()
+      .eq("email", email);
     return res.status(200).json({
       success: true,
       data: {
