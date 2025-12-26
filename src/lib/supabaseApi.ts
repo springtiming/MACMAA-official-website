@@ -247,7 +247,6 @@ function buildAdminApiUrl(path: string) {
 }
 
 const PAYMENTS_API_BASE = buildAdminApiUrl("/payments");
-const ADMIN_NEWS_API_BASE = buildAdminApiUrl("/news");
 const ADMIN_ACCOUNTS_API_BASE = buildAdminApiUrl("/admin-accounts");
 const NOTIFICATIONS_API_BASE = buildAdminApiUrl("/notifications");
 const SUPABASE_URL =
@@ -740,7 +739,10 @@ export async function publishNewsFromDraft(versionId: string) {
 }
 
 export async function deleteArticle(id: string) {
-  const res = await fetch(`${ADMIN_NEWS_API_BASE}/${id}`, { method: "DELETE" });
+  const res = await callEdgeFunction(
+    `news-admin?id=${encodeURIComponent(id)}`,
+    { method: "DELETE" }
+  );
   if (!res.ok && res.status !== 204) {
     throw new Error("Failed to delete article");
   }
@@ -806,7 +808,7 @@ export class ConcurrencyError extends Error {
 const MEMBERS_API_BASE = buildAdminApiUrl("/members");
 
 export async function fetchMembers() {
-  const res = await fetch(MEMBERS_API_BASE, {
+  const res = await callEdgeFunction("members", {
     headers: {
       Accept: "application/json",
     },

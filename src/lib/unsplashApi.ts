@@ -28,9 +28,22 @@ async function requestUnsplash<T>(
   endpoint: "search" | "random",
   params: Record<string, string | number | undefined>
 ) {
-  const base =
-    typeof window === "undefined" ? "http://localhost" : window.location.origin;
-  const url = new URL(`/api/unsplash/${endpoint}`, base);
+  const supabaseUrl =
+    typeof import.meta !== "undefined"
+      ? (import.meta.env.VITE_SUPABASE_URL as string | undefined)
+      : undefined;
+  const supabaseAnonKey =
+    typeof import.meta !== "undefined"
+      ? (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined)
+      : undefined;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error("Missing Supabase env vars for Unsplash proxy");
+  }
+
+  const url = new URL(
+    `${supabaseUrl.replace(/\/$/, "")}/functions/v1/unsplash/${endpoint}`
+  );
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== "") {
       url.searchParams.set(key, String(value));
@@ -38,7 +51,11 @@ async function requestUnsplash<T>(
   });
 
   const res = await fetch(url.toString(), {
-    headers: { Accept: "application/json" },
+    headers: {
+      Accept: "application/json",
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${supabaseAnonKey}`,
+    },
   });
 
   if (!res.ok) {

@@ -9,7 +9,7 @@ if (!supabaseUrl || !supabaseServiceRoleKey) {
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  if (req.method !== "GET") {
+  if (req.method !== "GET" && req.method !== "DELETE") {
     return new Response("Method not allowed", {
       status: 405,
       headers: corsHeaders,
@@ -28,6 +28,29 @@ Deno.serve(async (req) => {
   const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
   try {
+    if (req.method === "DELETE") {
+      const url = new URL(req.url);
+      const id = url.searchParams.get("id");
+      if (!id) {
+        return new Response(
+          JSON.stringify({ error: "Missing id" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+
+      const { error } = await supabase.from("articles").delete().eq("id", id);
+
+      if (error) {
+        console.error("[news-admin] delete", error);
+        return new Response(
+          JSON.stringify({ error: "Failed to delete article" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+
+      return new Response("", { status: 204, headers: corsHeaders });
+    }
+
     const { data, error } = await supabase
       .from("articles")
       .select(
