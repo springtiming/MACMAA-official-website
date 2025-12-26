@@ -644,8 +644,10 @@ const translations: Record<Language, Record<string, string>> = {
     "register.member.sendFailed": "Failed to send code, please try again",
     "register.member.sendSuccess": "Verification code sent to your email",
     "register.member.invalidCode": "Please enter 6-digit code",
-    "register.member.verifyFailed": "Verification failed, please check your code",
-    "register.member.verifySuccess": "Verification successful! Member price applied",
+    "register.member.verifyFailed":
+      "Verification failed, please check your code",
+    "register.member.verifySuccess":
+      "Verification successful! Member price applied",
     "register.member.logoutConfirm": "Are you sure you want to logout?",
     "register.payment.selectTransfer": "Select Transfer Method",
     "register.payment.payid": "PayID",

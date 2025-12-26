@@ -265,9 +265,9 @@ export function AdminEvents() {
   const [signedProofUrls, setSignedProofUrls] = useState<
     Record<string, string>
   >({});
-  const [paymentUpdates, setPaymentUpdates] = useState<
-    Record<string, boolean>
-  >({});
+  const [paymentUpdates, setPaymentUpdates] = useState<Record<string, boolean>>(
+    {}
+  );
   const [imageSource, setImageSource] = useState<"unsplash" | "upload">(
     emptyForm.imageType
   );
@@ -610,9 +610,7 @@ export function AdminEvents() {
       .map(getPaymentProofUrl)
       .filter(
         (path) =>
-          path &&
-          !isExternalProofUrl(path) &&
-          signedProofUrls[path] == null
+          path && !isExternalProofUrl(path) && signedProofUrls[path] == null
       );
 
     if (pendingPaths.length === 0) {
@@ -1722,17 +1720,23 @@ export function AdminEvents() {
                                           {reg.name}
                                         </h3>
                                         <span className="text-xs px-2.5 py-1 rounded-full bg-yellow-100 text-yellow-700 font-medium">
-                                          {t("admin.events.reviewPayments.pending")}
+                                          {t(
+                                            "admin.events.reviewPayments.pending"
+                                          )}
                                         </span>
                                       </div>
 
                                       <div className="mt-3 space-y-1 text-sm text-gray-600">
                                         <p>
-                                          {t("admin.events.registrations.phone")}
+                                          {t(
+                                            "admin.events.registrations.phone"
+                                          )}
                                           : {reg.phone}
                                         </p>
                                         <p>
-                                          {t("admin.events.registrations.email")}
+                                          {t(
+                                            "admin.events.registrations.email"
+                                          )}
                                           : {reg.email || "-"}
                                         </p>
                                         <p>
@@ -1895,9 +1899,7 @@ export function AdminEvents() {
                       <img
                         src={lightboxImage}
                         alt={
-                          language === "zh"
-                            ? "支付凭证大图"
-                            : "Payment proof"
+                          language === "zh" ? "支付凭证大图" : "Payment proof"
                         }
                         className="max-w-full max-h-[calc(100vh-32px)] object-contain rounded-lg"
                       />

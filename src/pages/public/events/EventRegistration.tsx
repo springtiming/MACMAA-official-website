@@ -135,6 +135,14 @@ export function EventRegistration() {
     };
   }, [id, t]);
 
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = window.setTimeout(() => {
+      setResendCooldown((prev) => Math.max(prev - 1, 0));
+    }, 1000);
+    return () => window.clearTimeout(timer);
+  }, [resendCooldown]);
+
   if (loading) {
     return (
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-12 text-center">
@@ -159,8 +167,7 @@ export function EventRegistration() {
 
   const transferDetails = {
     payId: "macmaa@payid.com.au",
-    accountName:
-      "Manningham Australian Chinese Mutual Aid Association Inc.",
+    accountName: "Manningham Australian Chinese Mutual Aid Association Inc.",
     bsb: "063-000",
     accountNumber: "1234 5678",
   };
@@ -196,9 +203,7 @@ export function EventRegistration() {
     });
   };
 
-  const handleFileUpload = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target;
     const file = input.files?.[0];
     input.value = "";
@@ -254,7 +259,9 @@ export function EventRegistration() {
       }
       console.error("[events] upload payment proof failed", err);
       setUploadError(
-        language === "zh" ? "上传失败，请重试" : "Upload failed, please try again"
+        language === "zh"
+          ? "上传失败，请重试"
+          : "Upload failed, please try again"
       );
       setPaymentProofUrl(null);
       setPaymentProofPreview((prev) => {
@@ -275,8 +282,13 @@ export function EventRegistration() {
     loadedEvent.fee > 0 &&
     loadedEvent.member_fee != null &&
     Number(loadedEvent.member_fee) < Number(loadedEvent.fee);
-  const finalFee = hasMemberDiscount && memberInfo ? Number(memberFee) : Number(loadedEvent.fee);
-  const savings = hasMemberDiscount ? Number(loadedEvent.fee) - Number(memberFee) : 0;
+  const finalFee =
+    hasMemberDiscount && memberInfo
+      ? Number(memberFee)
+      : Number(loadedEvent.fee);
+  const savings = hasMemberDiscount
+    ? Number(loadedEvent.fee) - Number(memberFee)
+    : 0;
 
   const resetMemberVerification = () => {
     setMemberEmail("");
@@ -285,14 +297,6 @@ export function EventRegistration() {
     setResendCooldown(0);
     setIsVerifying(false);
   };
-
-  useEffect(() => {
-    if (resendCooldown <= 0) return;
-    const timer = window.setTimeout(() => {
-      setResendCooldown((prev) => Math.max(prev - 1, 0));
-    }, 1000);
-    return () => window.clearTimeout(timer);
-  }, [resendCooldown]);
 
   const handleSendVerificationCode = async () => {
     if (!memberEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(memberEmail)) {
@@ -392,7 +396,9 @@ export function EventRegistration() {
         tickets,
         payment_method: resolvedPaymentMethod,
         payment_status: needsReview ? "pending" : undefined,
-        payment_proof_url: needsReview ? paymentProofUrl ?? undefined : undefined,
+        payment_proof_url: needsReview
+          ? (paymentProofUrl ?? undefined)
+          : undefined,
       });
       void notifyEventRegistration({
         eventTitleZh: loadedEvent.title_zh,
@@ -536,7 +542,10 @@ export function EventRegistration() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2 w-full">
             {["form", "payment", "success"].map((s, index) => (
-              <div key={s} className={`flex items-center ${index < 2 ? "flex-1" : ""}`}>
+              <div
+                key={s}
+                className={`flex items-center ${index < 2 ? "flex-1" : ""}`}
+              >
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center ${
                     step === s
@@ -709,9 +718,7 @@ export function EventRegistration() {
                 <p className="text-gray-600 mb-6">
                   {language === "zh"
                     ? `活动费用：${
-                        loadedEvent.fee === 0
-                          ? "免费"
-                          : `$${finalFee} AUD`
+                        loadedEvent.fee === 0 ? "免费" : `$${finalFee} AUD`
                       }`
                     : `Event fee: ${
                         loadedEvent.fee === 0 ? "Free" : `$${finalFee} AUD`
@@ -1364,12 +1371,8 @@ export function EventRegistration() {
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                       : "bg-[#2B5F9E] text-white hover:bg-[#234a7e]"
                   }`}
-                  whileHover={
-                    !isConfirmDisabled ? { scale: 1.02 } : {}
-                  }
-                  whileTap={
-                    !isConfirmDisabled ? { scale: 0.98 } : {}
-                  }
+                  whileHover={!isConfirmDisabled ? { scale: 1.02 } : {}}
+                  whileTap={!isConfirmDisabled ? { scale: 0.98 } : {}}
                 >
                   {submitting
                     ? t("common.loading")

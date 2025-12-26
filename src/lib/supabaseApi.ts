@@ -398,10 +398,7 @@ export async function uploadPaymentProof(payload: {
   return body.path;
 }
 
-export async function getPaymentProofSignedUrl(
-  path: string,
-  expiresIn = 3600
-) {
+export async function getPaymentProofSignedUrl(path: string, expiresIn = 3600) {
   const params = new URLSearchParams({
     path,
     expiresIn: String(expiresIn),
