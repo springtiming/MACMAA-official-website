@@ -18,9 +18,9 @@ import {
   createStripeCheckoutSession,
   fetchEventById,
   notifyEventRegistration,
+  uploadPaymentProof,
   type EventRecord,
 } from "@/lib/supabaseApi";
-import { getSupabaseClient } from "@/lib/supabaseClient";
 
 type PaymentMethod = "card" | "cash" | "transfer" | null;
 type TransferMethod = "payid" | "traditional" | null;
@@ -31,7 +31,6 @@ type MemberInfo = {
 };
 
 const MEMBER_STORAGE_KEY = "macmaa_member_info";
-const PAYMENT_PROOF_BUCKET = "payment-proofs";
 
 const getStoredMemberInfo = (): MemberInfo | null => {
   if (typeof window === "undefined") return null;
@@ -240,44 +239,14 @@ export function EventRegistration() {
     setIsUploadingProof(true);
 
     try {
-      const supabase = getSupabaseClient();
-      const nameParts = file.name.split(".");
-      const ext =
-        nameParts.length > 1
-          ? nameParts[nameParts.length - 1].toLowerCase()
-          : "jpg";
-      const fallbackId = `${Date.now()}-${Math.random()
-        .toString(36)
-        .slice(2, 8)}`;
-      const uniqueId =
-        typeof crypto !== "undefined" &&
-        typeof crypto.randomUUID === "function"
-          ? crypto.randomUUID()
-          : fallbackId;
-      const filePath = `event-registrations/${loadedEvent.id}/${uniqueId}.${ext}`;
-      const { error } = await supabase.storage
-        .from(PAYMENT_PROOF_BUCKET)
-        .upload(filePath, file, {
-          cacheControl: "3600",
-          contentType: file.type,
-          upsert: false,
-        });
-
-      if (error) {
-        throw error;
-      }
-
-      const { data } = supabase.storage
-        .from(PAYMENT_PROOF_BUCKET)
-        .getPublicUrl(filePath);
-      const publicUrl = data?.publicUrl ?? "";
-      if (!publicUrl) {
-        throw new Error("Missing public URL");
-      }
+      const path = await uploadPaymentProof({
+        eventId: loadedEvent.id,
+        file,
+      });
       if (uploadIdRef.current !== uploadId) {
         return;
       }
-      setPaymentProofUrl(publicUrl);
+      setPaymentProofUrl(path);
     } catch (err) {
       if (uploadIdRef.current !== uploadId) {
         return;

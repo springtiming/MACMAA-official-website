@@ -26,6 +26,7 @@ import {
   saveEvent,
   deleteEvent,
   fetchAdminEventRegistrations,
+  getPaymentProofSignedUrl,
   updateEventRegistrationPaymentStatus,
   type EventRecord,
   type UpsertEventInput,
@@ -231,6 +232,11 @@ function toForm(e: EventRecord | null): FormState {
 const inputBaseClass =
   "w-full h-12 border rounded-xl px-4 shadow-sm appearance-none [appearance:textfield] [::-webkit-inner-spin-button]:appearance-none [::-webkit-outer-spin-button]:appearance-none";
 
+const isExternalProofUrl = (value: string) =>
+  /^https?:\/\//i.test(value) ||
+  value.startsWith("data:") ||
+  value.startsWith("blob:");
+
 export function AdminEvents() {
   const { language, t } = useLanguage();
   const navigate = useNavigate();
@@ -256,6 +262,9 @@ export function AdminEvents() {
   const [activePaymentEvent, setActivePaymentEvent] =
     useState<EventRecord | null>(null);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [signedProofUrls, setSignedProofUrls] = useState<
+    Record<string, string>
+  >({});
   const [paymentUpdates, setPaymentUpdates] = useState<
     Record<string, boolean>
   >({});
@@ -551,6 +560,16 @@ export function AdminEvents() {
     []
   );
 
+  const getResolvedPaymentProofUrl = useCallback(
+    (reg: EventRegistrationRecord) => {
+      const rawUrl = getPaymentProofUrl(reg);
+      if (!rawUrl) return "";
+      if (isExternalProofUrl(rawUrl)) return rawUrl;
+      return signedProofUrls[rawUrl] ?? "";
+    },
+    [getPaymentProofUrl, signedProofUrls]
+  );
+
   const getPaymentStatus = useCallback(
     (reg: EventRegistrationRecord) =>
       reg.payment_status ?? reg.paymentStatus ?? null,
@@ -583,6 +602,44 @@ export function AdminEvents() {
       (reg) => reg.event_id === activePaymentEvent.id && isPendingPayment(reg)
     );
   }, [activePaymentEvent, allRegistrations, isPendingPayment]);
+
+  useEffect(() => {
+    if (pendingPaymentsForActiveEvent.length === 0) return;
+    let active = true;
+    const pendingPaths = pendingPaymentsForActiveEvent
+      .map(getPaymentProofUrl)
+      .filter(
+        (path) =>
+          path &&
+          !isExternalProofUrl(path) &&
+          signedProofUrls[path] == null
+      );
+
+    if (pendingPaths.length === 0) {
+      return () => {
+        active = false;
+      };
+    }
+
+    const uniquePaths = Array.from(new Set(pendingPaths));
+
+    uniquePaths.forEach((path) => {
+      getPaymentProofSignedUrl(path)
+        .then((signedUrl) => {
+          if (!active || !signedUrl) return;
+          setSignedProofUrls((prev) =>
+            prev[path] ? prev : { ...prev, [path]: signedUrl }
+          );
+        })
+        .catch((err) => {
+          console.error("[AdminEvents] sign payment proof", err);
+        });
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [pendingPaymentsForActiveEvent, getPaymentProofUrl, signedProofUrls]);
 
   const openPaymentReview = (event: EventRecord) => {
     setActivePaymentEvent(event);
@@ -1640,12 +1697,14 @@ export function AdminEvents() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                               {pendingPaymentsForActiveEvent.map(
                                 (reg, index) => {
-                                  const proofUrl = getPaymentProofUrl(reg);
+                                  const proofUrl =
+                                    getResolvedPaymentProofUrl(reg);
                                   const registrationDate =
                                     reg.registration_date || reg.created_at;
                                   const isUpdating = Boolean(
                                     paymentUpdates[reg.id]
                                   );
+                                  const hasProofUrl = Boolean(proofUrl);
                                   return (
                                     <motion.div
                                       key={reg.id}
@@ -1708,24 +1767,39 @@ export function AdminEvents() {
                                         </p>
                                         <button
                                           type="button"
-                                          onClick={() =>
-                                            setLightboxImage(proofUrl)
-                                          }
-                                          className="group relative w-full"
-                                        >
-                                          <img
-                                            src={proofUrl}
-                                            alt={
-                                              language === "zh"
-                                                ? `${reg.name}的支付凭证`
-                                                : `Payment proof from ${reg.name}`
+                                          onClick={() => {
+                                            if (proofUrl) {
+                                              setLightboxImage(proofUrl);
                                             }
-                                            className="w-full h-48 object-cover rounded-lg"
-                                            loading="lazy"
-                                          />
-                                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                                            <ImageIcon className="w-8 h-8 text-white" />
-                                          </div>
+                                          }}
+                                          disabled={!hasProofUrl}
+                                          className={`group relative w-full ${
+                                            hasProofUrl
+                                              ? ""
+                                              : "cursor-not-allowed"
+                                          }`}
+                                        >
+                                          {hasProofUrl ? (
+                                            <>
+                                              <img
+                                                src={proofUrl}
+                                                alt={
+                                                  language === "zh"
+                                                    ? `${reg.name}的支付凭证`
+                                                    : `Payment proof from ${reg.name}`
+                                                }
+                                                className="w-full h-48 object-cover rounded-lg"
+                                                loading="lazy"
+                                              />
+                                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                                                <ImageIcon className="w-8 h-8 text-white" />
+                                              </div>
+                                            </>
+                                          ) : (
+                                            <div className="w-full h-48 rounded-lg bg-gray-100 flex items-center justify-center text-sm text-gray-500">
+                                              {t("common.loading")}
+                                            </div>
+                                          )}
                                         </button>
                                         <p className="mt-2 text-xs text-gray-500 text-center">
                                           {t(

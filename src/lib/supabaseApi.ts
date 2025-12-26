@@ -372,6 +372,56 @@ export async function fetchAdminEventRegistrations(eventId?: string) {
   return body.registrations ?? [];
 }
 
+export async function uploadPaymentProof(payload: {
+  eventId: string;
+  file: File;
+}) {
+  const formData = new FormData();
+  formData.append("eventId", payload.eventId);
+  formData.append("file", payload.file);
+  const res = await callEdgeFunction("payment-proofs", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+    },
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(detail || "Failed to upload payment proof");
+  }
+
+  const body = (await res.json()) as { path?: string };
+  if (!body?.path) {
+    throw new Error("Missing upload path");
+  }
+  return body.path;
+}
+
+export async function getPaymentProofSignedUrl(
+  path: string,
+  expiresIn = 3600
+) {
+  const params = new URLSearchParams({
+    path,
+    expiresIn: String(expiresIn),
+  });
+  const res = await callEdgeFunction(`payment-proofs?${params.toString()}`, {
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(detail || "Failed to get signed payment proof URL");
+  }
+
+  const body = (await res.json()) as { signedUrl?: string };
+  return body?.signedUrl ?? "";
+}
+
 export async function updateEventRegistrationPaymentStatus(payload: {
   registrationId: string;
   paymentStatus: "pending" | "confirmed" | "expired" | "cancelled";
