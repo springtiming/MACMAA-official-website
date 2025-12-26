@@ -68,3 +68,8 @@ AS $$
     );
 $$;
 
+-- 支付凭证字段
+ALTER TABLE public.event_registrations
+  ADD COLUMN IF NOT EXISTS payment_proof_url TEXT,
+  ADD COLUMN IF NOT EXISTS payment_proof TEXT;
+

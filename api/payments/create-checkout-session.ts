@@ -9,6 +9,7 @@ type CreateCheckoutPayload = {
   email?: string;
   phone?: string;
   notes?: string;
+  memberEmail?: string;
   successUrl?: string;
   cancelUrl?: string;
 };
@@ -47,7 +48,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const supabase = getServiceRoleSupabase();
     const { data: event, error: eventError } = await supabase
       .from("events")
-      .select("id, title_zh, title_en, fee")
+      .select("id, title_zh, title_en, fee, member_fee")
       .eq("id", payload.eventId)
       .single();
 
@@ -55,7 +56,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(404).json({ error: "Event not found" });
     }
 
-    const unitAmount = Math.round(Number(event.fee ?? 0) * 100);
+    const regularFee = Number(event.fee ?? 0);
+    const memberFee = Number(event.member_fee ?? 0);
+    let unitAmount = Math.round(regularFee * 100);
+    let memberDiscountApplied = false;
+
+    const memberEmail = payload.memberEmail?.trim();
+    if (
+      memberEmail &&
+      Number.isFinite(memberFee) &&
+      memberFee > 0 &&
+      memberFee < regularFee
+    ) {
+      const { data: member } = await supabase
+        .from("members")
+        .select("id, email, status")
+        .eq("status", "approved")
+        .ilike("email", memberEmail)
+        .maybeSingle();
+      if (member) {
+        unitAmount = Math.round(memberFee * 100);
+        memberDiscountApplied = true;
+      }
+    }
     if (!Number.isFinite(unitAmount) || unitAmount <= 0) {
       return res
         .status(400)
@@ -87,6 +110,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         tickets: String(tickets),
         name,
         email: customerEmail ?? "",
+        member_email: memberDiscountApplied ? memberEmail ?? "" : "",
+        member_discount: memberDiscountApplied ? "true" : "false",
         phone,
         notes,
       },

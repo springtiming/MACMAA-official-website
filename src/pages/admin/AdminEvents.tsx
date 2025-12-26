@@ -26,6 +26,7 @@ import {
   saveEvent,
   deleteEvent,
   fetchAdminEventRegistrations,
+  updateEventRegistrationPaymentStatus,
   type EventRecord,
   type UpsertEventInput,
   type EventRegistrationRecord,
@@ -255,6 +256,9 @@ export function AdminEvents() {
   const [activePaymentEvent, setActivePaymentEvent] =
     useState<EventRecord | null>(null);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [paymentUpdates, setPaymentUpdates] = useState<
+    Record<string, boolean>
+  >({});
   const [imageSource, setImageSource] = useState<"unsplash" | "upload">(
     emptyForm.imageType
   );
@@ -590,22 +594,38 @@ export function AdminEvents() {
     setLightboxImage(null);
   };
 
-  const handlePaymentDecision = (
+  const handlePaymentDecision = async (
     registrationId: string,
     decision: "approve" | "reject"
   ) => {
     const nextStatus = decision === "approve" ? "confirmed" : "cancelled";
-    setAllRegistrations((prev) =>
-      prev.map((reg) =>
-        reg.id === registrationId
-          ? {
-              ...reg,
-              payment_status: nextStatus,
-              paymentStatus: nextStatus,
-            }
-          : reg
-      )
-    );
+    setPaymentUpdates((prev) => ({ ...prev, [registrationId]: true }));
+    try {
+      const updated = await updateEventRegistrationPaymentStatus({
+        registrationId,
+        paymentStatus: nextStatus,
+        adminId: adminId ?? undefined,
+      });
+      setAllRegistrations((prev) =>
+        prev.map((reg) =>
+          reg.id === registrationId
+            ? {
+                ...reg,
+                ...updated,
+              }
+            : reg
+        )
+      );
+    } catch (err) {
+      console.error("[AdminEvents] update payment status", err);
+      setError(t("common.error"));
+    } finally {
+      setPaymentUpdates((prev) => {
+        const next = { ...prev };
+        delete next[registrationId];
+        return next;
+      });
+    }
   };
 
   const exportRegistrations = () => {
@@ -1623,6 +1643,9 @@ export function AdminEvents() {
                                   const proofUrl = getPaymentProofUrl(reg);
                                   const registrationDate =
                                     reg.registration_date || reg.created_at;
+                                  const isUpdating = Boolean(
+                                    paymentUpdates[reg.id]
+                                  );
                                   return (
                                     <motion.div
                                       key={reg.id}
@@ -1714,13 +1737,14 @@ export function AdminEvents() {
                                       <div className="mt-4 flex gap-2">
                                         <button
                                           type="button"
+                                          disabled={isUpdating}
                                           onClick={() =>
                                             handlePaymentDecision(
                                               reg.id,
                                               "approve"
                                             )
                                           }
-                                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-[#10B981] text-white rounded-lg hover:bg-[#059669] transition-colors"
+                                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-[#10B981] text-white rounded-lg hover:bg-[#059669] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                                         >
                                           <CheckCircle className="w-4 h-4" />
                                           <span>
@@ -1731,13 +1755,14 @@ export function AdminEvents() {
                                         </button>
                                         <button
                                           type="button"
+                                          disabled={isUpdating}
                                           onClick={() =>
                                             handlePaymentDecision(
                                               reg.id,
                                               "reject"
                                             )
                                           }
-                                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-[#EF4444] text-white rounded-lg hover:bg-[#DC2626] transition-colors"
+                                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-[#EF4444] text-white rounded-lg hover:bg-[#DC2626] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                                         >
                                           <XCircle className="w-4 h-4" />
                                           <span>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion, AnimatePresence } from "motion/react";
@@ -20,9 +20,39 @@ import {
   notifyEventRegistration,
   type EventRecord,
 } from "@/lib/supabaseApi";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 
 type PaymentMethod = "card" | "cash" | "transfer" | null;
 type TransferMethod = "payid" | "traditional" | null;
+type MemberInfo = {
+  name: string;
+  email: string;
+  verifiedAt: string;
+};
+
+const MEMBER_STORAGE_KEY = "macmaa_member_info";
+const PAYMENT_PROOF_BUCKET = "payment-proofs";
+
+const getStoredMemberInfo = (): MemberInfo | null => {
+  if (typeof window === "undefined") return null;
+  const stored = window.localStorage.getItem(MEMBER_STORAGE_KEY);
+  if (!stored) return null;
+  try {
+    return JSON.parse(stored) as MemberInfo;
+  } catch {
+    return null;
+  }
+};
+
+const saveMemberInfo = (info: MemberInfo) => {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(MEMBER_STORAGE_KEY, JSON.stringify(info));
+};
+
+const clearMemberInfo = () => {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(MEMBER_STORAGE_KEY);
+};
 
 export function EventRegistration() {
   const { id } = useParams();
@@ -34,9 +64,22 @@ export function EventRegistration() {
   const [step, setStep] = useState<"form" | "payment" | "success">("form");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(null);
   const [transferMethod, setTransferMethod] = useState<TransferMethod>(null);
-  const [paymentProof, setPaymentProof] = useState<string | null>(null);
+  const [paymentProofPreview, setPaymentProofPreview] = useState<string | null>(
+    null
+  );
+  const [paymentProofUrl, setPaymentProofUrl] = useState<string | null>(null);
+  const [isUploadingProof, setIsUploadingProof] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const uploadIdRef = useRef(0);
+  const [memberInfo, setMemberInfo] = useState<MemberInfo | null>(() =>
+    getStoredMemberInfo()
+  );
+  const [isMemberChecked, setIsMemberChecked] = useState(false);
+  const [memberEmail, setMemberEmail] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [codeSent, setCodeSent] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -122,11 +165,23 @@ export function EventRegistration() {
     accountNumber: "1234 5678",
   };
 
+  const clearPaymentProof = () => {
+    uploadIdRef.current += 1;
+    setPaymentProofUrl(null);
+    setIsUploadingProof(false);
+    setUploadError(null);
+    setPaymentProofPreview((prev) => {
+      if (prev && typeof URL !== "undefined") {
+        URL.revokeObjectURL(prev);
+      }
+      return null;
+    });
+  };
+
   const resetTransferData = () => {
     setTransferMethod(null);
-    setPaymentProof(null);
+    clearPaymentProof();
     setCopiedField(null);
-    setUploadError(null);
   };
 
   const handleCopyToClipboard = (text: string, field: string) => {
@@ -141,8 +196,12 @@ export function EventRegistration() {
     });
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleFileUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const input = e.target;
+    const file = input.files?.[0];
+    input.value = "";
     if (!file) return;
     setUploadError(null);
     if (!file.type.startsWith("image/")) {
@@ -159,11 +218,176 @@ export function EventRegistration() {
       );
       return;
     }
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPaymentProof(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    if (!loadedEvent) {
+      setUploadError(
+        language === "zh"
+          ? "上传失败，请刷新页面后再试"
+          : "Upload failed, please refresh and try again"
+      );
+      return;
+    }
+
+    const uploadId = uploadIdRef.current + 1;
+    uploadIdRef.current = uploadId;
+    const previewUrl = URL.createObjectURL(file);
+    setPaymentProofPreview((prev) => {
+      if (prev && typeof URL !== "undefined") {
+        URL.revokeObjectURL(prev);
+      }
+      return previewUrl;
+    });
+    setPaymentProofUrl(null);
+    setIsUploadingProof(true);
+
+    try {
+      const supabase = getSupabaseClient();
+      const nameParts = file.name.split(".");
+      const ext =
+        nameParts.length > 1
+          ? nameParts[nameParts.length - 1].toLowerCase()
+          : "jpg";
+      const fallbackId = `${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2, 8)}`;
+      const uniqueId =
+        typeof crypto !== "undefined" &&
+        typeof crypto.randomUUID === "function"
+          ? crypto.randomUUID()
+          : fallbackId;
+      const filePath = `event-registrations/${loadedEvent.id}/${uniqueId}.${ext}`;
+      const { error } = await supabase.storage
+        .from(PAYMENT_PROOF_BUCKET)
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          contentType: file.type,
+          upsert: false,
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      const { data } = supabase.storage
+        .from(PAYMENT_PROOF_BUCKET)
+        .getPublicUrl(filePath);
+      const publicUrl = data?.publicUrl ?? "";
+      if (!publicUrl) {
+        throw new Error("Missing public URL");
+      }
+      if (uploadIdRef.current !== uploadId) {
+        return;
+      }
+      setPaymentProofUrl(publicUrl);
+    } catch (err) {
+      if (uploadIdRef.current !== uploadId) {
+        return;
+      }
+      console.error("[events] upload payment proof failed", err);
+      setUploadError(
+        language === "zh" ? "上传失败，请重试" : "Upload failed, please try again"
+      );
+      setPaymentProofUrl(null);
+      setPaymentProofPreview((prev) => {
+        if (prev && typeof URL !== "undefined") {
+          URL.revokeObjectURL(prev);
+        }
+        return null;
+      });
+    } finally {
+      if (uploadIdRef.current === uploadId) {
+        setIsUploadingProof(false);
+      }
+    }
+  };
+
+  const memberFee = loadedEvent.member_fee ?? loadedEvent.fee;
+  const hasMemberDiscount =
+    loadedEvent.fee > 0 &&
+    loadedEvent.member_fee != null &&
+    Number(loadedEvent.member_fee) < Number(loadedEvent.fee);
+  const finalFee = hasMemberDiscount && memberInfo ? Number(memberFee) : Number(loadedEvent.fee);
+  const savings = hasMemberDiscount ? Number(loadedEvent.fee) - Number(memberFee) : 0;
+
+  const resetMemberVerification = () => {
+    setMemberEmail("");
+    setVerificationCode("");
+    setCodeSent(false);
+    setIsVerifying(false);
+  };
+
+  const handleSendVerificationCode = async () => {
+    if (!memberEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(memberEmail)) {
+      alert(t("register.member.invalidEmail"));
+      return;
+    }
+    setIsVerifying(true);
+    try {
+      const response = await fetch("/api/send-member-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: memberEmail.trim() }),
+      });
+      if (response.ok) {
+        setCodeSent(true);
+        alert(t("register.member.sendSuccess"));
+      } else {
+        const error = await response.json();
+        alert(error.message || t("register.member.sendFailed"));
+      }
+    } catch (err) {
+      console.error("[member] send code failed", err);
+      alert(t("register.member.sendFailed"));
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    if (!verificationCode || verificationCode.length !== 6) {
+      alert(t("register.member.invalidCode"));
+      return;
+    }
+    setIsVerifying(true);
+    try {
+      const response = await fetch("/api/verify-member-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: memberEmail.trim(),
+          code: verificationCode.trim(),
+        }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const newMemberInfo: MemberInfo = {
+          name: data?.data?.name || formData.name.trim() || "会员",
+          email: memberEmail.trim(),
+          verifiedAt: new Date().toISOString(),
+        };
+        setMemberInfo(newMemberInfo);
+        saveMemberInfo(newMemberInfo);
+        setIsMemberChecked(false);
+        resetMemberVerification();
+        alert(t("register.member.verifySuccess"));
+      } else {
+        const error = await response.json();
+        alert(error.message || t("register.member.verifyFailed"));
+      }
+    } catch (err) {
+      console.error("[member] verify failed", err);
+      alert(t("register.member.verifyFailed"));
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const handleLogoutMember = () => {
+    if (window.confirm(t("register.member.logoutConfirm"))) {
+      clearMemberInfo();
+      setMemberInfo(null);
+      setIsMemberChecked(false);
+      resetMemberVerification();
+    }
   };
 
   const submitRegistration = async () => {
@@ -187,7 +411,7 @@ export function EventRegistration() {
         tickets,
         payment_method: resolvedPaymentMethod,
         payment_status: needsReview ? "pending" : undefined,
-        payment_proof: needsReview ? paymentProof : undefined,
+        payment_proof_url: needsReview ? paymentProofUrl ?? undefined : undefined,
       });
       void notifyEventRegistration({
         eventTitleZh: loadedEvent.title_zh,
@@ -236,7 +460,11 @@ export function EventRegistration() {
         alert(t("register.payment.selectTransfer"));
         return;
       }
-      if (!paymentProof) {
+      if (isUploadingProof) {
+        alert(t("register.payment.uploading"));
+        return;
+      }
+      if (!paymentProofUrl) {
         alert(t("register.payment.pleaseUpload"));
         return;
       }
@@ -265,6 +493,7 @@ export function EventRegistration() {
           email: formData.email.trim(),
           phone: formData.phone.trim(),
           notes: formData.notes.trim() || undefined,
+          memberEmail: memberInfo?.email ?? undefined,
           successUrl,
           cancelUrl,
         });
@@ -310,6 +539,11 @@ export function EventRegistration() {
       color: "#EB8C3A",
     },
   ];
+
+  const isConfirmDisabled =
+    submitting ||
+    (loadedEvent.fee > 0 && !paymentMethod) ||
+    (paymentMethod === "transfer" && isUploadingProof);
 
   return (
     <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-12">
@@ -496,14 +730,250 @@ export function EventRegistration() {
                     ? `活动费用：${
                         loadedEvent.fee === 0
                           ? "免费"
-                          : `$${loadedEvent.fee} AUD`
+                          : `$${finalFee} AUD`
                       }`
                     : `Event fee: ${
-                        loadedEvent.fee === 0
-                          ? "Free"
-                          : `$${loadedEvent.fee} AUD`
+                        loadedEvent.fee === 0 ? "Free" : `$${finalFee} AUD`
                       }`}
                 </p>
+
+                {loadedEvent.fee > 0 && (
+                  <div className="text-center mb-6 p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600 mb-1">
+                      {t("register.member.amountToPay")}
+                    </p>
+                    <p className="text-3xl font-bold text-[#2B5F9E]">
+                      ${finalFee} AUD
+                    </p>
+                    {hasMemberDiscount && memberInfo && (
+                      <p className="text-xs text-green-600 mt-1">
+                        {t("register.member.discountApplied")}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {hasMemberDiscount && loadedEvent.fee > 0 && (
+                  <div className="mb-6">
+                    {memberInfo ? (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-5 border-2 border-green-300"
+                      >
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center">
+                              <CheckCircle className="w-7 h-7 text-white" />
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-600">
+                                {t("register.member.verified")}
+                              </p>
+                              <p className="font-semibold text-gray-800">
+                                {t("register.member.greeting")},{" "}
+                                {memberInfo.name}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {memberInfo.email}
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleLogoutMember}
+                            className="text-sm text-gray-500 hover:text-gray-700 underline"
+                          >
+                            {t("register.member.logout")}
+                          </button>
+                        </div>
+
+                        <div className="mt-4 p-4 bg-white rounded-lg border border-green-200">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-xs text-gray-500 mb-1">
+                                {t("register.member.regularPrice")}
+                              </p>
+                              <p className="text-gray-400 line-through">
+                                ${loadedEvent.fee} AUD
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-xs text-gray-500 mb-1">
+                                {t("register.member.memberPrice")}
+                              </p>
+                              <p className="text-2xl font-bold text-green-600">
+                                ${memberFee} AUD
+                              </p>
+                            </div>
+                          </div>
+                          {savings > 0 && (
+                            <div className="mt-2 text-center">
+                              <p className="text-sm text-green-600 font-semibold">
+                                {language === "zh"
+                                  ? `您节省了 $${savings}`
+                                  : `You save $${savings}`}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+                    ) : (
+                      <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200">
+                        <div className="flex items-start gap-3">
+                          <input
+                            type="checkbox"
+                            id="member-checkbox"
+                            checked={isMemberChecked}
+                            onChange={(e) => {
+                              setIsMemberChecked(e.target.checked);
+                              if (!e.target.checked) {
+                                resetMemberVerification();
+                              }
+                            }}
+                            className="mt-1 w-5 h-5 text-green-600 rounded"
+                          />
+                          <div className="flex-1">
+                            <label
+                              htmlFor="member-checkbox"
+                              className="cursor-pointer"
+                            >
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="font-semibold text-gray-800">
+                                  {t("register.member.applyDiscount")}
+                                </span>
+                              </div>
+                              <div className="text-sm text-gray-600 space-y-1">
+                                <p>
+                                  {t("register.member.regularPrice")}:
+                                  <span className="line-through ml-1">
+                                    ${loadedEvent.fee} AUD
+                                  </span>
+                                </p>
+                                <p>
+                                  {t("register.member.memberPrice")}:
+                                  <span className="text-green-600 font-bold ml-1">
+                                    ${memberFee} AUD
+                                  </span>
+                                  <span className="ml-2 text-green-600">
+                                    {language === "zh"
+                                      ? `省 $${savings}`
+                                      : `Save $${savings}`}
+                                  </span>
+                                </p>
+                              </div>
+                            </label>
+
+                            {isMemberChecked && (
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                className="mt-4 p-4 bg-white rounded-lg border border-green-200"
+                              >
+                                <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                                  {t("register.member.verificationTitle")}
+                                </h4>
+
+                                <div className="mb-3">
+                                  <label className="block text-sm text-gray-600 mb-2">
+                                    {t("register.member.email")}
+                                  </label>
+                                  <div className="flex gap-2">
+                                    <input
+                                      type="email"
+                                      value={memberEmail}
+                                      onChange={(e) =>
+                                        setMemberEmail(e.target.value)
+                                      }
+                                      placeholder={t(
+                                        "register.member.emailPlaceholder"
+                                      )}
+                                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"
+                                      disabled={isVerifying}
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={handleSendVerificationCode}
+                                      disabled={
+                                        !memberEmail || codeSent || isVerifying
+                                      }
+                                      className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap transition-colors ${
+                                        codeSent || isVerifying
+                                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                          : "bg-green-600 text-white hover:bg-green-700"
+                                      }`}
+                                    >
+                                      {isVerifying
+                                        ? t("register.member.sending")
+                                        : codeSent
+                                          ? t("register.member.sent")
+                                          : t("register.member.sendCode")}
+                                    </button>
+                                  </div>
+                                </div>
+
+                                {codeSent && (
+                                  <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                  >
+                                    <label className="block text-sm text-gray-600 mb-2">
+                                      {t("register.member.code")}
+                                    </label>
+                                    <div className="flex gap-2">
+                                      <input
+                                        type="text"
+                                        value={verificationCode}
+                                        onChange={(e) =>
+                                          setVerificationCode(
+                                            e.target.value
+                                              .replace(/\D/g, "")
+                                              .slice(0, 6)
+                                          )
+                                        }
+                                        placeholder={t(
+                                          "register.member.codePlaceholder"
+                                        )}
+                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none font-mono text-lg tracking-widest"
+                                        maxLength={6}
+                                        disabled={isVerifying}
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={handleVerifyCode}
+                                        disabled={
+                                          verificationCode.length !== 6 ||
+                                          isVerifying
+                                        }
+                                        className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap transition-colors ${
+                                          verificationCode.length !== 6 ||
+                                          isVerifying
+                                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                            : "bg-green-600 text-white hover:bg-green-700"
+                                        }`}
+                                      >
+                                        {isVerifying
+                                          ? t("register.member.verifying")
+                                          : t("register.member.verify")}
+                                      </button>
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-2">
+                                      {t("register.member.codeHint")}
+                                    </p>
+                                  </motion.div>
+                                )}
+
+                                <p className="text-xs text-gray-500 mt-3">
+                                  {t("register.member.autoDiscountHint")}
+                                </p>
+                              </motion.div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {loadedEvent.fee > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -664,14 +1134,14 @@ export function EventRegistration() {
                                       {t("register.payment.amount")}
                                     </p>
                                     <p className="text-lg text-[#EB8C3A]">
-                                      ${loadedEvent.fee} AUD
+                                      ${finalFee} AUD
                                     </p>
                                   </div>
                                   <button
                                     type="button"
                                     onClick={() =>
                                       handleCopyToClipboard(
-                                        String(loadedEvent.fee),
+                                        String(finalFee),
                                         "amount"
                                       )
                                     }
@@ -790,14 +1260,14 @@ export function EventRegistration() {
                                       {t("register.payment.amount")}
                                     </p>
                                     <p className="text-lg text-[#EB8C3A]">
-                                      ${loadedEvent.fee} AUD
+                                      ${finalFee} AUD
                                     </p>
                                   </div>
                                   <button
                                     type="button"
                                     onClick={() =>
                                       handleCopyToClipboard(
-                                        String(loadedEvent.fee),
+                                        String(finalFee),
                                         "amount"
                                       )
                                     }
@@ -823,12 +1293,19 @@ export function EventRegistration() {
                             <h4 className="text-sm text-gray-600 mb-3">
                               {t("register.payment.uploadProof")}
                             </h4>
-                            {!paymentProof ? (
-                              <label className="block cursor-pointer">
+                            {!paymentProofPreview ? (
+                              <label
+                                className={`block ${
+                                  isUploadingProof
+                                    ? "cursor-not-allowed opacity-70"
+                                    : "cursor-pointer"
+                                }`}
+                              >
                                 <input
                                   type="file"
                                   accept="image/*"
                                   onChange={handleFileUpload}
+                                  disabled={isUploadingProof}
                                   className="hidden"
                                 />
                                 <div className="border-2 border-dashed border-orange-300 rounded-lg p-8 text-center hover:border-[#EB8C3A] hover:bg-orange-50/50 transition-all">
@@ -844,26 +1321,37 @@ export function EventRegistration() {
                             ) : (
                               <div className="relative">
                                 <img
-                                  src={paymentProof}
+                                  src={paymentProofPreview}
                                   alt={t("register.payment.uploadProof")}
                                   className="w-full h-48 object-cover rounded-lg"
                                 />
                                 <button
                                   type="button"
-                                  onClick={() => {
-                                    setPaymentProof(null);
-                                    setUploadError(null);
-                                  }}
-                                  className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
+                                  onClick={clearPaymentProof}
+                                  disabled={isUploadingProof}
+                                  className={`absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full transition-colors shadow-lg ${
+                                    isUploadingProof
+                                      ? "cursor-not-allowed opacity-60"
+                                      : "hover:bg-red-600"
+                                  }`}
                                 >
                                   <X className="w-4 h-4" />
                                 </button>
-                                <div className="mt-2 flex items-center gap-2 text-green-600">
-                                  <CheckCircle className="w-4 h-4" />
-                                  <span className="text-sm">
-                                    {t("register.payment.uploadSuccess")}
-                                  </span>
-                                </div>
+                                {isUploadingProof ? (
+                                  <div className="mt-2 flex items-center gap-2 text-gray-500">
+                                    <Upload className="w-4 h-4 animate-pulse" />
+                                    <span className="text-sm">
+                                      {t("register.payment.uploading")}
+                                    </span>
+                                  </div>
+                                ) : paymentProofUrl ? (
+                                  <div className="mt-2 flex items-center gap-2 text-green-600">
+                                    <CheckCircle className="w-4 h-4" />
+                                    <span className="text-sm">
+                                      {t("register.payment.uploadSuccess")}
+                                    </span>
+                                  </div>
+                                ) : null}
                               </div>
                             )}
                             {uploadError && (
@@ -883,23 +1371,17 @@ export function EventRegistration() {
 
                 <motion.button
                   onClick={handlePaymentConfirm}
-                  disabled={
-                    (loadedEvent.fee > 0 && !paymentMethod) || submitting
-                  }
+                  disabled={isConfirmDisabled}
                   className={`w-full px-6 py-3 rounded-lg transition-colors ${
-                    loadedEvent.fee > 0 && !paymentMethod
+                    isConfirmDisabled
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                       : "bg-[#2B5F9E] text-white hover:bg-[#234a7e]"
                   }`}
                   whileHover={
-                    loadedEvent.fee === 0 || paymentMethod
-                      ? { scale: 1.02 }
-                      : {}
+                    !isConfirmDisabled ? { scale: 1.02 } : {}
                   }
                   whileTap={
-                    loadedEvent.fee === 0 || paymentMethod
-                      ? { scale: 0.98 }
-                      : {}
+                    !isConfirmDisabled ? { scale: 0.98 } : {}
                   }
                 >
                   {submitting

@@ -11,7 +11,7 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, PATCH, OPTIONS",
 };
 
 Deno.serve(async (req) => {
@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  if (req.method !== "GET") {
+  if (req.method !== "GET" && req.method !== "PATCH") {
     return new Response("Method not allowed", {
       status: 405,
       headers: corsHeaders,
@@ -32,29 +32,91 @@ Deno.serve(async (req) => {
   const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
   try {
-    let query = supabase
-      .from("event_registrations")
-      .select("*")
-      .order("registration_date", { ascending: false });
+    if (req.method === "GET") {
+      let query = supabase
+        .from("event_registrations")
+        .select("*")
+        .order("registration_date", { ascending: false });
 
-    if (eventId) {
-      query = query.eq("event_id", eventId);
+      if (eventId) {
+        query = query.eq("event_id", eventId);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error("[events-registrations] query", error);
+        return new Response(
+          JSON.stringify({ error: "Failed to fetch event registrations" }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
+
+      return new Response(JSON.stringify({ registrations: data ?? [] }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    const { data, error } = await query;
+    const payload = (await req.json().catch(() => null)) as
+      | {
+          registrationId?: string;
+          id?: string;
+          paymentStatus?: string;
+          status?: string;
+          adminId?: string | null;
+        }
+      | null;
+
+    const registrationId = payload?.registrationId ?? payload?.id;
+    const paymentStatus = payload?.paymentStatus ?? payload?.status;
+    const adminId = payload?.adminId ?? null;
+    const allowedStatuses = ["pending", "confirmed", "expired", "cancelled"];
+
+    if (!registrationId || !paymentStatus) {
+      return new Response(
+        JSON.stringify({ error: "Missing registrationId or paymentStatus" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    if (!allowedStatuses.includes(paymentStatus)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid payment status" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    const updates: Record<string, unknown> = {
+      payment_status: paymentStatus,
+      confirmed_at: new Date().toISOString(),
+    };
+    if (adminId) {
+      updates.confirmed_by = adminId;
+    }
+
+    const { data, error } = await supabase
+      .from("event_registrations")
+      .update(updates)
+      .eq("id", registrationId)
+      .select("*")
+      .single();
 
     if (error) {
-      console.error("[events-registrations] query", error);
+      console.error("[events-registrations] update", error);
       return new Response(
-        JSON.stringify({ error: "Failed to fetch event registrations" }),
+        JSON.stringify({ error: "Failed to update payment status" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    return new Response(
-      JSON.stringify({ registrations: data ?? [] }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ registration: data }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (err) {
     console.error("[events-registrations] unhandled", err);
     return new Response(

@@ -372,6 +372,30 @@ export async function fetchAdminEventRegistrations(eventId?: string) {
   return body.registrations ?? [];
 }
 
+export async function updateEventRegistrationPaymentStatus(payload: {
+  registrationId: string;
+  paymentStatus: "pending" | "confirmed" | "expired" | "cancelled";
+  adminId?: string | null;
+}) {
+  const res = await callEdgeFunction("events-registrations", {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to update registration payment status");
+  }
+
+  const body = (await res.json()) as {
+    registration: EventRegistrationRecord;
+  };
+  return body.registration;
+}
+
 const LOCAL_ADMIN_ACCOUNTS_KEY = "vmca.mockAdminAccounts";
 const FALLBACK_ADMIN_ACCOUNTS: AdminAccountRecord[] = [
   {
@@ -832,6 +856,7 @@ export type CreateStripeCheckoutSessionInput = {
   email?: string;
   phone?: string;
   notes?: string;
+  memberEmail?: string;
   successUrl?: string;
   cancelUrl?: string;
 };
@@ -869,6 +894,7 @@ export async function createEventRegistration(payload: {
   payment_method?: "card" | "cash" | "transfer" | "payid" | null;
   payment_status?: "pending" | "confirmed" | "expired" | "cancelled" | null;
   payment_proof?: string | null;
+  payment_proof_url?: string | null;
 }) {
   const supabase = getSupabaseClient();
   const insertPayload: Record<string, unknown> = {
@@ -880,6 +906,9 @@ export async function createEventRegistration(payload: {
   }
   if (payload.payment_proof != null) {
     insertPayload.payment_proof = payload.payment_proof;
+  }
+  if (payload.payment_proof_url != null) {
+    insertPayload.payment_proof_url = payload.payment_proof_url;
   }
   const { error } = await supabase
     .from("event_registrations")
