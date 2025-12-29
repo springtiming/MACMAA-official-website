@@ -435,14 +435,66 @@ export function EventRegistration() {
     }
   };
 
+  const handleGoToPayment = async () => {
+    if (!loadedEvent) return;
+    
+    setSubmitting(true);
+    setSubmitError(null);
+    const tickets = Number(formData.participants) || 1;
+    const successUrl = `${window.location.origin}/events/${loadedEvent.id}/register?status=success`;
+    const cancelUrl = `${window.location.origin}/events/${loadedEvent.id}/register?status=cancel`;
+    
+    // 保存表单数据到 localStorage
+    localStorage.setItem(
+      "pendingEventRegistration",
+      JSON.stringify({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        participants: formData.participants,
+      })
+    );
+    
+    try {
+      const session = await createStripeCheckoutSession({
+        eventId: loadedEvent.id,
+        tickets,
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        notes: formData.notes.trim() || undefined,
+        memberEmail: memberInfo?.email ?? undefined,
+        successUrl,
+        cancelUrl,
+      });
+
+      if (session.url) {
+        window.location.href = session.url;
+        return;
+      }
+
+      throw new Error("Missing checkout session URL");
+    } catch (err) {
+      console.error("[events] stripe checkout failed", err);
+      setSubmitError(
+        language === "zh"
+          ? "支付创建失败，请稍后再试。"
+          : "Could not start payment, please try again."
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handlePaymentConfirm = async () => {
     if (!loadedEvent) return;
 
     if (loadedEvent.fee === 0) {
+      // 免费活动直接提交
       await submitRegistration();
       return;
     }
 
+    // 只处理银行转账
     if (paymentMethod === "transfer") {
       if (!transferMethod) {
         alert(t("register.payment.selectTransfer"));
@@ -456,56 +508,9 @@ export function EventRegistration() {
         alert(t("register.payment.pleaseUpload"));
         return;
       }
-    }
-
-    if (paymentMethod === "card") {
-      setSubmitting(true);
-      setSubmitError(null);
-      const tickets = Number(formData.participants) || 1;
-      const successUrl = `${window.location.origin}/events/${loadedEvent.id}/register?status=success`;
-      const cancelUrl = `${window.location.origin}/events/${loadedEvent.id}/register?status=cancel`;
-      // Save form data to localStorage before redirecting to Stripe
-      localStorage.setItem(
-        "pendingEventRegistration",
-        JSON.stringify({
-          name: formData.name.trim(),
-          email: formData.email.trim(),
-          participants: formData.participants,
-        })
-      );
-      try {
-        const session = await createStripeCheckoutSession({
-          eventId: loadedEvent.id,
-          tickets,
-          name: formData.name.trim(),
-          email: formData.email.trim(),
-          phone: formData.phone.trim(),
-          notes: formData.notes.trim() || undefined,
-          memberEmail: memberInfo?.email ?? undefined,
-          successUrl,
-          cancelUrl,
-        });
-
-        if (session.url) {
-          window.location.href = session.url;
-          return;
-        }
-
-        throw new Error("Missing checkout session URL");
-      } catch (err) {
-        console.error("[events] stripe checkout failed", err);
-        setSubmitError(
-          language === "zh"
-            ? "支付创建失败，请稍后再试。"
-            : "Could not start payment, please try again."
-        );
-      } finally {
-        setSubmitting(false);
-      }
+      await submitRegistration();
       return;
     }
-
-    await submitRegistration();
   };
 
   const paymentOptions = [
@@ -527,11 +532,6 @@ export function EventRegistration() {
       color: "#EB8C3A",
     },
   ];
-
-  const isConfirmDisabled =
-    submitting ||
-    (loadedEvent.fee > 0 && !paymentMethod) ||
-    (paymentMethod === "transfer" && isUploadingProof);
 
   return (
     <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-12">
@@ -1006,6 +1006,67 @@ export function EventRegistration() {
                 ) : null}
 
                 <AnimatePresence>
+                  {paymentMethod === "card" && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mb-6"
+                    >
+                      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200">
+                        <h3 className="text-lg text-[#2B5F9E] mb-4">
+                          {language === "zh" ? "在线支付" : "Online Payment"}
+                        </h3>
+                        <p className="text-sm text-gray-600 mb-4">
+                          {language === "zh"
+                            ? "点击下方按钮跳转到安全的支付页面完成支付"
+                            : "Click the button below to proceed to the secure payment page"}
+                        </p>
+                        <div className="bg-white rounded-lg p-5 mb-4 border border-blue-200">
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-gray-600">
+                                {language === "zh" ? "支付金额" : "Amount"}
+                              </span>
+                              <span className="text-lg font-bold text-[#2B5F9E]">
+                                ${finalFee} AUD
+                              </span>
+                            </div>
+                            {hasMemberDiscount && memberInfo && (
+                              <div className="pt-2 border-t border-gray-200">
+                                <p className="text-xs text-green-600">
+                                  {t("register.member.discountApplied")}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <motion.button
+                          onClick={handleGoToPayment}
+                          disabled={submitting}
+                          className={`w-full px-6 py-3 rounded-lg transition-colors ${
+                            submitting
+                              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                              : "bg-[#2B5F9E] text-white hover:bg-[#234a7e]"
+                          }`}
+                          whileHover={!submitting ? { scale: 1.02 } : {}}
+                          whileTap={!submitting ? { scale: 0.98 } : {}}
+                        >
+                          {submitting
+                            ? t("common.loading")
+                            : language === "zh"
+                              ? "前往支付"
+                              : "Proceed to Payment"}
+                        </motion.button>
+                        {submitError && (
+                          <p className="text-red-600 text-sm mt-3 text-center">
+                            {submitError}
+                          </p>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+
                   {paymentMethod === "transfer" && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
@@ -1321,9 +1382,14 @@ export function EventRegistration() {
                                   className="w-full h-48 object-cover rounded-lg"
                                   onError={() => {
                                     // 如果 blob URL 失效，清除预览
-                                    if (paymentProofPreview?.startsWith("blob:")) {
+                                    if (
+                                      paymentProofPreview?.startsWith("blob:")
+                                    ) {
                                       setPaymentProofPreview((prev) => {
-                                        if (prev && typeof URL !== "undefined") {
+                                        if (
+                                          prev &&
+                                          typeof URL !== "undefined"
+                                        ) {
                                           URL.revokeObjectURL(prev);
                                         }
                                         return null;
@@ -1370,26 +1436,67 @@ export function EventRegistration() {
                             </p>
                           </motion.div>
                         )}
+
+                        {/* 确认报名按钮 - 在银行转账区域内，上传凭证后显示 */}
+                        {paymentProofUrl && transferMethod && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mt-6 pt-6 border-t border-orange-200"
+                          >
+                            <motion.button
+                              onClick={handlePaymentConfirm}
+                              disabled={submitting || isUploadingProof}
+                              className={`w-full px-6 py-3 rounded-lg transition-colors ${
+                                submitting || isUploadingProof
+                                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                  : "bg-[#2B5F9E] text-white hover:bg-[#234a7e]"
+                              }`}
+                              whileHover={
+                                !submitting && !isUploadingProof
+                                  ? { scale: 1.02 }
+                                  : {}
+                              }
+                              whileTap={
+                                !submitting && !isUploadingProof
+                                  ? { scale: 0.98 }
+                                  : {}
+                              }
+                            >
+                              {submitting
+                                ? t("common.loading")
+                                : t("register.payment.confirm")}
+                            </motion.button>
+                            {submitError && (
+                              <p className="text-red-600 text-sm mt-3 text-center">
+                                {submitError}
+                              </p>
+                            )}
+                          </motion.div>
+                        )}
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
 
-                <motion.button
-                  onClick={handlePaymentConfirm}
-                  disabled={isConfirmDisabled}
-                  className={`w-full px-6 py-3 rounded-lg transition-colors ${
-                    isConfirmDisabled
-                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-[#2B5F9E] text-white hover:bg-[#234a7e]"
-                  }`}
-                  whileHover={!isConfirmDisabled ? { scale: 1.02 } : {}}
-                  whileTap={!isConfirmDisabled ? { scale: 0.98 } : {}}
-                >
-                  {submitting
-                    ? t("common.loading")
-                    : t("register.payment.confirm")}
-                </motion.button>
+                {/* 底部确认按钮 - 只在免费活动时显示 */}
+                {loadedEvent.fee === 0 && (
+                  <motion.button
+                    onClick={handlePaymentConfirm}
+                    disabled={submitting}
+                    className={`w-full px-6 py-3 rounded-lg transition-colors ${
+                      submitting
+                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        : "bg-[#2B5F9E] text-white hover:bg-[#234a7e]"
+                    }`}
+                    whileHover={!submitting ? { scale: 1.02 } : {}}
+                    whileTap={!submitting ? { scale: 0.98 } : {}}
+                  >
+                    {submitting
+                      ? t("common.loading")
+                      : t("register.payment.confirm")}
+                  </motion.button>
+                )}
 
                 {submitError && (
                   <p className="text-red-600 text-sm mt-3 text-center">
