@@ -12,6 +12,7 @@ type CreateCheckoutPayload = {
   memberEmail?: string;
   successUrl?: string;
   cancelUrl?: string;
+  totalAmount?: number; // 包含手续费的总价（可选，用于向后兼容）
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -58,27 +59,53 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const regularFee = Number(event.fee ?? 0);
     const memberFee = Number(event.member_fee ?? 0);
-    let unitAmount = Math.round(regularFee * 100);
+    let unitAmount: number;
     let memberDiscountApplied = false;
-
     const memberEmail = payload.memberEmail?.trim();
-    if (
-      memberEmail &&
-      Number.isFinite(memberFee) &&
-      memberFee > 0 &&
-      memberFee < regularFee
-    ) {
-      const { data: member } = await supabase
-        .from("members")
-        .select("id, email, status")
-        .eq("status", "approved")
-        .ilike("email", memberEmail)
-        .maybeSingle();
-      if (member) {
-        unitAmount = Math.round(memberFee * 100);
-        memberDiscountApplied = true;
+
+    // 如果提供了包含手续费的总价，直接使用
+    if (payload.totalAmount && Number.isFinite(payload.totalAmount) && payload.totalAmount > 0) {
+      unitAmount = Math.round(payload.totalAmount * 100);
+      
+      // 仍然需要验证会员折扣（用于 metadata）
+      if (
+        memberEmail &&
+        Number.isFinite(memberFee) &&
+        memberFee > 0 &&
+        memberFee < regularFee
+      ) {
+        const { data: member } = await supabase
+          .from("members")
+          .select("id, email, status")
+          .eq("status", "approved")
+          .ilike("email", memberEmail)
+          .maybeSingle();
+        if (member) {
+          memberDiscountApplied = true;
+        }
+      }
+    } else {
+      // 向后兼容：如果没有提供总价，使用原有逻辑
+      unitAmount = Math.round(regularFee * 100);
+      if (
+        memberEmail &&
+        Number.isFinite(memberFee) &&
+        memberFee > 0 &&
+        memberFee < regularFee
+      ) {
+        const { data: member } = await supabase
+          .from("members")
+          .select("id, email, status")
+          .eq("status", "approved")
+          .ilike("email", memberEmail)
+          .maybeSingle();
+        if (member) {
+          unitAmount = Math.round(memberFee * 100);
+          memberDiscountApplied = true;
+        }
       }
     }
+
     if (!Number.isFinite(unitAmount) || unitAmount <= 0) {
       return res
         .status(400)

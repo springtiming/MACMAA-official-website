@@ -908,6 +908,7 @@ export type CreateStripeCheckoutSessionInput = {
   memberEmail?: string;
   successUrl?: string;
   cancelUrl?: string;
+  totalAmount?: number; // 包含手续费的总价（可选，用于向后兼容）
 };
 
 export type CreateStripeCheckoutSessionResponse = {

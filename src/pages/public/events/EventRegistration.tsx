@@ -291,6 +291,16 @@ export function EventRegistration() {
     ? Number(loadedEvent.fee) - Number(memberFee)
     : 0;
 
+  // Stripe 手续费计算：1.7% + 0.30 AUD（基于实际支付价格）
+  const STRIPE_FEE_RATE = 0.017; // 1.7%
+  const STRIPE_FEE_FIXED = 0.3; // $0.30 AUD
+  const stripeFee =
+    loadedEvent.fee > 0
+      ? Number((finalFee * STRIPE_FEE_RATE + STRIPE_FEE_FIXED).toFixed(2))
+      : 0;
+  const totalWithFee =
+    loadedEvent.fee > 0 ? Number((finalFee + stripeFee).toFixed(2)) : 0;
+
   const resetMemberVerification = () => {
     setMemberEmail("");
     setVerificationCode("");
@@ -437,13 +447,13 @@ export function EventRegistration() {
 
   const handleGoToPayment = async () => {
     if (!loadedEvent) return;
-    
+
     setSubmitting(true);
     setSubmitError(null);
     const tickets = Number(formData.participants) || 1;
     const successUrl = `${window.location.origin}/events/${loadedEvent.id}/register?status=success`;
     const cancelUrl = `${window.location.origin}/events/${loadedEvent.id}/register?status=cancel`;
-    
+
     // 保存表单数据到 localStorage
     localStorage.setItem(
       "pendingEventRegistration",
@@ -453,7 +463,7 @@ export function EventRegistration() {
         participants: formData.participants,
       })
     );
-    
+
     try {
       const session = await createStripeCheckoutSession({
         eventId: loadedEvent.id,
@@ -465,6 +475,7 @@ export function EventRegistration() {
         memberEmail: memberInfo?.email ?? undefined,
         successUrl,
         cancelUrl,
+        totalAmount: loadedEvent.fee > 0 ? totalWithFee : undefined,
       });
 
       if (session.url) {
@@ -520,8 +531,8 @@ export function EventRegistration() {
       title: t("register.payment.online"),
       desc:
         language === "zh"
-          ? "信用卡/借记卡（含手续费）"
-          : "Credit/Debit Card (incl. fee)",
+          ? "信用卡/借记卡（含手续费 1.7% + $0.30）"
+          : "Credit/Debit Card (incl. fee 1.7% + $0.30)",
       color: "#2B5F9E",
     },
     {
@@ -1026,19 +1037,39 @@ export function EventRegistration() {
                           <div className="space-y-3">
                             <div className="flex items-center justify-between">
                               <span className="text-sm text-gray-600">
-                                {language === "zh" ? "支付金额" : "Amount"}
+                                {language === "zh" ? "活动费用" : "Event Fee"}
                               </span>
-                              <span className="text-lg font-bold text-[#2B5F9E]">
-                                ${finalFee} AUD
+                              <span className="text-sm font-medium text-gray-800">
+                                ${finalFee.toFixed(2)} AUD
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-gray-600">
+                                {language === "zh"
+                                  ? "手续费（1.7% + $0.30）"
+                                  : "Processing Fee (1.7% + $0.30)"}
+                              </span>
+                              <span className="text-sm font-medium text-gray-800">
+                                ${stripeFee.toFixed(2)} AUD
                               </span>
                             </div>
                             {hasMemberDiscount && memberInfo && (
-                              <div className="pt-2 border-t border-gray-200">
+                              <div className="pt-1">
                                 <p className="text-xs text-green-600">
                                   {t("register.member.discountApplied")}
                                 </p>
                               </div>
                             )}
+                            <div className="pt-2 border-t border-gray-300">
+                              <div className="flex items-center justify-between">
+                                <span className="text-base font-semibold text-gray-800">
+                                  {language === "zh" ? "总计" : "Total"}
+                                </span>
+                                <span className="text-xl font-bold text-[#2B5F9E]">
+                                  ${totalWithFee.toFixed(2)} AUD
+                                </span>
+                              </div>
+                            </div>
                           </div>
                         </div>
                         <motion.button
@@ -1346,6 +1377,49 @@ export function EventRegistration() {
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
                           >
+                            {/* 费用明细 - 与在线支付对齐 */}
+                            <div className="bg-white rounded-lg p-5 mb-4 border border-orange-200">
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm text-gray-600">
+                                    {language === "zh"
+                                      ? "活动费用"
+                                      : "Event Fee"}
+                                  </span>
+                                  <span className="text-sm font-medium text-gray-800">
+                                    ${finalFee.toFixed(2)} AUD
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm text-gray-600">
+                                    {language === "zh"
+                                      ? "手续费"
+                                      : "Processing Fee"}
+                                  </span>
+                                  <span className="text-sm font-medium text-green-600">
+                                    {language === "zh" ? "免手续费" : "Free"}
+                                  </span>
+                                </div>
+                                {hasMemberDiscount && memberInfo && (
+                                  <div className="pt-1">
+                                    <p className="text-xs text-green-600">
+                                      {t("register.member.discountApplied")}
+                                    </p>
+                                  </div>
+                                )}
+                                <div className="pt-2 border-t border-gray-300">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-base font-semibold text-gray-800">
+                                      {language === "zh" ? "总计" : "Total"}
+                                    </span>
+                                    <span className="text-xl font-bold text-[#EB8C3A]">
+                                      ${finalFee.toFixed(2)} AUD
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
                             <h4 className="text-sm text-gray-600 mb-3">
                               {t("register.payment.uploadProof")}
                             </h4>
@@ -1434,38 +1508,36 @@ export function EventRegistration() {
                             <p className="text-xs text-gray-500 mt-3">
                               {t("register.payment.uploadWarning")}
                             </p>
-                          </motion.div>
-                        )}
 
-                        {/* 确认报名按钮 - 在银行转账区域内，上传凭证后显示 */}
-                        {paymentProofUrl && transferMethod && (
-                          <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="mt-6 pt-6 border-t border-orange-200"
-                          >
+                            {/* 确认报名按钮 */}
                             <motion.button
                               onClick={handlePaymentConfirm}
-                              disabled={submitting || isUploadingProof}
-                              className={`w-full px-6 py-3 rounded-lg transition-colors ${
-                                submitting || isUploadingProof
+                              disabled={
+                                submitting || isUploadingProof || !paymentProofUrl
+                              }
+                              className={`w-full mt-6 px-6 py-3 rounded-lg transition-colors ${
+                                submitting || isUploadingProof || !paymentProofUrl
                                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                                  : "bg-[#2B5F9E] text-white hover:bg-[#234a7e]"
+                                  : "bg-[#EB8C3A] text-white hover:bg-[#d67b2e]"
                               }`}
                               whileHover={
-                                !submitting && !isUploadingProof
+                                !submitting && !isUploadingProof && paymentProofUrl
                                   ? { scale: 1.02 }
                                   : {}
                               }
                               whileTap={
-                                !submitting && !isUploadingProof
+                                !submitting && !isUploadingProof && paymentProofUrl
                                   ? { scale: 0.98 }
                                   : {}
                               }
                             >
                               {submitting
                                 ? t("common.loading")
-                                : t("register.payment.confirm")}
+                                : paymentProofUrl
+                                  ? t("register.payment.confirm")
+                                  : language === "zh"
+                                    ? "请先上传转账凭证"
+                                    : "Please upload proof first"}
                             </motion.button>
                             {submitError && (
                               <p className="text-red-600 text-sm mt-3 text-center">
