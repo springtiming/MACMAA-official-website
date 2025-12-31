@@ -1466,13 +1466,13 @@ export function EventRegistration() {
                                   type="button"
                                   onClick={clearPaymentProof}
                                   disabled={isUploadingProof}
-                                  className={`absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full transition-colors shadow-lg ${
+                                  className={`absolute top-2 right-2 p-1 bg-white text-red-500 rounded-full shadow-md transition-all ${
                                     isUploadingProof
                                       ? "cursor-not-allowed opacity-60"
-                                      : "hover:bg-red-600"
+                                      : "hover:scale-110 hover:bg-gray-50"
                                   }`}
                                 >
-                                  <X className="w-4 h-4" />
+                                  <X className="w-5 h-5" />
                                 </button>
                                 {isUploadingProof ? (
                                   <div className="mt-2 flex items-center gap-2 text-gray-500">
