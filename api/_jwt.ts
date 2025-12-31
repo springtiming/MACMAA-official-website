@@ -7,6 +7,8 @@ if (!JWT_SECRET) {
   throw new Error("JWT_SECRET environment variable is required");
 }
 
+const jwtSecret: string = JWT_SECRET;
+
 export interface AdminTokenPayload {
   id: string;
   role: "owner" | "admin";
@@ -26,7 +28,7 @@ export function generateToken(adminId: string, role: "owner" | "admin"): string 
     role,
   };
 
-  return jwt.sign(payload, JWT_SECRET, {
+  return jwt.sign(payload, jwtSecret, {
     expiresIn: JWT_EXPIRES_IN,
   });
 }
@@ -38,8 +40,8 @@ export function generateToken(adminId: string, role: "owner" | "admin"): string 
  */
 export function verifyToken(token: string): AdminTokenPayload | null {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AdminTokenPayload;
-    return decoded;
+    const decoded = jwt.verify(token, jwtSecret) as unknown;
+    return decoded as AdminTokenPayload;
   } catch (error) {
     return null;
   }
@@ -62,4 +64,7 @@ export function extractTokenFromHeader(authHeader: string | undefined): string |
 
   return parts[1];
 }
+
+
+
 

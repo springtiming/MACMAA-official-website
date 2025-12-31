@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.86.0";
+import { verifyAdminToken } from "../_shared/auth.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -16,6 +17,17 @@ const corsHeaders = {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
+  }
+
+  const admin = await verifyAdminToken(req);
+  if (!admin) {
+    return new Response(
+      JSON.stringify({ error: "Unauthorized", code: "INVALID_TOKEN" }),
+      {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   }
 
   const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
@@ -57,7 +69,6 @@ Deno.serve(async (req) => {
         image_keyword?: string | null;
         image_url?: string | null;
         published?: boolean;
-        author_id?: string | null;
       } | null;
 
       if (
@@ -70,7 +81,7 @@ Deno.serve(async (req) => {
         return json({ error: "Missing required fields" }, 400);
       }
 
-      let createdBy = payload.author_id ?? null;
+      let createdBy = admin.id;
       if (payload.id) {
         const { data: existingEvent, error: existingEventError } = await supabase
           .from("events")

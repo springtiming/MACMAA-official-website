@@ -26,6 +26,7 @@ import { AdminAccounts } from "@/pages/admin/AdminAccounts";
 import { FontShowcase } from "@/pages/dev/FontShowcase";
 import { AnimatePresence } from "motion/react";
 import { PageTransition } from "./components/PageTransition";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import "./styles/globals.css";
 
 export default function App() {
@@ -127,7 +128,9 @@ function AppLayout() {
               path="/admin/dashboard"
               element={
                 <PageTransition>
-                  <AdminDashboard />
+                  <ProtectedRoute>
+                    <AdminDashboard />
+                  </ProtectedRoute>
                 </PageTransition>
               }
             />
@@ -135,7 +138,9 @@ function AppLayout() {
               path="/admin/events"
               element={
                 <PageTransition>
-                  <AdminEvents />
+                  <ProtectedRoute>
+                    <AdminEvents />
+                  </ProtectedRoute>
                 </PageTransition>
               }
             />
@@ -143,7 +148,9 @@ function AppLayout() {
               path="/admin/news"
               element={
                 <PageTransition>
-                  <AdminNews />
+                  <ProtectedRoute>
+                    <AdminNews />
+                  </ProtectedRoute>
                 </PageTransition>
               }
             />
@@ -151,7 +158,9 @@ function AppLayout() {
               path="/admin/members"
               element={
                 <PageTransition>
-                  <AdminMembers />
+                  <ProtectedRoute>
+                    <AdminMembers />
+                  </ProtectedRoute>
                 </PageTransition>
               }
             />
@@ -159,7 +168,9 @@ function AppLayout() {
               path="/admin/accounts"
               element={
                 <PageTransition>
-                  <AdminAccounts />
+                  <ProtectedRoute ownerOnly>
+                    <AdminAccounts />
+                  </ProtectedRoute>
                 </PageTransition>
               }
             />
@@ -167,7 +178,9 @@ function AppLayout() {
               path="/admin/settings"
               element={
                 <PageTransition>
-                  <AdminSettings />
+                  <ProtectedRoute>
+                    <AdminSettings />
+                  </ProtectedRoute>
                 </PageTransition>
               }
             />

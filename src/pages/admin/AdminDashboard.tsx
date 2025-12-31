@@ -20,6 +20,7 @@ import {
   fetchAdminEventRegistrations,
   type ActivityRecord,
 } from "@/lib/supabaseApi";
+import { getCurrentAdmin, logout } from "@/lib/auth";
 
 export function AdminDashboard() {
   const navigate = useNavigate();
@@ -34,18 +35,9 @@ export function AdminDashboard() {
   const [activitiesLoading, setActivitiesLoading] = useState(false);
   const [activitiesError, setActivitiesError] = useState<string | null>(null);
 
-  // Get current user role
-  const currentUserRole =
-    (sessionStorage.getItem("adminRole") as "owner" | "admin") || "admin";
-  const adminUsername = sessionStorage.getItem("adminUsername") || "Admin";
-
-  useEffect(() => {
-    // Check authentication
-    const isAuth = sessionStorage.getItem("adminAuth");
-    if (!isAuth) {
-      navigate("/admin");
-    }
-  }, [navigate]);
+  const admin = getCurrentAdmin();
+  const adminUsername = admin?.username ?? "Admin";
+  const currentUserRole = admin?.role ?? "admin";
 
   useEffect(() => {
     let active = true;
@@ -105,7 +97,7 @@ export function AdminDashboard() {
   }, [t]);
 
   const handleLogout = () => {
-    sessionStorage.removeItem("adminAuth");
+    logout();
     navigate("/admin");
   };
 

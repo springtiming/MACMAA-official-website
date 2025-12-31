@@ -1,4 +1,4 @@
-import { getToken, removeToken, isTokenValid } from "./tokenStorage";
+import { getTokenPayload, removeToken, isTokenValid } from "./tokenStorage";
 
 export interface AdminInfo {
   id: string;
@@ -6,43 +6,38 @@ export interface AdminInfo {
   role: "owner" | "admin";
 }
 
+const ADMIN_USERNAME_KEY = "vmca.admin.username";
+
+export function setAdminUsername(username: string): void {
+  if (typeof window === "undefined") return;
+  const normalized = username.trim();
+  if (!normalized) return;
+  window.localStorage.setItem(ADMIN_USERNAME_KEY, normalized);
+  window.sessionStorage.setItem("adminUsername", normalized);
+}
+
+function getStoredAdminUsername(): string {
+  if (typeof window === "undefined") return "Admin";
+  return (
+    window.sessionStorage.getItem("adminUsername") ||
+    window.localStorage.getItem(ADMIN_USERNAME_KEY) ||
+    "Admin"
+  );
+}
+
 /**
  * 从token解析当前管理员信息
  * @returns 管理员信息，如果token无效则返回null
  */
 export function getCurrentAdmin(): AdminInfo | null {
-  const token = getToken();
-  if (!token) {
-    return null;
-  }
+  const payload = getTokenPayload();
+  if (!payload) return null;
 
-  try {
-    // 解析JWT payload（不验证签名，仅用于前端显示）
-    const parts = token.split(".");
-    if (parts.length !== 3) {
-      return null;
-    }
-
-    const payload = JSON.parse(atob(parts[1]));
-    if (!payload.id || !payload.role) {
-      return null;
-    }
-
-    // 注意：这里不包含username，需要从登录响应中存储
-    // 为了兼容，我们从sessionStorage获取username（如果存在）
-    const username =
-      typeof window !== "undefined"
-        ? sessionStorage.getItem("adminUsername") || "Admin"
-        : "Admin";
-
-    return {
-      id: payload.id,
-      username,
-      role: payload.role,
-    };
-  } catch {
-    return null;
-  }
+  return {
+    id: payload.id,
+    role: payload.role,
+    username: getStoredAdminUsername(),
+  };
 }
 
 /**
@@ -103,10 +98,14 @@ export function logout(): void {
   removeToken();
   // 清除旧的sessionStorage数据（向后兼容）
   if (typeof window !== "undefined") {
+    window.localStorage.removeItem(ADMIN_USERNAME_KEY);
     sessionStorage.removeItem("adminAuth");
     sessionStorage.removeItem("adminId");
     sessionStorage.removeItem("adminRole");
     sessionStorage.removeItem("adminUsername");
   }
 }
+
+
+
 

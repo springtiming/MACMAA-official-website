@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.86.0";
+import { verifyAdminToken } from "../_shared/auth.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -25,7 +26,6 @@ type DraftPayload = {
   cover_type?: "unsplash" | "upload" | null;
   cover_keyword?: string | null;
   cover_url?: string | null;
-  author_id?: string | null;
 };
 
 const UUID_REGEX =
@@ -38,12 +38,20 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  const admin = await verifyAdminToken(req);
+  if (!admin) {
+    return new Response(
+      JSON.stringify({ error: "Unauthorized", code: "INVALID_TOKEN" }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
+  }
+
   if (req.method === "GET") {
     return listDrafts();
   }
 
   if (req.method === "POST") {
-    return saveDraft(req);
+    return saveDraft(req, admin.id);
   }
 
   return new Response("Method not allowed", { status: 405, headers: corsHeaders });
@@ -81,7 +89,7 @@ async function listDrafts() {
   }
 }
 
-async function saveDraft(req: Request) {
+async function saveDraft(req: Request, adminId: string) {
   const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
   const body = (await req.json().catch(() => null)) as DraftPayload | null;
   if (!body || !body.title_zh || !body.title_en) {
@@ -137,7 +145,7 @@ async function saveDraft(req: Request) {
       );
     }
 
-    const authorId = existingArticle?.author_id ?? body.author_id ?? null;
+    const authorId = existingArticle?.author_id ?? adminId;
 
     // 确保 articles 表中存在对应的文章记录，避免外键约束报错
     const { error: articleError } = await supabase

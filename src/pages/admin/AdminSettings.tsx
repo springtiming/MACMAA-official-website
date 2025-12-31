@@ -19,6 +19,7 @@ import {
   updateAdminAccount,
   type AdminAccountRecord,
 } from "@/lib/supabaseApi";
+import { getCurrentAdmin } from "@/lib/auth";
 import { ProcessingOverlay } from "@/components/ProcessingOverlay";
 import { useProcessingFeedback } from "@/hooks/useProcessingFeedback";
 
@@ -74,7 +75,7 @@ export function AdminSettings() {
 
   useEffect(() => {
     let active = true;
-    const username = sessionStorage.getItem("adminUsername") || "";
+    const username = getCurrentAdmin()?.username ?? "";
     setLoading(true);
     fetchAdminAccounts()
       .then((accounts) => {

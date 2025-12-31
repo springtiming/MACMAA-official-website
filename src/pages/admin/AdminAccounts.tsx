@@ -43,6 +43,7 @@ import {
 import { ProcessingOverlay } from "@/components/ProcessingOverlay";
 import { useProcessingFeedback } from "@/hooks/useProcessingFeedback";
 import { AdminConfirmDialog } from "@/components/AdminConfirmDialog";
+import { getCurrentAdmin } from "@/lib/auth";
 
 export function AdminAccounts() {
   const navigate = useNavigate();
@@ -67,9 +68,7 @@ export function AdminAccounts() {
     reset: resetProcessing,
   } = useProcessingFeedback();
 
-  // Current user role (from sessionStorage)
-  const currentUserRole =
-    (sessionStorage.getItem("adminRole") as "owner" | "admin") || "admin";
+  const currentUserRole = getCurrentAdmin()?.role ?? "admin";
 
   // Form state for creating new account
   const [newAccount, setNewAccount] = useState({

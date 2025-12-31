@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.86.0";
+import { verifyAdminToken } from "../_shared/auth.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -24,6 +25,14 @@ Deno.serve(async (req) => {
       status: 405,
       headers: corsHeaders,
     });
+  }
+
+  const admin = await verifyAdminToken(req);
+  if (!admin) {
+    return new Response(
+      JSON.stringify({ error: "Unauthorized", code: "INVALID_TOKEN" }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
   }
 
   const url = new URL(req.url);
@@ -67,13 +76,11 @@ Deno.serve(async (req) => {
           id?: string;
           paymentStatus?: string;
           status?: string;
-          adminId?: string | null;
         }
       | null;
 
     const registrationId = payload?.registrationId ?? payload?.id;
     const paymentStatus = payload?.paymentStatus ?? payload?.status;
-    const adminId = payload?.adminId ?? null;
     const allowedStatuses = ["pending", "confirmed", "expired", "cancelled"];
 
     if (!registrationId || !paymentStatus) {
@@ -93,10 +100,8 @@ Deno.serve(async (req) => {
     const updates: Record<string, unknown> = {
       payment_status: paymentStatus,
       confirmed_at: new Date().toISOString(),
+      confirmed_by: admin.id,
     };
-    if (adminId) {
-      updates.confirmed_by = adminId;
-    }
 
     const { data, error } = await supabase
       .from("event_registrations")

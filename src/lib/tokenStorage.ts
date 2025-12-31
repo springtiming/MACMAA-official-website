@@ -1,5 +1,35 @@
 const TOKEN_KEY = "vmca.admin.token";
 
+export type AdminTokenPayload = {
+  id: string;
+  role: "owner" | "admin";
+  iat?: number;
+  exp?: number;
+};
+
+function decodeBase64Url(input: string): string {
+  const base64 = input.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
+  return atob(padded);
+}
+
+export function getTokenPayload(): AdminTokenPayload | null {
+  const token = getToken();
+  if (!token) return null;
+
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+
+    const payloadJson = decodeBase64Url(parts[1]);
+    const payload = JSON.parse(payloadJson) as AdminTokenPayload;
+    if (!payload?.id || !payload?.role) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * 存储token
  * @param token JWT token字符串
@@ -38,29 +68,15 @@ export function removeToken(): void {
  * @returns 如果token存在且未过期返回true，否则返回false
  */
 export function isTokenValid(): boolean {
-  const token = getToken();
-  if (!token) {
-    return false;
-  }
+  const payload = getTokenPayload();
+  if (!payload?.exp) return false;
 
-  try {
-    // 解析JWT payload（不验证签名，仅检查过期时间）
-    const parts = token.split(".");
-    if (parts.length !== 3) {
-      return false;
-    }
-
-    const payload = JSON.parse(atob(parts[1]));
-    if (!payload.exp) {
-      return false;
-    }
-
-    // 检查是否过期（留5分钟缓冲时间）
-    const now = Math.floor(Date.now() / 1000);
-    const bufferTime = 5 * 60; // 5分钟
-    return payload.exp > now + bufferTime;
-  } catch {
-    return false;
-  }
+  // 检查是否过期（留5分钟缓冲时间）
+  const now = Math.floor(Date.now() / 1000);
+  const bufferTime = 5 * 60; // 5分钟
+  return payload.exp > now + bufferTime;
 }
+
+
+
 

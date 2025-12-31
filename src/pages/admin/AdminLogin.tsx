@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "motion/react";
@@ -6,6 +6,7 @@ import { Lock, User } from "lucide-react";
 import logo from "figma:asset/486cb6c21a188aae71ad06b3d541eb54ff86e307.png";
 import { adminAuthLogin } from "@/lib/supabaseApi";
 import { setToken } from "@/lib/tokenStorage";
+import { isAuthenticated, setAdminUsername } from "@/lib/auth";
 
 export function AdminLogin() {
   const navigate = useNavigate();
@@ -16,6 +17,12 @@ export function AdminLogin() {
   });
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated()) {
+      navigate("/admin/dashboard");
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,8 +42,12 @@ export function AdminLogin() {
       const response = await adminAuthLogin(credentials);
       // 存储token
       setToken(response.token);
-      // 临时存储username以便getCurrentAdmin使用（未来可以从token解析）
-      sessionStorage.setItem("adminUsername", response.admin.username);
+      setAdminUsername(response.admin.username);
+
+      // 旧逻辑兼容（将逐步移除）
+      sessionStorage.setItem("adminAuth", "1");
+      sessionStorage.setItem("adminId", response.admin.id);
+      sessionStorage.setItem("adminRole", response.admin.role);
       navigate("/admin/dashboard");
     } catch (err) {
       const message =

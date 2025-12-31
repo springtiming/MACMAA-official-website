@@ -246,6 +246,21 @@ function buildAdminApiUrl(path: string) {
   return `${normalizedBase}${normalizedPath}`;
 }
 
+function headersToRecord(headers?: HeadersInit): Record<string, string> {
+  if (!headers) return {};
+  if (headers instanceof Headers) {
+    const record: Record<string, string> = {};
+    headers.forEach((value, key) => {
+      record[key] = value;
+    });
+    return record;
+  }
+  if (Array.isArray(headers)) {
+    return Object.fromEntries(headers);
+  }
+  return { ...headers };
+}
+
 /**
  * 创建带有Authorization头的fetch选项
  * @param init 原始的RequestInit
@@ -259,12 +274,12 @@ async function createAuthenticatedFetchInit(
       ? (await import("./tokenStorage")).getToken()
       : null;
 
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...(init?.headers ?? {}),
+    ...headersToRecord(init?.headers),
   };
 
-  if (token) {
+  if (token && !("Authorization" in headers) && !("authorization" in headers)) {
     headers.Authorization = `Bearer ${token}`;
   }
 
@@ -300,17 +315,18 @@ async function callEdgeFunction(path: string, init?: RequestInit) {
   const token = typeof window !== "undefined" 
     ? (await import("./tokenStorage")).getToken()
     : null;
-  
-  const headers: HeadersInit = {
+
+  const providedHeaders = headersToRecord(init?.headers);
+  const providedAuth = providedHeaders.Authorization ?? providedHeaders.authorization;
+  const headers: Record<string, string> = {
     apikey: SUPABASE_ANON_KEY,
-    Authorization: token ? `Bearer ${token}` : `Bearer ${SUPABASE_ANON_KEY}`,
-    ...(init?.headers ?? {}),
+    ...providedHeaders,
+    Authorization: providedAuth
+      ? providedAuth
+      : token
+        ? `Bearer ${token}`
+        : `Bearer ${SUPABASE_ANON_KEY}`,
   };
-  
-  // 如果调用者提供了Authorization头，使用调用者的（覆盖默认）
-  if (init?.headers && "Authorization" in init.headers) {
-    headers.Authorization = (init.headers as HeadersInit).Authorization as string;
-  }
   
   return fetch(url, { ...init, headers });
 }
@@ -358,11 +374,6 @@ export async function fetchAdminEvents() {
 }
 
 export async function saveEvent(payload: UpsertEventInput) {
-  const authorId =
-    payload.author_id ??
-    (typeof sessionStorage !== "undefined"
-      ? sessionStorage.getItem("adminId")
-      : null);
   const res = await callEdgeFunction("events-admin", {
     method: "POST",
     headers: {
@@ -371,7 +382,6 @@ export async function saveEvent(payload: UpsertEventInput) {
     },
     body: JSON.stringify({
       ...payload,
-      author_id: authorId ?? undefined,
     }),
   });
 
@@ -464,7 +474,6 @@ export async function getPaymentProofSignedUrl(path: string, expiresIn = 3600) {
 export async function updateEventRegistrationPaymentStatus(payload: {
   registrationId: string;
   paymentStatus: "pending" | "confirmed" | "expired" | "cancelled";
-  adminId?: string | null;
 }) {
   const res = await callEdgeFunction("events-registrations", {
     method: "PATCH",
@@ -486,6 +495,10 @@ export async function updateEventRegistrationPaymentStatus(payload: {
 }
 
 const LOCAL_ADMIN_ACCOUNTS_KEY = "vmca.mockAdminAccounts";
+const ENABLE_MOCK_ADMIN_ACCOUNTS =
+  typeof import.meta !== "undefined" &&
+  Boolean(import.meta.env?.DEV) &&
+  String(import.meta.env?.VITE_ENABLE_MOCK_ADMIN_ACCOUNTS ?? "") === "true";
 const FALLBACK_ADMIN_ACCOUNTS: AdminAccountRecord[] = [
   {
     id: "mock-owner",
@@ -551,12 +564,22 @@ export async function fetchAdminAccounts() {
     const res = await fetch(ADMIN_ACCOUNTS_API_BASE, fetchInit);
 
     if (!res.ok) {
-      throw new Error("Failed to fetch admin accounts");
+      if (res.status === 401 || res.status === 403) {
+        throw new Error("unauthorized");
+      }
+      throw new Error(`Failed to fetch admin accounts (${res.status})`);
     }
 
     const body = (await res.json()) as { accounts: AdminAccountRecord[] };
-    return body.accounts?.length ? body.accounts : getLocalAdminAccounts();
+    if (body.accounts?.length) {
+      return body.accounts;
+    }
+    return ENABLE_MOCK_ADMIN_ACCOUNTS ? getLocalAdminAccounts() : [];
   } catch (err) {
+    if ((err as Error)?.message === "unauthorized" || !ENABLE_MOCK_ADMIN_ACCOUNTS) {
+      throw err;
+    }
+
     console.warn("[admin-accounts] falling back to local data", err);
     return getLocalAdminAccounts();
   }
@@ -582,12 +605,19 @@ export async function createAdminAccount(payload: {
       throw new Error("duplicate");
     }
     if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        throw new Error("unauthorized");
+      }
       throw new Error("Failed to create admin account");
     }
 
     const body = (await res.json()) as { account: AdminAccountRecord };
     return body.account;
-  } catch {
+  } catch (err) {
+    if ((err as Error)?.message === "unauthorized" || !ENABLE_MOCK_ADMIN_ACCOUNTS) {
+      throw err;
+    }
+
     const accounts = getLocalAdminAccounts();
     const duplicate = accounts.some(
       (acc) => acc.username === payload.username || acc.email === payload.email
@@ -628,12 +658,19 @@ export async function updateAdminAccount(
     const res = await fetch(`${ADMIN_ACCOUNTS_API_BASE}/${id}`, fetchInit);
 
     if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        throw new Error("unauthorized");
+      }
       throw new Error("Failed to update admin account");
     }
 
     const body = (await res.json()) as { account: AdminAccountRecord };
     return body.account;
   } catch (err) {
+    if ((err as Error)?.message === "unauthorized" || !ENABLE_MOCK_ADMIN_ACCOUNTS) {
+      throw err;
+    }
+
     console.warn("[admin-accounts] update fallback", err);
     const accounts = getLocalAdminAccounts();
     const idx = accounts.findIndex((acc) => acc.id === id);
@@ -663,9 +700,20 @@ export async function deleteAdminAccount(id: string) {
       throw new Error("forbidden");
     }
     if (!res.ok && res.status !== 204) {
+      if (res.status === 401) {
+        throw new Error("unauthorized");
+      }
       throw new Error("Failed to delete admin account");
     }
   } catch (err) {
+    if (
+      (err as Error)?.message === "unauthorized" ||
+      (err as Error)?.message === "forbidden" ||
+      !ENABLE_MOCK_ADMIN_ACCOUNTS
+    ) {
+      throw err;
+    }
+
     console.warn("[admin-accounts] delete fallback", err);
     const accounts = getLocalAdminAccounts();
     const filtered = accounts.filter((acc) => acc.id !== id);
@@ -729,15 +777,9 @@ export type NewsDraftInput = {
   cover_type?: "unsplash" | "upload" | null;
   cover_keyword?: string | null;
   cover_url?: string | null;
-  author_id?: string | null;
 };
 
 export async function saveNewsDraft(payload: NewsDraftInput) {
-  const authorId =
-    payload.author_id ??
-    (typeof sessionStorage !== "undefined"
-      ? sessionStorage.getItem("adminId")
-      : null);
   const res = await callEdgeFunction("news-drafts", {
     method: "POST",
     headers: {
@@ -746,7 +788,6 @@ export async function saveNewsDraft(payload: NewsDraftInput) {
     },
     body: JSON.stringify({
       ...payload,
-      author_id: authorId ?? undefined,
     }),
   });
 
@@ -883,6 +924,7 @@ export async function updateMemberStatus(
       expectedUpdatedAt: options?.expectedUpdatedAt,
     }),
   });
+  const res = await fetch(`${MEMBERS_API_BASE}/${id}`, fetchInit);
 
   if (res.status === 409) {
     throw new ConcurrencyError();
