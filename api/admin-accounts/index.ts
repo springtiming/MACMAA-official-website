@@ -1,9 +1,11 @@
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import {
   getSupabaseServiceClient,
   logSupabaseError,
 } from "../_supabaseAdminClient.js";
+import { requireAdmin, requireOwner } from "../_auth.js";
+import { hashPassword } from "../_password.js";
 
 const ACCOUNT_COLUMNS =
   "id, username, email, role, status, created_at, last_login_at";
@@ -52,7 +54,7 @@ export default async function handler(
   }
 
   if (req.method === "GET") {
-    return listAccounts(res);
+    return listAccounts(req, res);
   }
 
   if (req.method === "POST") {
@@ -63,8 +65,13 @@ export default async function handler(
   return res.status(405).json({ error: "Method not allowed" });
 }
 
-async function listAccounts(res: VercelResponse) {
+async function listAccounts(req: VercelRequest, res: VercelResponse) {
   setCors(res);
+  const admin = requireAdmin(req, res);
+  if (!admin) {
+    return;
+  }
+
   try {
     const supabase = getSupabaseServiceClient();
     const { data, error } = await supabase
@@ -94,6 +101,11 @@ async function listAccounts(res: VercelResponse) {
 
 async function createAccount(req: VercelRequest, res: VercelResponse) {
   setCors(res);
+  const admin = requireOwner(req, res);
+  if (!admin) {
+    return;
+  }
+
   const body = parseJsonBody(req.body) as CreateAccountPayload | null;
   if (
     !body ||
@@ -106,9 +118,7 @@ async function createAccount(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const password_hash = createHash("sha256")
-      .update(body.password)
-      .digest("hex");
+    const password_hash = await hashPassword(body.password);
 
     const supabase = getSupabaseServiceClient();
     const { data, error } = await supabase
@@ -155,14 +165,16 @@ function parseJsonBody(body: unknown) {
 }
 
 async function seedDefaultAccounts(supabase: ReturnType<typeof getSupabaseServiceClient>) {
-  const inserts = DEFAULT_ACCOUNTS.map((acc) => ({
-    id: randomUUID(),
-    username: acc.username,
-    email: acc.email,
-    password_hash: createHash("sha256").update(acc.password).digest("hex"),
-    role: acc.role,
-    status: "active",
-  }));
+  const inserts = await Promise.all(
+    DEFAULT_ACCOUNTS.map(async (acc) => ({
+      id: randomUUID(),
+      username: acc.username,
+      email: acc.email,
+      password_hash: await hashPassword(acc.password),
+      role: acc.role,
+      status: "active",
+    }))
+  );
 
   const { data, error } = await supabase
     .from("admin_accounts")

@@ -1,9 +1,10 @@
-import { createHash } from "node:crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import {
   getSupabaseServiceClient,
   logSupabaseError,
 } from "../_supabaseAdminClient.js";
+import { requireOwner } from "../_auth.js";
+import { hashPassword } from "../_password.js";
 
 const ACCOUNT_COLUMNS =
   "id, username, email, role, status, created_at, last_login_at";
@@ -38,7 +39,7 @@ export default async function handler(
   }
 
   if (req.method === "DELETE") {
-    return deleteAccount(id, res);
+    return deleteAccount(id, req, res);
   }
 
   setCors(res);
@@ -48,6 +49,11 @@ export default async function handler(
 
 async function updateAccount(id: string, req: VercelRequest, res: VercelResponse) {
   setCors(res);
+  const admin = requireOwner(req, res);
+  if (!admin) {
+    return;
+  }
+
   const body = parseJsonBody(req.body) as UpdatePayload | null;
   if (!body || (!body.email && !body.password)) {
     return res.status(400).json({ error: "No update fields provided" });
@@ -56,9 +62,7 @@ async function updateAccount(id: string, req: VercelRequest, res: VercelResponse
   const updates: Record<string, unknown> = {};
   if (body.email) updates.email = body.email;
   if (body.password) {
-    updates.password_hash = createHash("sha256")
-      .update(body.password)
-      .digest("hex");
+    updates.password_hash = await hashPassword(body.password);
   }
 
   try {
@@ -85,8 +89,13 @@ async function updateAccount(id: string, req: VercelRequest, res: VercelResponse
   }
 }
 
-async function deleteAccount(id: string, res: VercelResponse) {
+async function deleteAccount(id: string, req: VercelRequest, res: VercelResponse) {
   setCors(res);
+  const admin = requireOwner(req, res);
+  if (!admin) {
+    return;
+  }
+
   try {
     const supabase = getSupabaseServiceClient();
 

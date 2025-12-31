@@ -246,6 +246,34 @@ function buildAdminApiUrl(path: string) {
   return `${normalizedBase}${normalizedPath}`;
 }
 
+/**
+ * 创建带有Authorization头的fetch选项
+ * @param init 原始的RequestInit
+ * @returns 带有Authorization头的RequestInit
+ */
+async function createAuthenticatedFetchInit(
+  init?: RequestInit
+): Promise<RequestInit> {
+  const token =
+    typeof window !== "undefined"
+      ? (await import("./tokenStorage")).getToken()
+      : null;
+
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    ...(init?.headers ?? {}),
+  };
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  return {
+    ...init,
+    headers,
+  };
+}
+
 const PAYMENTS_API_BASE = buildAdminApiUrl("/payments");
 const ADMIN_ACCOUNTS_API_BASE = buildAdminApiUrl("/admin-accounts");
 const NOTIFICATIONS_API_BASE = buildAdminApiUrl("/notifications");
@@ -267,11 +295,23 @@ function ensureEdgeConfig() {
 async function callEdgeFunction(path: string, init?: RequestInit) {
   ensureEdgeConfig();
   const url = `${SUPABASE_URL.replace(/\/$/, "")}/functions/v1/${path}`;
+  
+  // 获取token（如果存在）
+  const token = typeof window !== "undefined" 
+    ? (await import("./tokenStorage")).getToken()
+    : null;
+  
   const headers: HeadersInit = {
     apikey: SUPABASE_ANON_KEY,
-    Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+    Authorization: token ? `Bearer ${token}` : `Bearer ${SUPABASE_ANON_KEY}`,
     ...(init?.headers ?? {}),
   };
+  
+  // 如果调用者提供了Authorization头，使用调用者的（覆盖默认）
+  if (init?.headers && "Authorization" in init.headers) {
+    headers.Authorization = (init.headers as HeadersInit).Authorization as string;
+  }
+  
   return fetch(url, { ...init, headers });
 }
 export async function adminAuthLogin(payload: {
@@ -294,9 +334,12 @@ export async function adminAuthLogin(payload: {
     throw new Error("login-failed");
   }
   const body = (await res.json()) as {
-    id: string;
-    username: string;
-    role: "owner" | "admin";
+    token: string;
+    admin: {
+      id: string;
+      username: string;
+      role: "owner" | "admin";
+    };
   };
   return body;
 }
@@ -502,9 +545,10 @@ function setLocalAdminAccounts(accounts: AdminAccountRecord[]) {
 
 export async function fetchAdminAccounts() {
   try {
-    const res = await fetch(ADMIN_ACCOUNTS_API_BASE, {
+    const fetchInit = await createAuthenticatedFetchInit({
       headers: { Accept: "application/json" },
     });
+    const res = await fetch(ADMIN_ACCOUNTS_API_BASE, fetchInit);
 
     if (!res.ok) {
       throw new Error("Failed to fetch admin accounts");
@@ -525,14 +569,14 @@ export async function createAdminAccount(payload: {
   role: "owner" | "admin";
 }) {
   try {
-    const res = await fetch(ADMIN_ACCOUNTS_API_BASE, {
+    const fetchInit = await createAuthenticatedFetchInit({
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
         Accept: "application/json",
       },
       body: JSON.stringify(payload),
     });
+    const res = await fetch(ADMIN_ACCOUNTS_API_BASE, fetchInit);
 
     if (res.status === 409) {
       throw new Error("duplicate");
@@ -574,14 +618,14 @@ export async function updateAdminAccount(
   payload: { email?: string; password?: string }
 ) {
   try {
-    const res = await fetch(`${ADMIN_ACCOUNTS_API_BASE}/${id}`, {
+    const fetchInit = await createAuthenticatedFetchInit({
       method: "PATCH",
       headers: {
-        "Content-Type": "application/json",
         Accept: "application/json",
       },
       body: JSON.stringify(payload),
     });
+    const res = await fetch(`${ADMIN_ACCOUNTS_API_BASE}/${id}`, fetchInit);
 
     if (!res.ok) {
       throw new Error("Failed to update admin account");
@@ -610,9 +654,10 @@ export async function updateAdminAccount(
 
 export async function deleteAdminAccount(id: string) {
   try {
-    const res = await fetch(`${ADMIN_ACCOUNTS_API_BASE}/${id}`, {
+    const fetchInit = await createAuthenticatedFetchInit({
       method: "DELETE",
     });
+    const res = await fetch(`${ADMIN_ACCOUNTS_API_BASE}/${id}`, fetchInit);
 
     if (res.status === 403) {
       throw new Error("forbidden");
@@ -827,10 +872,9 @@ export async function updateMemberStatus(
     expectedUpdatedAt?: string | null;
   }
 ) {
-  const res = await fetch(`${MEMBERS_API_BASE}/${id}`, {
+  const fetchInit = await createAuthenticatedFetchInit({
     method: "PATCH",
     headers: {
-      "Content-Type": "application/json",
       Accept: "application/json",
     },
     body: JSON.stringify({
@@ -853,9 +897,10 @@ export async function updateMemberStatus(
 }
 
 export async function deleteMember(id: string) {
-  const res = await fetch(`${MEMBERS_API_BASE}/${id}`, {
+  const fetchInit = await createAuthenticatedFetchInit({
     method: "DELETE",
   });
+  const res = await fetch(`${MEMBERS_API_BASE}/${id}`, fetchInit);
 
   if (!res.ok && res.status !== 204) {
     throw new Error("Failed to delete member");

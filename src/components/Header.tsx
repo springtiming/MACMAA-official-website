@@ -4,11 +4,6 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { motion } from "motion/react";
 import { Menu, X, Globe } from "lucide-react";
 import logo from "figma:asset/486cb6c21a188aae71ad06b3d541eb54ff86e307.png";
-// 导入宋体字体
-import "@fontsource/noto-serif-sc/400.css";
-import "@fontsource/noto-serif-sc/500.css";
-import "@fontsource/noto-serif-sc/600.css";
-import "@fontsource/noto-serif-sc/700.css";
 
 export function Header() {
   const { language, setLanguage, t } = useLanguage();
@@ -39,7 +34,7 @@ export function Header() {
               alt="MACMAA Logo"
               className="h-12 w-12 sm:h-14 sm:w-14"
             />
-            <span className="hidden sm:block text-[#2B5F9E] font-serif" style={{ fontFamily: "'Noto Serif SC', 'SimSun', 'STSong', serif" }}>
+            <span className="hidden sm:block text-[#2B5F9E]">
               {language === "zh" ? "MACMAA" : "MACMAA"}
             </span>
           </Link>

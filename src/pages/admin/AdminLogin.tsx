@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import { Lock, User } from "lucide-react";
 import logo from "figma:asset/486cb6c21a188aae71ad06b3d541eb54ff86e307.png";
 import { adminAuthLogin } from "@/lib/supabaseApi";
+import { setToken } from "@/lib/tokenStorage";
 
 export function AdminLogin() {
   const navigate = useNavigate();
@@ -31,11 +32,11 @@ export function AdminLogin() {
     }
 
     try {
-      const body = await adminAuthLogin(credentials);
-      sessionStorage.setItem("adminAuth", "true");
-      sessionStorage.setItem("adminId", body.id);
-      sessionStorage.setItem("adminRole", body.role);
-      sessionStorage.setItem("adminUsername", body.username);
+      const response = await adminAuthLogin(credentials);
+      // 存储token
+      setToken(response.token);
+      // 临时存储username以便getCurrentAdmin使用（未来可以从token解析）
+      sessionStorage.setItem("adminUsername", response.admin.username);
       navigate("/admin/dashboard");
     } catch (err) {
       const message =
