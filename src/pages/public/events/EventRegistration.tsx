@@ -291,15 +291,16 @@ export function EventRegistration() {
     ? Number(loadedEvent.fee) - Number(memberFee)
     : 0;
 
-  // Stripe 手续费计算：1.7% + 0.30 AUD（基于实际支付价格）
-  const STRIPE_FEE_RATE = 0.017; // 1.7%
-  const STRIPE_FEE_FIXED = 0.3; // $0.30 AUD
-  const stripeFee =
-    loadedEvent.fee > 0
-      ? Number((finalFee * STRIPE_FEE_RATE + STRIPE_FEE_FIXED).toFixed(2))
-      : 0;
+  // Stripe 手续费计算：逆向计算确保协会收到原价
+  // 公式：totalWithFee = (原价 + 固定费) / (1 - 费率)
+  const STRIPE_FEE_RATE = 0.034; // 3.4%
+  const STRIPE_FEE_FIXED = 0.5; // $0.50 AUD
   const totalWithFee =
-    loadedEvent.fee > 0 ? Number((finalFee + stripeFee).toFixed(2)) : 0;
+    loadedEvent.fee > 0
+      ? Number(((finalFee + STRIPE_FEE_FIXED) / (1 - STRIPE_FEE_RATE)).toFixed(2))
+      : 0;
+  const stripeFee =
+    loadedEvent.fee > 0 ? Number((totalWithFee - finalFee).toFixed(2)) : 0;
 
   const resetMemberVerification = () => {
     setMemberEmail("");
@@ -531,8 +532,8 @@ export function EventRegistration() {
       title: t("register.payment.online"),
       desc:
         language === "zh"
-          ? "信用卡/借记卡（含手续费 1.7% + $0.30）"
-          : "Credit/Debit Card (incl. fee 1.7% + $0.30)",
+          ? "信用卡/借记卡（含手续费）"
+          : "Credit/Debit Card (incl. processing fee)",
       color: "#2B5F9E",
     },
     {
@@ -1046,8 +1047,8 @@ export function EventRegistration() {
                             <div className="flex items-center justify-between">
                               <span className="text-sm text-gray-600">
                                 {language === "zh"
-                                  ? "手续费（1.7% + $0.30）"
-                                  : "Processing Fee (1.7% + $0.30)"}
+                                  ? "手续费"
+                                  : "Processing Fee"}
                               </span>
                               <span className="text-sm font-medium text-gray-800">
                                 ${stripeFee.toFixed(2)} AUD
@@ -1390,16 +1391,6 @@ export function EventRegistration() {
                                     ${finalFee.toFixed(2)} AUD
                                   </span>
                                 </div>
-                                <div className="flex items-center justify-between">
-                                  <span className="text-sm text-gray-600">
-                                    {language === "zh"
-                                      ? "手续费"
-                                      : "Processing Fee"}
-                                  </span>
-                                  <span className="text-sm font-medium text-green-600">
-                                    {language === "zh" ? "免手续费" : "Free"}
-                                  </span>
-                                </div>
                                 {hasMemberDiscount && memberInfo && (
                                   <div className="pt-1">
                                     <p className="text-xs text-green-600">
@@ -1513,20 +1504,28 @@ export function EventRegistration() {
                             <motion.button
                               onClick={handlePaymentConfirm}
                               disabled={
-                                submitting || isUploadingProof || !paymentProofUrl
+                                submitting ||
+                                isUploadingProof ||
+                                !paymentProofUrl
                               }
                               className={`w-full mt-6 px-6 py-3 rounded-lg transition-colors ${
-                                submitting || isUploadingProof || !paymentProofUrl
+                                submitting ||
+                                isUploadingProof ||
+                                !paymentProofUrl
                                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                                   : "bg-[#EB8C3A] text-white hover:bg-[#d67b2e]"
                               }`}
                               whileHover={
-                                !submitting && !isUploadingProof && paymentProofUrl
+                                !submitting &&
+                                !isUploadingProof &&
+                                paymentProofUrl
                                   ? { scale: 1.02 }
                                   : {}
                               }
                               whileTap={
-                                !submitting && !isUploadingProof && paymentProofUrl
+                                !submitting &&
+                                !isUploadingProof &&
+                                paymentProofUrl
                                   ? { scale: 0.98 }
                                   : {}
                               }
