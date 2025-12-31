@@ -293,8 +293,8 @@ export function EventRegistration() {
 
   // Stripe 手续费计算：逆向计算确保协会收到原价
   // 公式：totalWithFee = (原价 + 固定费) / (1 - 费率)
-  const STRIPE_FEE_RATE = 0.034; // 3.4%
-  const STRIPE_FEE_FIXED = 0.5; // $0.50 AUD
+  const STRIPE_FEE_RATE = 0.017; // 1.7%
+  const STRIPE_FEE_FIXED = 0.3; // $0.30 AUD
   const totalWithFee =
     loadedEvent.fee > 0
       ? Number(((finalFee + STRIPE_FEE_FIXED) / (1 - STRIPE_FEE_RATE)).toFixed(2))
@@ -1462,33 +1462,37 @@ export function EventRegistration() {
                                     }
                                   }}
                                 />
-                                <button
-                                  type="button"
-                                  onClick={clearPaymentProof}
-                                  disabled={isUploadingProof}
-                                  className={`absolute top-2 right-2 p-1 bg-white text-red-500 rounded-full shadow-md transition-all ${
-                                    isUploadingProof
-                                      ? "cursor-not-allowed opacity-60"
-                                      : "hover:scale-110 hover:bg-gray-50"
-                                  }`}
-                                >
-                                  <X className="w-5 h-5" />
-                                </button>
-                                {isUploadingProof ? (
-                                  <div className="mt-2 flex items-center gap-2 text-gray-500">
-                                    <Upload className="w-4 h-4 animate-pulse" />
-                                    <span className="text-sm">
-                                      {t("register.payment.uploading")}
-                                    </span>
-                                  </div>
-                                ) : paymentProofUrl ? (
-                                  <div className="mt-2 flex items-center gap-2 text-green-600">
-                                    <CheckCircle className="w-4 h-4" />
-                                    <span className="text-sm">
-                                      {t("register.payment.uploadSuccess")}
-                                    </span>
-                                  </div>
-                                ) : null}
+                                <div className="mt-2 flex items-center justify-between">
+                                  {isUploadingProof ? (
+                                    <div className="flex items-center gap-2 text-gray-500">
+                                      <Upload className="w-4 h-4 animate-pulse" />
+                                      <span className="text-sm">
+                                        {t("register.payment.uploading")}
+                                      </span>
+                                    </div>
+                                  ) : paymentProofUrl ? (
+                                    <div className="flex items-center gap-2 text-green-600">
+                                      <CheckCircle className="w-4 h-4" />
+                                      <span className="text-sm">
+                                        {t("register.payment.uploadSuccess")}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <div />
+                                  )}
+                                  <button
+                                    type="button"
+                                    onClick={clearPaymentProof}
+                                    disabled={isUploadingProof}
+                                    className={`p-2 bg-red-500 text-white rounded-full transition-colors shadow-sm ${
+                                      isUploadingProof
+                                        ? "cursor-not-allowed opacity-60"
+                                        : "hover:bg-red-600"
+                                    }`}
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
                               </div>
                             )}
                             {uploadError && (

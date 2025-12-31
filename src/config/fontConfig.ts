@@ -130,6 +130,19 @@ export const AVAILABLE_FONTS: Record<string, FontConfig> = {
     ],
     description: "Inter（英文）与 Noto Sans SC（中文）的组合。最适合双语网站。",
   },
+  notoSerifSC: {
+    name: "Noto Serif SC",
+    family:
+      "'Noto Serif SC', 'SimSun', 'STSong', serif",
+    npmPackage: "@fontsource/noto-serif-sc",
+    cssImports: [
+      "@fontsource/noto-serif-sc/400.css",
+      "@fontsource/noto-serif-sc/500.css",
+      "@fontsource/noto-serif-sc/600.css",
+      "@fontsource/noto-serif-sc/700.css",
+    ],
+    description: "思源宋体，传统中文宋体风格。适合标题和正式内容。",
+  },
 };
 
 /**
