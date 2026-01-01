@@ -334,6 +334,42 @@ inspector_port = 8083
 # The Deno major version to use.
 deno_version = 2
 
+# Disable Supabase JWT verification for all admin functions
+# We use custom JWT authentication instead
+
+[functions.admin-auth]
+verify_jwt = false
+
+[functions.activities]
+verify_jwt = false
+
+[functions.events-admin]
+verify_jwt = false
+
+[functions.events-registrations]
+verify_jwt = false
+
+[functions.members]
+verify_jwt = false
+
+[functions.news-admin]
+verify_jwt = false
+
+[functions.news-drafts]
+verify_jwt = false
+
+[functions.news-drafts-delete]
+verify_jwt = false
+
+[functions.news-publish]
+verify_jwt = false
+
+[functions.payment-proofs]
+verify_jwt = false
+
+[functions.unsplash]
+verify_jwt = false
+
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 

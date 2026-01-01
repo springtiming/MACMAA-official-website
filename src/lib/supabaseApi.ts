@@ -325,9 +325,6 @@ export async function adminAuthLogin(payload: {
   username: string;
   password: string;
 }) {
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/c9e3b18f-f287-4390-8f6d-d39174a9e67f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'supabaseApi.ts:adminAuthLogin:entry',message:'Login attempt started',data:{username:payload.username},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1-H5'})}).catch(()=>{});
-  // #endregion
   const res = await callEdgeFunction("admin-auth", {
     method: "POST",
     headers: {
@@ -337,22 +334,10 @@ export async function adminAuthLogin(payload: {
     body: JSON.stringify(payload),
   });
 
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/c9e3b18f-f287-4390-8f6d-d39174a9e67f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'supabaseApi.ts:adminAuthLogin:response',message:'Edge function response received',data:{status:res.status,ok:res.ok,statusText:res.statusText},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1-H5'})}).catch(()=>{});
-  // #endregion
-
   if (res.status === 401) {
-    // #region agent log
-    const errorBody = await res.clone().text();
-    fetch('http://127.0.0.1:7242/ingest/c9e3b18f-f287-4390-8f6d-d39174a9e67f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'supabaseApi.ts:adminAuthLogin:401',message:'401 Unauthorized - checking response body',data:{errorBody},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1-H5'})}).catch(()=>{});
-    // #endregion
     throw new Error("invalid-credentials");
   }
   if (!res.ok) {
-    // #region agent log
-    const errorBody = await res.clone().text();
-    fetch('http://127.0.0.1:7242/ingest/c9e3b18f-f287-4390-8f6d-d39174a9e67f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'supabaseApi.ts:adminAuthLogin:notOk',message:'Response not OK',data:{status:res.status,errorBody},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1-H5'})}).catch(()=>{});
-    // #endregion
     throw new Error("login-failed");
   }
   const body = (await res.json()) as {
@@ -363,9 +348,6 @@ export async function adminAuthLogin(payload: {
       role: "owner" | "admin";
     };
   };
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/c9e3b18f-f287-4390-8f6d-d39174a9e67f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'supabaseApi.ts:adminAuthLogin:success',message:'Login successful',data:{adminId:body.admin.id,role:body.admin.role},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1-H5'})}).catch(()=>{});
-  // #endregion
   return body;
 }
 

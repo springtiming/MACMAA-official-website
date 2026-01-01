@@ -6,7 +6,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
-import { getFontFamilyCSS } from "@/lib/fontLoader";
+import { getFontFamilyCSS, getHeadingFontFamilyCSS } from "@/lib/fontLoader";
 
 import "../index.css";
 import "../styles/glass-buttons.css";
@@ -26,9 +26,15 @@ export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
 
   useEffect(() => {
+    // 设置正文字体
     document.documentElement.style.setProperty(
       "--app-font-family",
       getFontFamilyCSS()
+    );
+    // 设置标题字体
+    document.documentElement.style.setProperty(
+      "--app-heading-font-family",
+      getHeadingFontFamilyCSS()
     );
   }, []);
 

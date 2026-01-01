@@ -168,6 +168,11 @@
  * Base typography. This is not applied to elements which have an ancestor with a Tailwind text class.
  */
 @layer base {
+  /* 所有标题自动应用标题字体 */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--app-heading-font-family);
+  }
+
   :where(:not(:has([class*=" text-"]), :not(:has([class^="text-"])))) {
     h1 {
       font-size: var(--text-2xl);

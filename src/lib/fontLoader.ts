@@ -3,7 +3,7 @@
  * 根据 fontConfig.ts 中的配置自动加载字体
  */
 
-import { getCurrentFont } from "../config/fontConfig";
+import { getCurrentFont, getCurrentHeadingFont } from "../config/fontConfig";
 
 /**
  * 字体 CSS 加载
@@ -21,4 +21,12 @@ export function loadFonts() {
  */
 export function getFontFamilyCSS(): string {
   return getCurrentFont().family;
+}
+
+/**
+ * 获取当前标题字体的 CSS font-family 值
+ * 用于在 CSS 变量中设置
+ */
+export function getHeadingFontFamilyCSS(): string {
+  return getCurrentHeadingFont().family;
 }

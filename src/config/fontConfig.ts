@@ -18,6 +18,15 @@ export interface FontConfig {
   description: string;
 }
 
+export interface HeadingFontConfig {
+  /** 字体名称（显示用） */
+  name: string;
+  /** CSS font-family 值 */
+  family: string;
+  /** 字体描述 */
+  description: string;
+}
+
 export const AVAILABLE_FONTS: Record<string, FontConfig> = {
   inter: {
     name: "Inter",
@@ -139,6 +148,33 @@ export const AVAILABLE_FONTS: Record<string, FontConfig> = {
 export const CURRENT_FONT: keyof typeof AVAILABLE_FONTS = "interNotoSansSC";
 
 /**
+ * 可用的标题字体配置
+ */
+export const AVAILABLE_HEADING_FONTS: Record<string, HeadingFontConfig> = {
+  simsun: {
+    name: "宋体",
+    family: '"SimSun", "宋体", "Noto Serif SC", "Source Han Serif SC", serif',
+    description: "经典中文宋体，适合正式标题",
+  },
+  notoSerifSC: {
+    name: "Noto Serif SC",
+    family: '"Noto Serif SC", "Source Han Serif SC", "SimSun", serif',
+    description: "Google 思源宋体，现代优雅",
+  },
+  inherit: {
+    name: "继承正文字体",
+    family: "inherit",
+    description: "标题使用与正文相同的字体",
+  },
+};
+
+/**
+ * 当前使用的标题字体
+ * 修改此值即可切换标题字体
+ */
+export const CURRENT_HEADING_FONT: keyof typeof AVAILABLE_HEADING_FONTS = "simsun";
+
+/**
  * 获取当前字体配置
  */
 export function getCurrentFont(): FontConfig {
@@ -146,8 +182,22 @@ export function getCurrentFont(): FontConfig {
 }
 
 /**
+ * 获取当前标题字体配置
+ */
+export function getCurrentHeadingFont(): HeadingFontConfig {
+  return AVAILABLE_HEADING_FONTS[CURRENT_HEADING_FONT];
+}
+
+/**
  * 获取所有可用字体列表
  */
 export function getAvailableFonts(): FontConfig[] {
   return Object.values(AVAILABLE_FONTS);
+}
+
+/**
+ * 获取所有可用标题字体列表
+ */
+export function getAvailableHeadingFonts(): HeadingFontConfig[] {
+  return Object.values(AVAILABLE_HEADING_FONTS);
 }
