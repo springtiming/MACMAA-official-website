@@ -237,6 +237,12 @@ const isExternalProofUrl = (value: string) =>
   value.startsWith("data:") ||
   value.startsWith("blob:");
 
+type PaymentProofLightboxPayload = {
+  url: string;
+  title: string;
+  subtitle?: string;
+};
+
 export function AdminEvents() {
   const { language, t } = useLanguage();
   const router = useRouter();
@@ -261,13 +267,17 @@ export function AdminEvents() {
   const [allRegsError, setAllRegsError] = useState<string | null>(null);
   const [activePaymentEvent, setActivePaymentEvent] =
     useState<EventRecord | null>(null);
-  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [lightboxImage, setLightboxImage] =
+    useState<PaymentProofLightboxPayload | null>(null);
   const [signedProofUrls, setSignedProofUrls] = useState<
     Record<string, string>
   >({});
   const [paymentUpdates, setPaymentUpdates] = useState<Record<string, boolean>>(
     {}
   );
+  const [registrationsTab, setRegistrationsTab] = useState<
+    "confirmed" | "pending" | "cancelled"
+  >("confirmed");
   const [imageSource, setImageSource] = useState<"unsplash" | "upload">(
     emptyForm.imageType
   );
@@ -443,6 +453,8 @@ export function AdminEvents() {
 
   const openRegistrations = async (event: EventRecord) => {
     setActiveRegEvent(event);
+    setRegistrationsTab("confirmed");
+    setLightboxImage(null);
     setRegsLoading(true);
     setRegsError(null);
     try {
@@ -535,6 +547,8 @@ export function AdminEvents() {
     setActiveRegEvent(null);
     setRegistrations([]);
     setRegsError(null);
+    setRegistrationsTab("confirmed");
+    setLightboxImage(null);
   };
 
   const getPaymentMethodLabel = (paymentMethod: string | null): string => {
@@ -572,6 +586,23 @@ export function AdminEvents() {
     []
   );
 
+  const isPaidActiveRegEvent = useMemo(() => {
+    const fee = Number(activeRegEvent?.fee ?? 0);
+    const memberFee = Number(activeRegEvent?.member_fee ?? 0);
+    return fee > 0 || memberFee > 0;
+  }, [activeRegEvent]);
+
+  const getRegistrationBucket = useCallback(
+    (reg: EventRegistrationRecord) => {
+      const status = getPaymentStatus(reg);
+      if (status === "confirmed") return "confirmed" as const;
+      if (status === "cancelled" || status === "expired") return "cancelled" as const;
+      if (status === "pending") return "pending" as const;
+      return isPaidActiveRegEvent ? ("pending" as const) : ("confirmed" as const);
+    },
+    [getPaymentStatus, isPaidActiveRegEvent]
+  );
+
   const isPendingPayment = useCallback(
     (reg: EventRegistrationRecord) => {
       const proofUrl = getPaymentProofUrl(reg);
@@ -599,10 +630,36 @@ export function AdminEvents() {
     );
   }, [activePaymentEvent, allRegistrations, isPendingPayment]);
 
+  const registrationsByBucket = useMemo(() => {
+    const buckets: Record<
+      "confirmed" | "pending" | "cancelled",
+      EventRegistrationRecord[]
+    > = {
+      confirmed: [],
+      pending: [],
+      cancelled: [],
+    };
+
+    registrations.forEach((reg) => {
+      buckets[getRegistrationBucket(reg)].push(reg);
+    });
+
+    return buckets;
+  }, [getRegistrationBucket, registrations]);
+
   useEffect(() => {
-    if (pendingPaymentsForActiveEvent.length === 0) return;
+    const pendingRegistrationsInModal = registrations.filter(
+      (reg) => getRegistrationBucket(reg) === "pending"
+    );
+
+    const pendingTargets = [
+      ...pendingPaymentsForActiveEvent,
+      ...pendingRegistrationsInModal,
+    ];
+
+    if (pendingTargets.length === 0) return;
     let active = true;
-    const pendingPaths = pendingPaymentsForActiveEvent
+    const pendingPaths = pendingTargets
       .map(getPaymentProofUrl)
       .filter(
         (path) =>
@@ -633,7 +690,13 @@ export function AdminEvents() {
     return () => {
       active = false;
     };
-  }, [pendingPaymentsForActiveEvent, getPaymentProofUrl, signedProofUrls]);
+  }, [
+    pendingPaymentsForActiveEvent,
+    registrations,
+    getRegistrationBucket,
+    getPaymentProofUrl,
+    signedProofUrls,
+  ]);
 
   const openPaymentReview = (event: EventRecord) => {
     setActivePaymentEvent(event);
@@ -666,6 +729,16 @@ export function AdminEvents() {
             : reg
         )
       );
+      setRegistrations((prev) =>
+        prev.map((reg) =>
+          reg.id === registrationId
+            ? {
+                ...reg,
+                ...updated,
+              }
+            : reg
+        )
+      );
     } catch (err) {
       console.error("[AdminEvents] update payment status", err);
       setError(t("common.error"));
@@ -679,7 +752,11 @@ export function AdminEvents() {
   };
 
   const exportRegistrations = () => {
-    if (!activeRegEvent || registrations.length === 0) return;
+    if (!activeRegEvent) return;
+    const exportable = registrations.filter(
+      (reg) => getRegistrationBucket(reg) === "confirmed"
+    );
+    if (exportable.length === 0) return;
     const header = [
       language === "zh" ? "姓名" : "Name",
       language === "zh" ? "电话" : "Phone",
@@ -688,7 +765,7 @@ export function AdminEvents() {
       language === "zh" ? "付款方式" : "Payment",
       language === "zh" ? "报名日期" : "Registration Date",
     ];
-    const rows = registrations.map((r) => [
+    const rows = exportable.map((r) => [
       r.name,
       r.phone,
       r.email ?? "",
@@ -925,19 +1002,18 @@ export function AdminEvents() {
                         {language === "zh" ? "查看报名" : "View registrations"}
                       </span>
                     </button>
-                    {pendingCount > 0 && (
-                      <button
-                        onClick={() => openPaymentReview(event)}
-                        className="glass-btn glass-btn-warning min-w-[140px]"
-                        aria-label={t("admin.events.reviewPayments")}
-                      >
-                        <FileCheck className="w-4 h-4" />
-                        <span className="hidden sm:inline">
-                          {t("admin.events.reviewPayments")}
-                        </span>
-                        <span className="glass-btn-badge">{pendingCount}</span>
-                      </button>
-                    )}
+                    <button
+                      onClick={() => openPaymentReview(event)}
+                      disabled={pendingCount === 0}
+                      className="glass-btn glass-btn-warning min-w-[140px] disabled:opacity-50 disabled:cursor-not-allowed"
+                      aria-label={t("admin.events.reviewPayments")}
+                    >
+                      <FileCheck className="w-4 h-4" />
+                      <span className="hidden sm:inline">
+                        {t("admin.events.reviewPayments")}
+                      </span>
+                      <span className="glass-btn-badge">{pendingCount}</span>
+                    </button>
                     <button
                       onClick={() => {
                         setForm(toForm(event));
@@ -1766,9 +1842,15 @@ export function AdminEvents() {
                                         <button
                                           type="button"
                                           onClick={() => {
-                                            if (proofUrl) {
-                                              setLightboxImage(proofUrl);
-                                            }
+                                            if (!proofUrl) return;
+                                            setLightboxImage({
+                                              url: proofUrl,
+                                              title:
+                                                language === "zh"
+                                                  ? "支付凭证"
+                                                  : "Payment proof",
+                                              subtitle: reg.name,
+                                            });
                                           }}
                                           disabled={!hasProofUrl}
                                           className={`group relative w-full ${
@@ -1878,26 +1960,70 @@ export function AdminEvents() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-[60]"
+                    className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-[60]"
                     onMouseDown={() => setLightboxImage(null)}
                   >
-                    <button
-                      type="button"
-                      onClick={() => setLightboxImage(null)}
-                      className="absolute top-4 right-4 p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
-                      aria-label={t("admin.events.reviewPayments.close")}
+                    <motion.div
+                      initial={{ scale: 0.96, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0.96, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="w-full max-w-5xl max-h-[90vh] overflow-hidden bg-white rounded-2xl shadow-2xl flex flex-col"
+                      onMouseDown={(e) => e.stopPropagation()}
+                      role="dialog"
+                      aria-modal="true"
                     >
-                      <X className="w-6 h-6 text-white" />
-                    </button>
-                    <div onMouseDown={(e) => e.stopPropagation()}>
-                      <img
-                        src={lightboxImage}
-                        alt={
-                          language === "zh" ? "支付凭证大图" : "Payment proof"
-                        }
-                        className="max-w-full max-h-[calc(100vh-32px)] object-contain rounded-lg"
-                      />
-                    </div>
+                      <div className="bg-gradient-to-r from-[#EB8C3A] to-[#D3772A] text-white px-6 py-4 flex items-start justify-between">
+                        <div>
+                          <h3 className="text-lg sm:text-xl font-semibold">
+                            {lightboxImage.title}
+                          </h3>
+                          {lightboxImage.subtitle && (
+                            <p className="text-sm opacity-90">
+                              {lightboxImage.subtitle}
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setLightboxImage(null)}
+                          className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                          aria-label={t("admin.events.reviewPayments.close")}
+                        >
+                          <X className="w-6 h-6" />
+                        </button>
+                      </div>
+
+                      <div className="flex-1 bg-black/5 p-4 flex items-center justify-center">
+                        <img
+                          src={lightboxImage.url}
+                          alt={
+                            language === "zh"
+                              ? "支付凭证大图"
+                              : "Payment proof"
+                          }
+                          className="max-w-full max-h-[calc(90vh-140px)] object-contain rounded-lg bg-white"
+                        />
+                      </div>
+
+                      <div className="bg-gray-50 px-6 py-4 flex items-center justify-end gap-2">
+                        <a
+                          href={lightboxImage.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-4 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 transition-colors text-sm"
+                        >
+                          {language === "zh" ? "在新窗口打开" : "Open in new tab"}
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => setLightboxImage(null)}
+                          className="px-4 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-800 transition-colors text-sm"
+                        >
+                          {t("admin.events.reviewPayments.close")}
+                        </button>
+                      </div>
+                    </motion.div>
                   </motion.div>,
                   document.body
                 )}
@@ -1949,21 +2075,75 @@ export function AdminEvents() {
                       </div>
 
                       <div className="p-6 overflow-y-auto space-y-4">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                           <div className="text-sm text-gray-700">
-                            {language === "zh"
-                              ? `总报名人数：${registrations.length}`
-                              : `Total registrations: ${registrations.length}`}
+                            {language === "zh" ? (
+                              <>
+                                已通过：{registrationsByBucket.confirmed.length}
+                                {" · "}待审核：{registrationsByBucket.pending.length}
+                                {" · "}已取消：{registrationsByBucket.cancelled.length}
+                              </>
+                            ) : (
+                              <>
+                                Confirmed: {registrationsByBucket.confirmed.length}
+                                {" · "}Pending: {registrationsByBucket.pending.length}
+                                {" · "}Cancelled: {registrationsByBucket.cancelled.length}
+                              </>
+                            )}
                           </div>
                           <div className="flex gap-2">
                             <button
                               onClick={exportRegistrations}
-                              disabled={registrations.length === 0}
+                              disabled={registrationsByBucket.confirmed.length === 0}
                               className="px-4 py-2 rounded-lg bg-[#2B5F9E] text-white hover:bg-[#234a7e] disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              {language === "zh" ? "导出 Excel" : "Export CSV"}
+                              {language === "zh"
+                                ? "导出已通过（CSV）"
+                                : "Export confirmed (CSV)"}
                             </button>
                           </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setRegistrationsTab("confirmed")}
+                            className={`px-3 py-2 rounded-lg text-sm border transition-colors ${
+                              registrationsTab === "confirmed"
+                                ? "bg-[#2B5F9E] border-[#2B5F9E] text-white"
+                                : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                            }`}
+                          >
+                            {language === "zh"
+                              ? `已通过 (${registrationsByBucket.confirmed.length})`
+                              : `Confirmed (${registrationsByBucket.confirmed.length})`}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setRegistrationsTab("pending")}
+                            className={`px-3 py-2 rounded-lg text-sm border transition-colors ${
+                              registrationsTab === "pending"
+                                ? "bg-[#EB8C3A] border-[#EB8C3A] text-white"
+                                : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                            }`}
+                          >
+                            {language === "zh"
+                              ? `待审核 (${registrationsByBucket.pending.length})`
+                              : `Pending (${registrationsByBucket.pending.length})`}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setRegistrationsTab("cancelled")}
+                            className={`px-3 py-2 rounded-lg text-sm border transition-colors ${
+                              registrationsTab === "cancelled"
+                                ? "bg-gray-700 border-gray-700 text-white"
+                                : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                            }`}
+                          >
+                            {language === "zh"
+                              ? `已取消 (${registrationsByBucket.cancelled.length})`
+                              : `Cancelled (${registrationsByBucket.cancelled.length})`}
+                          </button>
                         </div>
 
                         {regsLoading && (
@@ -1985,42 +2165,246 @@ export function AdminEvents() {
                                 : "No registrations yet"}
                             </p>
                           )}
-                        {!regsLoading && registrations.length > 0 && (
-                          <div className="space-y-2">
-                            {registrations.map((reg) => (
-                              <div
-                                key={reg.id}
-                                className="border border-gray-200 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
-                              >
-                                <div>
-                                  <p className="text-[#2B5F9E] font-medium">
-                                    {reg.name}
-                                  </p>
-                                  <p className="text-sm text-gray-600">
-                                    {language === "zh" ? "电话" : "Phone"}:{" "}
-                                    {reg.phone}
-                                    {reg.email ? ` · Email: ${reg.email}` : ""}
-                                  </p>
-                                  <p className="text-sm text-gray-600">
-                                    {language === "zh" ? "报名日期" : "Date"}:{" "}
-                                    {reg.registration_date}
-                                  </p>
-                                </div>
-                                <div className="text-sm text-gray-700">
-                                  <p>
-                                    {language === "zh" ? "票数" : "Tickets"}:{" "}
-                                    {reg.tickets}
-                                  </p>
-                                  <p>
-                                    {language === "zh" ? "付款方式" : "Payment"}
-                                    :{" "}
-                                    {getPaymentMethodLabel(reg.payment_method)}
-                                  </p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                        {!regsLoading &&
+                          !regsError &&
+                          registrations.length > 0 &&
+                          registrationsByBucket[registrationsTab].length ===
+                            0 && (
+                            <p className="text-gray-500">
+                              {registrationsTab === "confirmed"
+                                ? language === "zh"
+                                  ? "暂无已通过报名"
+                                  : "No confirmed registrations"
+                                : registrationsTab === "pending"
+                                  ? language === "zh"
+                                    ? "暂无待审核报名"
+                                    : "No pending registrations"
+                                  : language === "zh"
+                                    ? "暂无已取消/过期报名"
+                                    : "No cancelled registrations"}
+                            </p>
+                          )}
+
+                        {!regsLoading &&
+                          !regsError &&
+                          registrationsByBucket[registrationsTab].length >
+                            0 &&
+                          registrationsTab === "pending" && (
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                              {registrationsByBucket.pending.map((reg) => {
+                                const proofUrl =
+                                  getResolvedPaymentProofUrl(reg);
+                                const registrationDate =
+                                  reg.registration_date || reg.created_at;
+                                const isUpdating = Boolean(
+                                  paymentUpdates[reg.id]
+                                );
+                                const hasProofUrl = Boolean(proofUrl);
+                                return (
+                                  <div
+                                    key={reg.id}
+                                    className="border-2 border-gray-200 rounded-xl p-4 bg-white shadow-sm"
+                                  >
+                                    <div className="flex items-center justify-between">
+                                      <h3 className="text-lg font-semibold text-[#2B5F9E]">
+                                        {reg.name}
+                                      </h3>
+                                      <span className="text-xs px-2.5 py-1 rounded-full bg-yellow-100 text-yellow-700 font-medium">
+                                        {language === "zh"
+                                          ? "待审核"
+                                          : "Pending"}
+                                      </span>
+                                    </div>
+
+                                    <div className="mt-3 space-y-1 text-sm text-gray-600">
+                                      <p>
+                                        {language === "zh"
+                                          ? "电话"
+                                          : "Phone"}
+                                        : {reg.phone}
+                                      </p>
+                                      <p>
+                                        Email: {reg.email || "-"}
+                                      </p>
+                                      <p>
+                                        {language === "zh"
+                                          ? "票数"
+                                          : "Tickets"}
+                                        : {reg.tickets}
+                                      </p>
+                                      <p>
+                                        {language === "zh"
+                                          ? "付款方式"
+                                          : "Payment"}
+                                        :{" "}
+                                        {getPaymentMethodLabel(
+                                          reg.payment_method
+                                        )}
+                                      </p>
+                                      <p>
+                                        {language === "zh"
+                                          ? "报名日期"
+                                          : "Date"}
+                                        : {registrationDate}
+                                      </p>
+                                    </div>
+
+                                    <div className="mt-4">
+                                      <p className="text-sm text-gray-700 mb-2">
+                                        {language === "zh"
+                                          ? "收据/凭证"
+                                          : "Receipt / proof"}
+                                        :
+                                      </p>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          if (!proofUrl) return;
+                                          setLightboxImage({
+                                            url: proofUrl,
+                                            title:
+                                              language === "zh"
+                                                ? "支付凭证"
+                                                : "Payment proof",
+                                            subtitle: reg.name,
+                                          });
+                                        }}
+                                        disabled={!hasProofUrl}
+                                        className={`group relative w-full ${
+                                          hasProofUrl
+                                            ? ""
+                                            : "cursor-not-allowed"
+                                        }`}
+                                      >
+                                        {hasProofUrl ? (
+                                          <>
+                                            <img
+                                              src={proofUrl}
+                                              alt={
+                                                language === "zh"
+                                                  ? `${reg.name}的支付凭证`
+                                                  : `Payment proof from ${reg.name}`
+                                              }
+                                              className="w-full h-40 object-cover rounded-lg"
+                                              loading="lazy"
+                                            />
+                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                                              <ImageIcon className="w-8 h-8 text-white" />
+                                            </div>
+                                          </>
+                                        ) : (
+                                          <div className="w-full h-40 rounded-lg bg-gray-100 flex items-center justify-center text-sm text-gray-500">
+                                            {language === "zh"
+                                              ? "未上传"
+                                              : "Not uploaded"}
+                                          </div>
+                                        )}
+                                      </button>
+                                      <p className="mt-2 text-xs text-gray-500 text-center">
+                                        {language === "zh"
+                                          ? "点击图片放大查看"
+                                          : "Click image to enlarge"}
+                                      </p>
+                                    </div>
+
+                                    <div className="mt-4 flex gap-2">
+                                      <button
+                                        type="button"
+                                        disabled={isUpdating}
+                                        onClick={() =>
+                                          handlePaymentDecision(
+                                            reg.id,
+                                            "approve"
+                                          )
+                                        }
+                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-[#10B981] text-white rounded-lg hover:bg-[#059669] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                                      >
+                                        <CheckCircle className="w-4 h-4" />
+                                        <span>
+                                          {language === "zh"
+                                            ? "通过"
+                                            : "Approve"}
+                                        </span>
+                                      </button>
+                                      <button
+                                        type="button"
+                                        disabled={isUpdating}
+                                        onClick={() =>
+                                          handlePaymentDecision(
+                                            reg.id,
+                                            "reject"
+                                          )
+                                        }
+                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-[#EF4444] text-white rounded-lg hover:bg-[#DC2626] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                                      >
+                                        <XCircle className="w-4 h-4" />
+                                        <span>
+                                          {language === "zh"
+                                            ? "拒绝"
+                                            : "Reject"}
+                                        </span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+
+                        {!regsLoading &&
+                          !regsError &&
+                          registrationsByBucket[registrationsTab].length >
+                            0 &&
+                          registrationsTab !== "pending" && (
+                            <div className="space-y-2">
+                              {registrationsByBucket[registrationsTab].map(
+                                (reg) => (
+                                  <div
+                                    key={reg.id}
+                                    className="border border-gray-200 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+                                  >
+                                    <div>
+                                      <p className="text-[#2B5F9E] font-medium">
+                                        {reg.name}
+                                      </p>
+                                      <p className="text-sm text-gray-600">
+                                        {language === "zh"
+                                          ? "电话"
+                                          : "Phone"}
+                                        : {reg.phone}
+                                        {reg.email
+                                          ? ` · Email: ${reg.email}`
+                                          : ""}
+                                      </p>
+                                      <p className="text-sm text-gray-600">
+                                        {language === "zh"
+                                          ? "报名日期"
+                                          : "Date"}
+                                        : {reg.registration_date}
+                                      </p>
+                                    </div>
+                                    <div className="text-sm text-gray-700">
+                                      <p>
+                                        {language === "zh"
+                                          ? "票数"
+                                          : "Tickets"}
+                                        : {reg.tickets}
+                                      </p>
+                                      <p>
+                                        {language === "zh"
+                                          ? "付款方式"
+                                          : "Payment"}
+                                        :{" "}
+                                        {getPaymentMethodLabel(
+                                          reg.payment_method
+                                        )}
+                                      </p>
+                                    </div>
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          )}
                       </div>
                     </motion.div>
                   </motion.div>,
