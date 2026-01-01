@@ -6,20 +6,13 @@
 import { getCurrentFont } from "../config/fontConfig";
 
 /**
- * 动态导入字体 CSS 文件
- * 这个方法会在应用启动时被调用
+ * 字体 CSS 加载
+ *
+ * Vite 版本使用动态 import 加载 @fontsource CSS。
+ * Next.js 版本由 `src/pages/_app.tsx` 统一导入全局字体 CSS。
  */
 export function loadFonts() {
-  const currentFont = getCurrentFont();
-
-  // 动态导入所有需要的字体 CSS 文件
-  currentFont.cssImports.forEach((cssPath) => {
-    // 使用动态 import 加载字体 CSS
-    // 注意：这种方式在 Vite 中会正确处理 CSS 导入
-    import(/* @vite-ignore */ cssPath).catch((err) => {
-      console.warn(`Failed to load font CSS: ${cssPath}`, err);
-    });
-  });
+  // no-op in Next.js
 }
 
 /**

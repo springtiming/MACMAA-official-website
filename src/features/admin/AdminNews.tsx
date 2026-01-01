@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Search,
@@ -17,9 +17,8 @@ import {
   Minimize2,
 } from "lucide-react";
 import { createPortal } from "react-dom";
-import ReactQuill from "react-quill@2.0.0-beta.2";
-import type { ReactQuillProps } from "react-quill@2.0.0-beta.2";
-import "react-quill@2.0.0-beta.2/dist/quill.snow.css";
+import ReactQuill from "react-quill";
+import type { ReactQuillProps } from "react-quill";
 import { ImageUploadModal } from "@/components/ImageUploadModal";
 import { ProcessingOverlay } from "@/components/ProcessingOverlay";
 import { useProcessingFeedback } from "@/hooks/useProcessingFeedback";
@@ -49,7 +48,7 @@ import {
 
 export function AdminNews() {
   const { language, t } = useLanguage();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [newsList, setNewsList] = useState<NewsPostRecord[]>([]);
   const [draftList, setDraftList] = useState<ArticleVersionRecord[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -424,7 +423,7 @@ export function AdminNews() {
         >
           {/* Back Button */}
           <motion.button
-            onClick={() => navigate("/admin/dashboard")}
+            onClick={() => router.push("/admin/dashboard")}
             className="flex items-center gap-2 text-[#2B5F9E] hover:text-[#6BA868] transition-colors mb-4"
             whileHover={{ x: -4 }}
           >

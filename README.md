@@ -13,12 +13,11 @@
 - 活动中心与在线报名
 - 会员申请与管理
 - 现代化的响应式设计
-- 基于 Vite 的快速开发体验
+- 基于 Next.js 的路由与预渲染能力（更利于 SEO）
 
 ### 技术栈
 
-- **前端框架**: React 18 + TypeScript
-- **构建工具**: Vite
+- **前端框架**: Next.js（React 18）+ TypeScript
 - **样式方案**: Tailwind CSS
 - **动画库**: Framer Motion
 - **后端服务**: Supabase
@@ -30,8 +29,11 @@
 # 安装依赖
 npm install
 
-# 启动开发服务器
+# 启动前端开发服务器（Next.js）
 npm run dev
+
+# 如需本地同时运行 Vercel Functions（根目录 `api/*`），使用：
+npm run dev:api
 
 # 构建生产版本
 npm run build

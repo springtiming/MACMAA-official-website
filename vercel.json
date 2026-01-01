@@ -1,32 +1,7 @@
 {
-  "buildCommand": "npm run build",
+  "framework": "nextjs",
   "installCommand": "npm install",
-  "devCommand": "npm run dev",
-  "framework": "vite",
-  "rewrites": [
-    {
-      "source": "/api/unsplash/search",
-      "destination": "/api/unsplash?route=search"
-    },
-    {
-      "source": "/api/unsplash/random",
-      "destination": "/api/unsplash?route=random"
-    },
-    {
-      "source": "/api/:path*",
-      "destination": "/api/:path*"
-    },
-    {
-      "source": "/((?!api).*)",
-      "destination": "/index.html"
-    }
-  ]
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev"
 }
-
-
-
-
-
-
-
 

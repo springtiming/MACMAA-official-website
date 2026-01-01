@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Search,
@@ -37,7 +37,7 @@ const FILTER_OPTIONS: MemberFilter[] = [
 
 export function AdminMembers() {
   const { language, t } = useLanguage();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [members, setMembers] = useState<MemberRecord[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<MemberFilter>("all");
@@ -330,7 +330,7 @@ export function AdminMembers() {
           className="mb-8"
         >
           <motion.button
-            onClick={() => navigate("/admin/dashboard")}
+            onClick={() => router.push("/admin/dashboard")}
             className="flex items-center gap-2 text-[#2B5F9E] hover:text-[#6BA868] transition-colors mb-4"
             whileHover={{ x: -4 }}
           >

@@ -1,9 +1,12 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "motion/react";
 import { Target, Sparkles, Check } from "lucide-react";
-import businessCard from "figma:asset/2aee091727a5d832328a3b5cf9e2dcdf4f43542d.png";
-import wechatQRCode from "figma:asset/9c9d7d0442d12b5d716010d1dbb6304d01dcc148.png";
-import introVideo from "@/assets/6ef3d9c1c4c26200efb53bac0919ede0.mp4";
+
+const businessCardUrl =
+  "/assets/2aee091727a5d832328a3b5cf9e2dcdf4f43542d.png";
+const wechatQRCodeUrl =
+  "/assets/9c9d7d0442d12b5d716010d1dbb6304d01dcc148.png";
+const introVideoUrl = "/assets/6ef3d9c1c4c26200efb53bac0919ede0.mp4";
 
 export function About() {
   const { language, t } = useLanguage();
@@ -143,7 +146,7 @@ export function About() {
               <div className="relative aspect-video bg-black rounded-xl overflow-hidden shadow-xl">
                 <video
                   className="w-full h-full object-cover"
-                  src={introVideo}
+                  src={introVideoUrl}
                   controls
                   controlsList="nodownload"
                 >
@@ -186,7 +189,7 @@ export function About() {
 
             <div className="max-w-2xl mx-auto">
               <img
-                src={businessCard}
+                src={businessCardUrl}
                 alt="Ya Chen Business Card"
                 className="w-full h-auto rounded-lg shadow-xl"
               />
@@ -200,7 +203,7 @@ export function About() {
                 </h3>
                 <div className="flex justify-center">
                   <img
-                    src={wechatQRCode}
+                    src={wechatQRCodeUrl}
                     alt="WeChat QR Code"
                     className="w-48 h-48 sm:w-56 sm:h-56 rounded-lg shadow-lg"
                   />

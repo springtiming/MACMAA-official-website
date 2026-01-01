@@ -7,7 +7,8 @@ import {
   Twitter,
   Instagram,
 } from "lucide-react";
-import logo from "figma:asset/486cb6c21a188aae71ad06b3d541eb54ff86e307.png";
+
+const logoUrl = "/assets/486cb6c21a188aae71ad06b3d541eb54ff86e307.png";
 
 export function Footer() {
   const { t } = useLanguage();
@@ -20,7 +21,7 @@ export function Footer() {
           <div>
             <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
               <img
-                src={logo}
+                src={logoUrl}
                 alt="MACMAA Logo"
                 className="h-10 w-10 sm:h-12 sm:w-12 bg-white rounded-full p-1"
               />

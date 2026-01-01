@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/router";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "motion/react";
 import {
@@ -23,7 +23,7 @@ import {
 import { getCurrentAdmin, logout } from "@/lib/auth";
 
 export function AdminDashboard() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { language, t } = useLanguage();
   const [newsCount, setNewsCount] = useState(0);
   const [eventsCount, setEventsCount] = useState(0);
@@ -98,7 +98,7 @@ export function AdminDashboard() {
 
   const handleLogout = () => {
     logout();
-    navigate("/admin");
+    router.push("/admin");
   };
 
   const stats = [
@@ -296,7 +296,7 @@ export function AdminDashboard() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 + index * 0.1 }}
                     whileHover={{ scale: 1.02 }}
-                    onClick={() => section.path && navigate(section.path)}
+                    onClick={() => section.path && router.push(section.path)}
                     className="bg-white rounded-xl p-6 shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
                   >
                     <div

@@ -9,6 +9,7 @@ coverage/
 # Production
 build/
 dist/
+.next/
 
 # Misc
 .DS_Store
@@ -18,6 +19,7 @@ dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.tsbuildinfo
 
 # Local env files
 .env

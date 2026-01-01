@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/router";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -46,7 +46,7 @@ import { AdminConfirmDialog } from "@/components/AdminConfirmDialog";
 import { getCurrentAdmin } from "@/lib/auth";
 
 export function AdminAccounts() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { language, t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -204,7 +204,7 @@ export function AdminAccounts() {
             <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
-                onClick={() => navigate("/admin/dashboard")}
+                onClick={() => router.push("/admin/dashboard")}
                 className="gap-2"
               >
                 <ArrowLeft className="w-4 h-4" />

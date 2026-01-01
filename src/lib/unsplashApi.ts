@@ -28,14 +28,8 @@ async function requestUnsplash<T>(
   endpoint: "search" | "random",
   params: Record<string, string | number | undefined>
 ) {
-  const supabaseUrl =
-    typeof import.meta !== "undefined"
-      ? (import.meta.env.VITE_SUPABASE_URL as string | undefined)
-      : undefined;
-  const supabaseAnonKey =
-    typeof import.meta !== "undefined"
-      ? (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined)
-      : undefined;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? undefined;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? undefined;
 
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error("Missing Supabase env vars for Unsplash proxy");

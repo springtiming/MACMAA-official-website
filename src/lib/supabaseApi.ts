@@ -232,10 +232,7 @@ export async function fetchEventById(id: string) {
   return data;
 }
 
-const ADMIN_API_BASE =
-  typeof import.meta !== "undefined" && import.meta.env?.VITE_ADMIN_API_BASE
-    ? (import.meta.env.VITE_ADMIN_API_BASE as string)
-    : "/api";
+const ADMIN_API_BASE = process.env.NEXT_PUBLIC_ADMIN_API_BASE || "/api";
 
 function buildAdminApiUrl(path: string) {
   const normalizedBase = ADMIN_API_BASE.replace(/\/$/, "");
@@ -292,14 +289,8 @@ async function createAuthenticatedFetchInit(
 const PAYMENTS_API_BASE = buildAdminApiUrl("/payments");
 const ADMIN_ACCOUNTS_API_BASE = buildAdminApiUrl("/admin-accounts");
 const NOTIFICATIONS_API_BASE = buildAdminApiUrl("/notifications");
-const SUPABASE_URL =
-  typeof import.meta !== "undefined"
-    ? (import.meta.env.VITE_SUPABASE_URL as string)
-    : "";
-const SUPABASE_ANON_KEY =
-  typeof import.meta !== "undefined"
-    ? (import.meta.env.VITE_SUPABASE_ANON_KEY as string)
-    : "";
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 
 function ensureEdgeConfig() {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
@@ -496,9 +487,8 @@ export async function updateEventRegistrationPaymentStatus(payload: {
 
 const LOCAL_ADMIN_ACCOUNTS_KEY = "vmca.mockAdminAccounts";
 const ENABLE_MOCK_ADMIN_ACCOUNTS =
-  typeof import.meta !== "undefined" &&
-  Boolean(import.meta.env?.DEV) &&
-  String(import.meta.env?.VITE_ENABLE_MOCK_ADMIN_ACCOUNTS ?? "") === "true";
+  process.env.NODE_ENV !== "production" &&
+  String(process.env.NEXT_PUBLIC_ENABLE_MOCK_ADMIN_ACCOUNTS ?? "") === "true";
 const FALLBACK_ADMIN_ACCOUNTS: AdminAccountRecord[] = [
   {
     id: "mock-owner",

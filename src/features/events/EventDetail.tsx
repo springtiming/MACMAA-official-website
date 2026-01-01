@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import Link from "next/link";
+import { useRouter } from "next/router";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "motion/react";
 import { Calendar, MapPin, Users, DollarSign, ArrowLeft } from "lucide-react";
@@ -12,8 +13,9 @@ import {
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 
 export function EventDetail() {
-  const { id } = useParams();
-  const navigate = useNavigate();
+  const router = useRouter();
+  const idParam = router.query.id;
+  const id = Array.isArray(idParam) ? idParam[0] : idParam;
   const { language, t } = useLanguage();
   const [event, setEvent] = useState<EventRecord | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,7 +54,7 @@ export function EventDetail() {
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-12 text-center">
         <p className="text-gray-600">{error || "Event not found"}</p>
         <Link
-          to="/events"
+          href="/events"
           className="text-[#2B5F9E] hover:underline mt-4 inline-block"
         >
           {t("events.back")}
@@ -72,7 +74,7 @@ export function EventDetail() {
       >
         {/* Back Button */}
         <Link
-          to="/events"
+          href="/events"
           className="inline-flex items-center gap-2 text-[#2B5F9E] hover:underline mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -219,7 +221,7 @@ export function EventDetail() {
             </div>
           ) : (
             <motion.button
-              onClick={() => navigate(`/events/${event.id}/register`)}
+              onClick={() => router.push(`/events/${event.id}/register`)}
               className="px-8 py-3 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}

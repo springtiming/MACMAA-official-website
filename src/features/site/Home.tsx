@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "motion/react";
 import {
@@ -14,15 +14,20 @@ import {
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import { useState, useEffect, useMemo } from "react";
 import { ParallaxBackground } from "@/components/ParallaxBackground";
-import heroImage from "@/assets/hero.jpg";
-import groupPhoto from "figma:asset/4e1018159bf5b416cdd05a50c6634f65d81400fe.png";
-import consulPhoto from "figma:asset/02ce48a06b4eb30c56fbf30084752dbc46f6e5e8.png";
-import performancePhoto from "figma:asset/8ba07f20524fc73fdf6468451fb157940959f60e.png";
-import gatheringPhoto from "figma:asset/c47e6fc792d8b9f97dd68ae29a97bfa32594f251.png";
-import calligraphyPhoto from "figma:asset/928ec88ac46c7ad8c5c157f2f73842edb6fb5c04.png";
-import leadershipPhoto from "figma:asset/e64db2d9d10306a4e7b8be715dce92e0c0c49c49.png";
 
 const AUTO_SWITCH_DELAY = 4000;
+
+const heroImageUrl = "/assets/hero.jpg";
+const groupPhotoUrl = "/assets/4e1018159bf5b416cdd05a50c6634f65d81400fe.png";
+const consulPhotoUrl = "/assets/02ce48a06b4eb30c56fbf30084752dbc46f6e5e8.png";
+const performancePhotoUrl =
+  "/assets/8ba07f20524fc73fdf6468451fb157940959f60e.png";
+const gatheringPhotoUrl =
+  "/assets/c47e6fc792d8b9f97dd68ae29a97bfa32594f251.png";
+const calligraphyPhotoUrl =
+  "/assets/928ec88ac46c7ad8c5c157f2f73842edb6fb5c04.png";
+const leadershipPhotoUrl =
+  "/assets/e64db2d9d10306a4e7b8be715dce92e0c0c49c49.png";
 
 export function Home() {
   const { t, language } = useLanguage();
@@ -31,35 +36,35 @@ export function Home() {
   const activityImages = useMemo(
     () => [
       {
-        url: groupPhoto,
+        url: groupPhotoUrl,
         caption: language === "zh" ? "社区大合影" : "Community Group Photo",
       },
       {
-        url: consulPhoto,
+        url: consulPhotoUrl,
         caption:
           language === "zh"
             ? "中国驻墨尔本总领馆房新文总领事出席端午节活动"
             : "Consul General Fang Xinwen attended Dragon Boat Festival",
       },
       {
-        url: leadershipPhoto,
+        url: leadershipPhotoUrl,
         caption:
           language === "zh"
             ? "陈雅会长、Gabriel Ng MP议员与维州多元文化社区的理事团和会员合照"
             : "President Chen Ya, MP Gabriel Ng with Victorian multicultural community board and members",
       },
       {
-        url: performancePhoto,
+        url: performancePhotoUrl,
         caption:
           language === "zh" ? "会员太极演出" : "Member Tai Chi Performance",
       },
       {
-        url: gatheringPhoto,
+        url: gatheringPhotoUrl,
         caption:
           language === "zh" ? "社区节日聚会" : "Community Festival Gathering",
       },
       {
-        url: calligraphyPhoto,
+        url: calligraphyPhotoUrl,
         caption:
           language === "zh" ? "书法文化活动" : "Calligraphy Cultural Activity",
       },
@@ -176,7 +181,7 @@ export function Home() {
     <div>
       {/* Hero Section */}
       <ParallaxBackground
-        imageUrl={heroImage}
+        imageUrl={heroImageUrl}
         speed={0.3}
         overlay={true}
         overlayOpacity={0.85}
@@ -213,7 +218,7 @@ export function Home() {
                 transition={{ duration: 0.6, delay: 0.4 }}
                 className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4"
               >
-                <Link to="/news" className="w-full sm:w-auto">
+                <Link href="/news" className="w-full sm:w-auto">
                   <motion.button
                     className="w-full sm:w-auto px-6 sm:px-8 py-3 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors flex items-center justify-center gap-2"
                     whileHover={{ scale: 1.05 }}
@@ -223,7 +228,7 @@ export function Home() {
                     <ArrowRight className="w-4 h-4" />
                   </motion.button>
                 </Link>
-                <Link to="/membership" className="w-full sm:w-auto">
+                <Link href="/membership" className="w-full sm:w-auto">
                   <motion.button
                     className="w-full sm:w-auto px-6 sm:px-8 py-3 bg-white text-[#2B5F9E] rounded-lg border-2 border-[#2B5F9E] hover:bg-[#2B5F9E] hover:text-white transition-colors"
                     whileHover={{ scale: 1.05 }}
@@ -307,7 +312,7 @@ export function Home() {
           viewport={{ once: true }}
           className="text-center px-4"
         >
-          <Link to="/about">
+          <Link href="/about">
             <motion.button
               className="px-6 sm:px-8 py-3 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors inline-flex items-center gap-2"
               whileHover={{ scale: 1.05 }}

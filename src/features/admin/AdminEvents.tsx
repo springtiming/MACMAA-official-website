@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Search,
@@ -239,7 +239,7 @@ const isExternalProofUrl = (value: string) =>
 
 export function AdminEvents() {
   const { language, t } = useLanguage();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [events, setEvents] = useState<EventRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -797,7 +797,7 @@ export function AdminEvents() {
           className="mb-8"
         >
           <motion.button
-            onClick={() => navigate("/admin/dashboard")}
+            onClick={() => router.push("/admin/dashboard")}
             className="flex items-center gap-2 text-[#2B5F9E] hover:text-[#6BA868] transition-colors mb-4"
             whileHover={{ x: -4 }}
           >

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/router";
 import { isAuthenticated, getCurrentAdmin, hasRole } from "@/lib/auth";
 import type { ReactNode } from "react";
 
@@ -25,7 +25,7 @@ export function ProtectedRoute({
   requiredRole,
   ownerOnly = false,
 }: ProtectedRouteProps) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [isChecking, setIsChecking] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
 
@@ -33,25 +33,25 @@ export function ProtectedRoute({
     const checkAuth = async () => {
       // 检查是否已登录
       if (!isAuthenticated()) {
-        navigate("/admin");
+        router.replace("/admin");
         return;
       }
 
       const admin = getCurrentAdmin();
       if (!admin) {
-        navigate("/admin");
+        router.replace("/admin");
         return;
       }
 
       // 检查角色权限
       if (ownerOnly) {
         if (admin.role !== "owner") {
-          navigate("/admin");
+          router.replace("/admin");
           return;
         }
       } else if (requiredRole) {
         if (!hasRole(requiredRole)) {
-          navigate("/admin");
+          router.replace("/admin");
           return;
         }
       }
@@ -61,7 +61,7 @@ export function ProtectedRoute({
     };
 
     checkAuth();
-  }, [navigate, requiredRole, ownerOnly]);
+  }, [requiredRole, ownerOnly, router]);
 
   if (isChecking) {
     // 显示加载状态

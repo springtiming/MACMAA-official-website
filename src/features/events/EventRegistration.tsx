@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import Link from "next/link";
+import { useRouter } from "next/router";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -55,8 +56,11 @@ const clearMemberInfo = () => {
 };
 
 export function EventRegistration() {
-  const { id } = useParams();
-  const [searchParams] = useSearchParams();
+  const router = useRouter();
+  const idParam = router.query.id;
+  const id = Array.isArray(idParam) ? idParam[0] : idParam;
+  const statusParam = router.query.status;
+  const status = Array.isArray(statusParam) ? statusParam[0] : statusParam;
   const { language, t } = useLanguage();
   const [loadedEvent, setLoadedEvent] = useState<EventRecord | null>(null);
   const [loading, setLoading] = useState(true);
@@ -93,7 +97,8 @@ export function EventRegistration() {
 
   // Handle Stripe redirect: check URL status param and restore form data
   useEffect(() => {
-    if (searchParams.get("status") === "success") {
+    if (!router.isReady) return;
+    if (status === "success") {
       const saved = localStorage.getItem("pendingEventRegistration");
       if (saved) {
         try {
@@ -106,7 +111,7 @@ export function EventRegistration() {
       }
       setStep("success");
     }
-  }, [searchParams]);
+  }, [router.isReady, status]);
 
   useEffect(() => {
     if (!id) {
@@ -157,7 +162,7 @@ export function EventRegistration() {
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-12 text-center">
         <p className="text-gray-600">{loadError || "Event not found"}</p>
         <Link
-          to="/events"
+          href="/events"
           className="text-[#2B5F9E] hover:underline mt-4 inline-block"
         >
           {t("events.back")}
@@ -598,7 +603,7 @@ export function EventRegistration() {
               exit={{ opacity: 0, x: 20 }}
             >
               <Link
-                to={`/events/${loadedEvent.id}`}
+                href={`/events/${loadedEvent.id}`}
                 className="inline-flex items-center gap-2 text-[#2B5F9E] hover:underline mb-6"
               >
                 <ArrowLeft className="w-4 h-4" />
@@ -1629,7 +1634,7 @@ export function EventRegistration() {
                   </div>
                 </div>
 
-                <Link to="/events">
+                <Link href="/events">
                   <motion.button
                     className="px-8 py-3 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors"
                     whileHover={{ scale: 1.05 }}

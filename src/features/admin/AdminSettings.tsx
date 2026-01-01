@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/router";
 import { motion } from "motion/react";
 import {
   ArrowLeft,
@@ -25,7 +25,7 @@ import { useProcessingFeedback } from "@/hooks/useProcessingFeedback";
 
 export function AdminSettings() {
   const { t } = useLanguage();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const [successMessage, setSuccessMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -174,7 +174,7 @@ export function AdminSettings() {
         >
           {/* Back Button */}
           <motion.button
-            onClick={() => navigate("/admin/dashboard")}
+            onClick={() => router.push("/admin/dashboard")}
             className="flex items-center gap-2 text-[#2B5F9E] hover:text-[#6BA868] transition-colors mb-4"
             whileHover={{ x: -4 }}
           >

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { motion } from "motion/react";
 import { Calendar, MapPin, Users, DollarSign } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -227,7 +227,7 @@ export function EventList() {
                   </div>
 
                   {isPast ? (
-                    <Link to={`/events/${event.id}`} className="mt-auto">
+                    <Link href={`/events/${event.id}`} className="mt-auto">
                       <motion.button
                         className="w-full px-6 py-3 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition-colors"
                         whileHover={{ scale: 1.01 }}
@@ -237,7 +237,7 @@ export function EventList() {
                       </motion.button>
                     </Link>
                   ) : (
-                    <Link to={`/events/${event.id}`} className="mt-auto">
+                    <Link href={`/events/${event.id}`} className="mt-auto">
                       <motion.button
                         className="w-full px-6 py-3 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors"
                         whileHover={{ scale: 1.02 }}

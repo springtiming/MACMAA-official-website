@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "motion/react";
 import { Calendar, ArrowRight } from "lucide-react";
@@ -69,7 +69,7 @@ export function NewsList() {
               whileHover={{ y: -8 }}
             >
               <Link
-                to={`/news/${news.id}`}
+                href={`/news/${news.id}`}
                 className="block bg-white rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden h-full"
               >
                 <div className="aspect-video bg-gray-200 overflow-hidden">

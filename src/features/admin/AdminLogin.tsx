@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/router";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "motion/react";
 import { Lock, User } from "lucide-react";
-import logo from "figma:asset/486cb6c21a188aae71ad06b3d541eb54ff86e307.png";
 import { adminAuthLogin } from "@/lib/supabaseApi";
 import { setToken } from "@/lib/tokenStorage";
 import { isAuthenticated, setAdminUsername } from "@/lib/auth";
 
+const logoUrl = "/assets/486cb6c21a188aae71ad06b3d541eb54ff86e307.png";
+
 export function AdminLogin() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { language, t } = useLanguage();
   const [credentials, setCredentials] = useState({
     username: "",
@@ -20,9 +21,9 @@ export function AdminLogin() {
 
   useEffect(() => {
     if (isAuthenticated()) {
-      navigate("/admin/dashboard");
+      router.replace("/admin/dashboard");
     }
-  }, [navigate]);
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +49,7 @@ export function AdminLogin() {
       sessionStorage.setItem("adminAuth", "1");
       sessionStorage.setItem("adminId", response.admin.id);
       sessionStorage.setItem("adminRole", response.admin.role);
-      navigate("/admin/dashboard");
+      router.push("/admin/dashboard");
     } catch (err) {
       const message =
         (err as Error)?.message === "invalid-credentials"
@@ -79,7 +80,7 @@ export function AdminLogin() {
             transition={{ type: "spring", delay: 0.2 }}
             className="flex justify-center mb-4"
           >
-            <img src={logo} alt="MACMAA Logo" className="h-20 w-20" />
+            <img src={logoUrl} alt="MACMAA Logo" className="h-20 w-20" />
           </motion.div>
           <h1 className="text-[#2B5F9E] mb-2">{t("admin.login.title")}</h1>
           <p className="text-gray-600">MACMAA Management System</p>

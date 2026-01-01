@@ -1,14 +1,16 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import Link from "next/link";
+import { useRouter } from "next/router";
 import { useLanguage } from "../contexts/LanguageContext";
 import { motion } from "motion/react";
 import { Menu, X, Globe } from "lucide-react";
-import logo from "figma:asset/486cb6c21a188aae71ad06b3d541eb54ff86e307.png";
+
+const logoUrl = "/assets/486cb6c21a188aae71ad06b3d541eb54ff86e307.png";
 
 export function Header() {
   const { language, setLanguage, t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const location = useLocation();
+  const router = useRouter();
 
   const navItems = [
     { path: "/", label: t("nav.home") },
@@ -20,7 +22,7 @@ export function Header() {
   ];
 
   const isActive = (path: string) => {
-    return location.pathname === path;
+    return router.asPath.split("?")[0] === path;
   };
 
   return (
@@ -28,9 +30,9 @@ export function Header() {
       <nav className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-8">
         <div className="flex h-16 sm:h-20 items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 sm:gap-3">
+          <Link href="/" className="flex items-center gap-2 sm:gap-3">
             <img
-              src={logo}
+              src={logoUrl}
               alt="MACMAA Logo"
               className="h-12 w-12 sm:h-14 sm:w-14"
             />
@@ -42,7 +44,7 @@ export function Header() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6 lg:gap-8">
             {navItems.map((item) => (
-              <Link key={item.path} to={item.path} className="relative">
+              <Link key={item.path} href={item.path} className="relative">
                 <motion.span
                   className={`text-sm lg:text-base transition-colors ${
                     isActive(item.path)
@@ -104,7 +106,7 @@ export function Header() {
             {navItems.map((item) => (
               <Link
                 key={item.path}
-                to={item.path}
+                href={item.path}
                 onClick={() => setMobileMenuOpen(false)}
                 className={`block py-2.5 sm:py-3 px-3 sm:px-4 text-sm sm:text-base ${
                   isActive(item.path)

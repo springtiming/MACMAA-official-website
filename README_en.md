@@ -13,12 +13,11 @@ This is the official website project for Manningham Australian Chinese Mutual Ai
 - Event center with online registration
 - Membership application and management
 - Modern responsive design
-- Fast development experience with Vite
+- Next.js routing + pre-rendering (better for SEO)
 
 ### Tech Stack
 
-- **Frontend Framework**: React 18 + TypeScript
-- **Build Tool**: Vite
+- **Frontend Framework**: Next.js (React 18) + TypeScript
 - **Styling**: Tailwind CSS
 - **Animation**: Framer Motion
 - **Backend**: Supabase
@@ -30,8 +29,11 @@ This is the official website project for Manningham Australian Chinese Mutual Ai
 # Install dependencies
 npm install
 
-# Start development server
+# Start frontend dev server (Next.js)
 npm run dev
+
+# If you also need local Vercel Functions (root `api/*`), run:
+npm run dev:api
 
 # Build for production
 npm run build
@@ -52,4 +54,3 @@ These assets are included for portfolio demonstration only and are not licensed 
 ## Authorization
 
 This repository is published with the permission of Manningham Australian Chinese Mutual Aid Association for portfolio purposes only.
-

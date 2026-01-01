@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import Link from "next/link";
+import { useRouter } from "next/router";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "motion/react";
 import { Calendar, ArrowLeft, Share2 } from "lucide-react";
@@ -8,7 +9,9 @@ import { pickLocalized, resolveNewsCover } from "@/lib/supabaseHelpers";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 
 export function NewsDetail() {
-  const { id } = useParams();
+  const router = useRouter();
+  const idParam = router.query.id;
+  const id = Array.isArray(idParam) ? idParam[0] : idParam;
   const { language, t } = useLanguage();
   const [news, setNews] = useState<NewsPostRecord | null>(null);
   const [loading, setLoading] = useState(true);
@@ -83,7 +86,7 @@ export function NewsDetail() {
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-12 text-center">
         <p className="text-gray-600">{error || "News not found"}</p>
         <Link
-          to="/news"
+          href="/news"
           className="text-[#2B5F9E] hover:underline mt-4 inline-block"
         >
           {t("news.back")}
@@ -100,7 +103,7 @@ export function NewsDetail() {
       >
         {/* Back Button */}
         <Link
-          to="/news"
+          href="/news"
           className="inline-flex items-center gap-2 text-[#2B5F9E] hover:underline mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -175,7 +178,7 @@ export function NewsDetail() {
               ? "查看我们即将举办的精彩活动"
               : "Check out our upcoming exciting events"}
           </p>
-          <Link to="/events">
+          <Link href="/events">
             <motion.button
               className="px-6 py-2 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors"
               whileHover={{ scale: 1.05 }}

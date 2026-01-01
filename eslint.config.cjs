@@ -8,10 +8,17 @@ const globals = require('globals');
 
 module.exports = [
   {
-    ignores: ['dist/**', 'build/**', 'node_modules/**', 'docs_local/**'],
+    ignores: [
+      'dist/**',
+      'build/**',
+      '.next/**',
+      'node_modules/**',
+      'docs_local/**',
+      'next-env.d.ts',
+    ],
   },
   {
-    files: ['vite.config.ts', 'vitest.config.ts', 'api/**/*.ts', 'server/**/*.ts'],
+    files: ['vitest.config.ts', 'api/**/*.ts', 'server/**/*.ts'],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -27,13 +34,14 @@ module.exports = [
       globals: {
         ...globals.browser,
         ...globals.es2020,
+        process: 'readonly',
         React: 'readonly',
       },
       parser: typescriptParser,
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
-        project: ['./tsconfig.eslint.json', './tsconfig.node.json'],
+        project: ['./tsconfig.eslint.json'],
         tsconfigRootDir: __dirname,
         jsx: true,
       },
@@ -87,4 +95,3 @@ module.exports = [
     },
   },
 ];
-

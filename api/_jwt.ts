@@ -42,7 +42,7 @@ export function verifyToken(token: string): AdminTokenPayload | null {
   try {
     const decoded = jwt.verify(token, jwtSecret) as unknown;
     return decoded as AdminTokenPayload;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
