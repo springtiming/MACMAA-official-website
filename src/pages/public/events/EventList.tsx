@@ -263,7 +263,7 @@ export function EventList() {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >
-        <h1 className="text-[#2B5F9E] mb-3 sm:mb-4 text-3xl sm:text-4xl px-2">
+        <h1 className="text-[#2B5F9E] mb-3 sm:mb-4 text-3xl sm:text-4xl px-2" style={{ fontWeight: 700, fontFamily: '"SimSun", "宋体", serif' }}>
           {t("events.title")}
         </h1>
         {error && <p className="text-red-600 text-sm px-2">{error}</p>}

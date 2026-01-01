@@ -368,7 +368,7 @@ export function Membership() {
                 >
                   <Users className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
                 </motion.div>
-                <h1 className="text-[#2B5F9E] mb-3 sm:mb-4 text-3xl sm:text-4xl px-2">
+                <h1 className="text-[#2B5F9E] mb-3 sm:mb-4 text-3xl sm:text-4xl px-2" style={{ fontWeight: 700, fontFamily: '"SimSun", "宋体", serif' }}>
                   {t("membership.title")}
                 </h1>
                 <p className="text-gray-700 max-w-2xl mx-auto mb-2 text-sm sm:text-base px-4">

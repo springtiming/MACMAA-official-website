@@ -195,7 +195,7 @@ export function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
                 className="text-[#2B5F9E] mb-4 sm:mb-6 text-3xl sm:text-4xl md:text-5xl lg:text-6xl px-2"
-                style={{ fontWeight: 700 }}
+                style={{ fontWeight: 700, fontFamily: '"SimSun", "宋体", serif' }}
               >
                 {t("home.hero.title")}
               </motion.h1>
