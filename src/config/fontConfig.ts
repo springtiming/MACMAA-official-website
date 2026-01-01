@@ -153,12 +153,14 @@ export const CURRENT_FONT: keyof typeof AVAILABLE_FONTS = "interNotoSansSC";
 export const AVAILABLE_HEADING_FONTS: Record<string, HeadingFontConfig> = {
   simsun: {
     name: "宋体",
-    family: '"SimSun", "宋体", "Noto Serif SC", "Source Han Serif SC", serif',
+    family:
+      '"SimSun", "NSimSun", "Songti SC", "STSong", "Noto Serif SC", "Source Han Serif SC", serif',
     description: "经典中文宋体，适合正式标题",
   },
   notoSerifSC: {
     name: "Noto Serif SC",
-    family: '"Noto Serif SC", "Source Han Serif SC", "SimSun", serif',
+    family:
+      '"Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong", "SimSun", "NSimSun", serif',
     description: "Google 思源宋体，现代优雅",
   },
   inherit: {
@@ -172,7 +174,8 @@ export const AVAILABLE_HEADING_FONTS: Record<string, HeadingFontConfig> = {
  * 当前使用的标题字体
  * 修改此值即可切换标题字体
  */
-export const CURRENT_HEADING_FONT: keyof typeof AVAILABLE_HEADING_FONTS = "simsun";
+export const CURRENT_HEADING_FONT: keyof typeof AVAILABLE_HEADING_FONTS =
+  "notoSerifSC";
 
 /**
  * 获取当前字体配置

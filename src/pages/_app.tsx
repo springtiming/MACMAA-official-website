@@ -11,6 +11,7 @@ import { getFontFamilyCSS, getHeadingFontFamilyCSS } from "@/lib/fontLoader";
 import "../index.css";
 import "../styles/glass-buttons.css";
 import "../styles/tabs-custom.css";
+import "../styles/typography.css";
 
 import "@fontsource/inter/300.css";
 import "@fontsource/inter/400.css";
@@ -21,6 +22,11 @@ import "@fontsource/noto-sans-sc/300.css";
 import "@fontsource/noto-sans-sc/400.css";
 import "@fontsource/noto-sans-sc/500.css";
 import "@fontsource/noto-sans-sc/700.css";
+
+import "@fontsource/noto-serif-sc/chinese-simplified-600.css";
+import "@fontsource/noto-serif-sc/chinese-simplified-700.css";
+import "@fontsource/noto-serif-sc/latin-600.css";
+import "@fontsource/noto-serif-sc/latin-700.css";
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
@@ -59,4 +65,3 @@ export default function App({ Component, pageProps }: AppProps) {
     </LanguageProvider>
   );
 }
-

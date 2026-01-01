@@ -1,0 +1,15 @@
+:root {
+  --app-heading-font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC",
+    "STSong", "SimSun", "NSimSun", serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.font-heading {
+  font-family: var(--app-heading-font-family);
+}
+
