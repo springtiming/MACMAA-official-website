@@ -199,8 +199,7 @@ export function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
-                className="text-[#2B5F9E] mb-4 sm:mb-6 text-3xl sm:text-4xl md:text-5xl lg:text-6xl px-2"
-                style={{ fontWeight: 700, fontFamily: '"SimSun", "宋体", serif' }}
+                className="text-[#2B5F9E] mb-4 sm:mb-6 text-3xl sm:text-4xl md:text-5xl lg:text-6xl px-2 font-bold font-heading"
               >
                 {t("home.hero.title")}
               </motion.h1>
@@ -264,7 +263,7 @@ export function Home() {
           transition={{ duration: 0.6 }}
           className="text-center mb-8 sm:mb-12"
         >
-          <h2 className="text-[#2B5F9E] mb-3 sm:mb-4 text-2xl sm:text-3xl px-2">
+          <h2 className="text-[#2B5F9E] mb-3 sm:mb-4 text-2xl sm:text-3xl px-2 font-bold font-heading">
             {t("home.about.title")}
           </h2>
           <p className="text-gray-700 max-w-3xl mx-auto px-4 text-sm sm:text-base">
@@ -335,7 +334,7 @@ export function Home() {
             viewport={{ once: true }}
             className="bg-[#F5EFE6] rounded-2xl p-6 sm:p-8 md:p-12 shadow-lg mb-10 sm:mb-16"
           >
-            <h2 className="text-[#2B5F9E] mb-4 sm:mb-6 text-center text-2xl sm:text-3xl px-2">
+            <h2 className="text-[#2B5F9E] mb-4 sm:mb-6 text-center text-2xl sm:text-3xl px-2 font-bold font-heading">
               {t("home.weekly.title")}
             </h2>
             <p className="mb-2 text-gray-700 text-center text-sm sm:text-base px-2">
@@ -379,21 +378,6 @@ export function Home() {
                 </span>
               ))}
             </div>
-          </motion.div>
-
-          {/* Activity Images Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-6 sm:mb-8"
-          >
-            <h3 className="text-[#2B5F9E] mb-2 sm:mb-3 text-xl sm:text-2xl px-2">
-              {t("home.activities.title")}
-            </h3>
-            <p className="text-gray-700 mb-6 sm:mb-8 text-sm sm:text-base px-4">
-              {t("home.activities.desc")}
-            </p>
           </motion.div>
 
           {/* Activity Images Carousel */}

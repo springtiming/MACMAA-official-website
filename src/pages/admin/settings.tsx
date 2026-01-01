@@ -1,5 +1,6 @@
 import dynamic from "next/dynamic";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { SeoHead } from "@/components/seo/SeoHead";
 
 const AdminSettings = dynamic(
   () =>
@@ -9,8 +10,11 @@ const AdminSettings = dynamic(
 
 export default function AdminSettingsPage() {
   return (
-    <ProtectedRoute>
-      <AdminSettings />
-    </ProtectedRoute>
+    <>
+      <SeoHead title="账号设置" noindex nofollow />
+      <ProtectedRoute>
+        <AdminSettings />
+      </ProtectedRoute>
+    </>
   );
 }

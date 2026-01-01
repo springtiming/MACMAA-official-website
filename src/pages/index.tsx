@@ -1,6 +1,11 @@
 import { Home } from "@/features/site/Home";
+import { SeoHead } from "@/components/seo/SeoHead";
 
 export default function HomePage() {
-  return <Home />;
+  return (
+    <>
+      <SeoHead canonicalPath="/" title="澳洲万年市华人互助会" />
+      <Home />
+    </>
+  );
 }
-

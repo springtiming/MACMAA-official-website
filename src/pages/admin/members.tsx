@@ -1,5 +1,6 @@
 import dynamic from "next/dynamic";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { SeoHead } from "@/components/seo/SeoHead";
 
 const AdminMembers = dynamic(
   () => import("@/features/admin/AdminMembers").then((mod) => mod.AdminMembers),
@@ -8,8 +9,11 @@ const AdminMembers = dynamic(
 
 export default function AdminMembersPage() {
   return (
-    <ProtectedRoute>
-      <AdminMembers />
-    </ProtectedRoute>
+    <>
+      <SeoHead title="会员管理" noindex nofollow />
+      <ProtectedRoute>
+        <AdminMembers />
+      </ProtectedRoute>
+    </>
   );
 }

@@ -114,6 +114,8 @@ export function EventRegistration() {
   }, [router.isReady, status]);
 
   useEffect(() => {
+    // 等待 router 准备好，避免 hydration 过程中的闪烁
+    if (!router.isReady) return;
     if (!id) {
       setLoading(false);
       return;
@@ -139,7 +141,7 @@ export function EventRegistration() {
     return () => {
       active = false;
     };
-  }, [id, t]);
+  }, [router.isReady, id, t]);
 
   useEffect(() => {
     if (resendCooldown <= 0) return;

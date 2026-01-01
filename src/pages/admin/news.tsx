@@ -1,5 +1,6 @@
 import dynamic from "next/dynamic";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { SeoHead } from "@/components/seo/SeoHead";
 
 const AdminNews = dynamic(
   () => import("@/features/admin/AdminNews").then((mod) => mod.AdminNews),
@@ -8,8 +9,11 @@ const AdminNews = dynamic(
 
 export default function AdminNewsPage() {
   return (
-    <ProtectedRoute>
-      <AdminNews />
-    </ProtectedRoute>
+    <>
+      <SeoHead title="新闻管理" noindex nofollow />
+      <ProtectedRoute>
+        <AdminNews />
+      </ProtectedRoute>
+    </>
   );
 }
