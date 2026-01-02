@@ -1717,7 +1717,7 @@ export function AdminEvents() {
                       role="dialog"
                       aria-modal="true"
                     >
-                      <div className="bg-gradient-to-r from-[#EB8C3A] to-[#D3772A] text-white p-6 flex items-start justify-between">
+                      <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 flex items-start justify-between">
                         <div>
                           <h2 className="text-xl sm:text-2xl font-semibold">
                             {t("admin.events.reviewPayments.title")}
@@ -1898,7 +1898,7 @@ export function AdminEvents() {
                                               "approve"
                                             )
                                           }
-                                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-[#10B981] text-white rounded-lg hover:bg-[#059669] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                                         >
                                           <CheckCircle className="w-4 h-4" />
                                           <span>
@@ -1916,7 +1916,7 @@ export function AdminEvents() {
                                               "reject"
                                             )
                                           }
-                                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-[#EF4444] text-white rounded-lg hover:bg-[#DC2626] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                                         >
                                           <XCircle className="w-4 h-4" />
                                           <span>
@@ -1973,7 +1973,7 @@ export function AdminEvents() {
                       role="dialog"
                       aria-modal="true"
                     >
-                      <div className="bg-gradient-to-r from-[#EB8C3A] to-[#D3772A] text-white px-6 py-4 flex items-start justify-between">
+                      <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-4 flex items-start justify-between">
                         <div>
                           <h3 className="text-lg sm:text-xl font-semibold">
                             {lightboxImage.title}
