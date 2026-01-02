@@ -10,7 +10,7 @@ if (!supabaseUrl || !supabaseServiceRoleKey) {
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, PATCH, DELETE, OPTIONS",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
 };
@@ -20,7 +20,7 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  if (req.method !== "GET") {
+  if (req.method !== "GET" && req.method !== "PATCH" && req.method !== "DELETE") {
     return new Response("Method not allowed", {
       status: 405,
       headers: corsHeaders,
@@ -36,8 +36,101 @@ Deno.serve(async (req) => {
   }
 
   const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+  const url = new URL(req.url);
 
   try {
+    if (req.method === "DELETE") {
+      const id = url.searchParams.get("id");
+      if (!id) {
+        return new Response(JSON.stringify({ error: "Invalid id" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { error } = await supabase.from("members").delete().eq("id", id);
+      if (error) {
+        console.error("[members] delete", error);
+        return new Response(JSON.stringify({ error: "Failed to delete member" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(null, { status: 204, headers: corsHeaders });
+    }
+
+    if (req.method === "PATCH") {
+      let body: {
+        id?: string;
+        status?: "pending" | "approved" | "rejected";
+        expectedStatus?: "pending" | "approved" | "rejected";
+        expectedUpdatedAt?: string | null;
+      };
+
+      try {
+        body = await req.json();
+      } catch {
+        body = {};
+      }
+
+      const id = url.searchParams.get("id") ?? body?.id ?? null;
+      if (!id) {
+        return new Response(JSON.stringify({ error: "Invalid id" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const nextStatus = body?.status;
+      if (!nextStatus || !["pending", "approved", "rejected"].includes(nextStatus)) {
+        return new Response(JSON.stringify({ error: "Invalid status" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      let query = supabase
+        .from("members")
+        .update({
+          status: nextStatus,
+          handled_by: admin.id,
+        })
+        .eq("id", id);
+
+      if (body?.expectedStatus) {
+        query = query.eq("status", body.expectedStatus);
+      }
+      if (body?.expectedUpdatedAt) {
+        query = query.eq("updated_at", body.expectedUpdatedAt);
+      }
+
+      const { data, error } = await query
+        .select(
+          "id, chinese_name, english_name, gender, birthday, phone, email, address, emergency_name, emergency_phone, emergency_relation, apply_date, status, notes, handled_by, created_at, updated_at",
+        )
+        .single();
+
+      if (error) {
+        if (error.code === "PGRST116" || error.message?.includes("0 rows")) {
+          return new Response(JSON.stringify({ error: "Conflict" }), {
+            status: 409,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        console.error("[members] update", error);
+        return new Response(JSON.stringify({ error: "Failed to update member" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(JSON.stringify({ member: data }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { data, error } = await supabase
       .from("members")
       .select(

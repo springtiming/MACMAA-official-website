@@ -1898,7 +1898,7 @@ export function AdminEvents() {
                                               "approve"
                                             )
                                           }
-                                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-[#6BA868] text-white rounded-lg hover:bg-[#6BA868] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-[#6BA868] text-white rounded-lg hover:bg-[#5a9157] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                                         >
                                           <CheckCircle className="w-4 h-4" />
                                           <span>

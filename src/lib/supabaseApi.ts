@@ -878,8 +878,6 @@ export class ConcurrencyError extends Error {
   }
 }
 
-const MEMBERS_API_BASE = buildAdminApiUrl("/members");
-
 export async function fetchMembers() {
   const res = await callEdgeFunction("members", {
     headers: {
@@ -903,18 +901,20 @@ export async function updateMemberStatus(
     expectedUpdatedAt?: string | null;
   }
 ) {
-  const fetchInit = await createAuthenticatedFetchInit({
+  const params = new URLSearchParams({ id });
+  const res = await callEdgeFunction(`members?${params.toString()}`, {
     method: "PATCH",
     headers: {
+      "Content-Type": "application/json",
       Accept: "application/json",
     },
     body: JSON.stringify({
+      id,
       status,
       expectedStatus: options?.expectedStatus,
       expectedUpdatedAt: options?.expectedUpdatedAt,
     }),
   });
-  const res = await fetch(`${MEMBERS_API_BASE}/${id}`, fetchInit);
 
   if (res.status === 409) {
     throw new ConcurrencyError();
@@ -929,10 +929,10 @@ export async function updateMemberStatus(
 }
 
 export async function deleteMember(id: string) {
-  const fetchInit = await createAuthenticatedFetchInit({
+  const params = new URLSearchParams({ id });
+  const res = await callEdgeFunction(`members?${params.toString()}`, {
     method: "DELETE",
   });
-  const res = await fetch(`${MEMBERS_API_BASE}/${id}`, fetchInit);
 
   if (!res.ok && res.status !== 204) {
     throw new Error("Failed to delete member");
