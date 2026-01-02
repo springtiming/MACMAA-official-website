@@ -23,11 +23,12 @@ import "@fontsource/noto-sans-sc/400.css";
 import "@fontsource/noto-sans-sc/500.css";
 import "@fontsource/noto-sans-sc/700.css";
 
-// 使用 next/font 预加载标题字体，防止 FOUT (Flash of Unstyled Text)
+// 使用 next/font 预加载标题字体，减少因字体加载带来的闪烁/替换
+// Next.js 要求 preload 时声明 subsets；`Noto Serif SC` 仅提供 `latin`（中文仍按 unicode-range 加载）
 const notoSerifSC = Noto_Serif_SC({
-  weight: ["600", "700"],
   subsets: ["latin"],
-  display: "swap",
+  weight: ["600", "700"],
+  display: "optional",
   preload: true,
   variable: "--font-noto-serif-sc",
 });
