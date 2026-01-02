@@ -603,7 +603,7 @@ export function AdminMembers() {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
                 onClick={(e) => e.stopPropagation()}
-                className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden dlex flex-col"
+                className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col"
               >
                 <div className="sticky top-0 bg-gradient-to-r from-[#2B5F9E] to-[#6BA868] text-white p-6 rounded-t-2xl flex-shrink-0">
                   <div className="flex items-center justify-between">
@@ -666,24 +666,24 @@ export function AdminMembers() {
                       </span>
                     </div>
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-500">
-                          {t("admin.members.detail.emergency")}
+                      <div className="flex items-center justify-between pl-4">
+                        <span className="text-gray-500 text-sm">
+                          {t("admin.members.detail.chineseName")}
                         </span>
                         <span className="text-gray-900">
                           {selectedMember.emergency_name ?? "-"}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-500">
+                      <div className="flex items-center justify-between pl-4">
+                        <span className="text-gray-500 text-sm">
                           {t("admin.members.detail.emergencyPhone")}
                         </span>
                         <span className="text-gray-900">
                           {selectedMember.emergency_phone ?? "-"}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-500">
+                      <div className="flex items-center justify-between pl-4">
+                        <span className="text-gray-500 text-sm">
                           {t("admin.members.detail.emergencyRelation")}
                         </span>
                         <span className="text-gray-900">

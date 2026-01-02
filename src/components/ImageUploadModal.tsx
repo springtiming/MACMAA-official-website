@@ -19,7 +19,7 @@ export function ImageUploadModal({
   const { language } = useLanguage();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  const MAX_FILE_SIZE = 8 * 1024 * 1024; // 8MB
 
   // 当弹窗打开时，降低 Header 的 z-index
   useEffect(() => {
@@ -44,8 +44,8 @@ export function ImageUploadModal({
     if (file.size > MAX_FILE_SIZE) {
       window.alert(
         language === "zh"
-          ? "图片文件过大，请选择 5MB 以下的图片"
-          : "Image is too large, please select a file smaller than 5MB"
+          ? "图片文件过大，请选择 8MB 以下的图片"
+          : "Image is too large, please select a file smaller than 8MB"
       );
       return;
     }

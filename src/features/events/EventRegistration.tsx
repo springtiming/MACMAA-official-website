@@ -223,11 +223,11 @@ export function EventRegistration() {
       );
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > 8 * 1024 * 1024) {
       setUploadError(
         language === "zh"
-          ? "图片大小不能超过 5MB"
-          : "Image size must be less than 5MB"
+          ? "图片大小不能超过 8MB"
+          : "Image size must be less than 8MB"
       );
       return;
     }

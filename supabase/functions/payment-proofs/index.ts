@@ -8,7 +8,7 @@ if (!supabaseUrl || !supabaseServiceRoleKey) {
 }
 
 const BUCKET = "payment-proofs";
-const MAX_FILE_BYTES = 5 * 1024 * 1024;
+const MAX_FILE_BYTES = 8 * 1024 * 1024;
 const DEFAULT_SIGNED_URL_TTL = 60 * 60;
 const MAX_SIGNED_URL_TTL = 60 * 60 * 24;
 

@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(npm run build:*)",
-      "Bash(supabase functions deploy)"
+      "Bash(supabase functions deploy)",
+      "Bash(dir:*)",
+      "Bash(supabase functions deploy:*)",
+      "Bash(findstr:*)"
     ]
   }
 }
