@@ -1,8 +1,9 @@
 import { Head, Html, Main, NextScript } from "next/document";
-import { getFontFamilyCSS, getHeadingFontFamilyCSS } from "@/lib/fontLoader";
+import { getFontFamilyCSS } from "@/lib/fontLoader";
 
 export default function Document() {
-  const initialFontVars = `:root{--app-font-family:${getFontFamilyCSS()};--app-heading-font-family:${getHeadingFontFamilyCSS()};}`;
+  // 只设置正文字体，标题字体由 next/font 通过 CSS 变量注入
+  const initialFontVars = `:root{--app-font-family:${getFontFamilyCSS()};}`;
 
   return (
     <Html lang="zh">

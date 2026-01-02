@@ -2,6 +2,7 @@ import type { AppProps } from "next/app";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { AnimatePresence } from "motion/react";
+import { Noto_Serif_SC } from "next/font/google";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -22,10 +23,14 @@ import "@fontsource/noto-sans-sc/400.css";
 import "@fontsource/noto-sans-sc/500.css";
 import "@fontsource/noto-sans-sc/700.css";
 
-import "@fontsource/noto-serif-sc/chinese-simplified-600.css";
-import "@fontsource/noto-serif-sc/chinese-simplified-700.css";
-import "@fontsource/noto-serif-sc/latin-600.css";
-import "@fontsource/noto-serif-sc/latin-700.css";
+// 使用 next/font 预加载标题字体，防止 FOUT (Flash of Unstyled Text)
+const notoSerifSC = Noto_Serif_SC({
+  weight: ["600", "700"],
+  subsets: ["latin"],
+  display: "swap",
+  preload: true,
+  variable: "--font-noto-serif-sc",
+});
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
@@ -37,7 +42,7 @@ export default function App({ Component, pageProps }: AppProps) {
 
   return (
     <LanguageProvider>
-      <div className="flex flex-col min-h-screen">
+      <div className={`flex flex-col min-h-screen ${notoSerifSC.variable}`}>
         <Header />
         <main className="flex-1">
           <AnimatePresence mode="wait" initial={false}>
