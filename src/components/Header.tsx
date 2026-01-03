@@ -18,7 +18,6 @@ export function Header() {
     { path: "/news", label: t("nav.news") },
     { path: "/events", label: t("nav.events") },
     { path: "/membership", label: t("nav.membership") },
-    { path: "/admin", label: t("nav.admin") },
   ];
 
   const isActive = (path: string) => {

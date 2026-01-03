@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "motion/react";
+import * as XLSX from "xlsx";
 import {
   Search,
   Plus,
@@ -776,18 +777,12 @@ export function AdminEvents() {
       getPaymentMethodLabel(r.payment_method),
       r.registration_date,
     ]);
-    const csv = [header, ...rows]
-      .map((row) =>
-        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
-      )
-      .join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${activeRegEvent.title_en || activeRegEvent.title_zh}_registrations.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
+    const worksheetData = [header, ...rows];
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Registrations");
+    const fileName = `${activeRegEvent.title_en || activeRegEvent.title_zh}_registrations.xlsx`;
+    XLSX.writeFile(workbook, fileName);
   };
 
   const handleSave = async () => {
@@ -2108,8 +2103,8 @@ export function AdminEvents() {
                               className="px-4 py-2 rounded-lg bg-[#2B5F9E] text-white hover:bg-[#234a7e] disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               {language === "zh"
-                                ? "导出已通过（CSV）"
-                                : "Export confirmed (CSV)"}
+                                ? "导出已通过（Excel）"
+                                : "Export confirmed (Excel)"}
                             </button>
                           </div>
                         </div>

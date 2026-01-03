@@ -171,7 +171,7 @@ export function NewsDetail() {
         </div>
 
         {/* Related News or CTA */}
-        <div className="mt-12 p-6 bg-[#F5EFE6] rounded-2xl">
+        <div className="mt-12 p-6 bg-[#F5EFE6] rounded-2xl text-center">
           <h3 className="text-[#2B5F9E] mb-4">{t("nav.events")}</h3>
           <p className="text-gray-700 mb-4">
             {language === "zh"
