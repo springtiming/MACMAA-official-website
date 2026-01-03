@@ -2,10 +2,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "motion/react";
 import { Target, Sparkles, Check } from "lucide-react";
 
-const businessCardUrl =
-  "/assets/2aee091727a5d832328a3b5cf9e2dcdf4f43542d.png";
-const wechatQRCodeUrl =
-  "/assets/9c9d7d0442d12b5d716010d1dbb6304d01dcc148.png";
+const businessCardUrl = "/assets/2aee091727a5d832328a3b5cf9e2dcdf4f43542d.png";
+const wechatQRCodeUrl = "/assets/9c9d7d0442d12b5d716010d1dbb6304d01dcc148.png";
 const introVideoUrl = "/assets/6ef3d9c1c4c26200efb53bac0919ede0.mp4";
 
 export function About() {

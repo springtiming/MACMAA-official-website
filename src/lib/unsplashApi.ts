@@ -29,7 +29,8 @@ async function requestUnsplash<T>(
   params: Record<string, string | number | undefined>
 ) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? undefined;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? undefined;
+  const supabaseAnonKey =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? undefined;
 
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error("Missing Supabase env vars for Unsplash proxy");

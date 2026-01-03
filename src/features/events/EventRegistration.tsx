@@ -304,7 +304,9 @@ export function EventRegistration() {
   const STRIPE_FEE_FIXED = 0.3; // $0.30 AUD
   const totalWithFee =
     loadedEvent.fee > 0
-      ? Number(((finalFee + STRIPE_FEE_FIXED) / (1 - STRIPE_FEE_RATE)).toFixed(2))
+      ? Number(
+          ((finalFee + STRIPE_FEE_FIXED) / (1 - STRIPE_FEE_RATE)).toFixed(2)
+        )
       : 0;
   const stripeFee =
     loadedEvent.fee > 0 ? Number((totalWithFee - finalFee).toFixed(2)) : 0;

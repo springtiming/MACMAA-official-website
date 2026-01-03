@@ -9,7 +9,10 @@ export type AdminTokenPayload = {
 
 function decodeBase64Url(input: string): string {
   const base64 = input.replace(/-/g, "+").replace(/_/g, "/");
-  const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
+  const padded = base64.padEnd(
+    base64.length + ((4 - (base64.length % 4)) % 4),
+    "="
+  );
   return atob(padded);
 }
 
@@ -76,8 +79,4 @@ export function isTokenValid(): boolean {
   const bufferTime = 5 * 60; // 5分钟
   return payload.exp > now + bufferTime;
 }
-
-
-
-
 

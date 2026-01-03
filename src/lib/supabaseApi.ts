@@ -301,14 +301,16 @@ function ensureEdgeConfig() {
 async function callEdgeFunction(path: string, init?: RequestInit) {
   ensureEdgeConfig();
   const url = `${SUPABASE_URL.replace(/\/$/, "")}/functions/v1/${path}`;
-  
+
   // 获取token（如果存在）
-  const token = typeof window !== "undefined" 
-    ? (await import("./tokenStorage")).getToken()
-    : null;
+  const token =
+    typeof window !== "undefined"
+      ? (await import("./tokenStorage")).getToken()
+      : null;
 
   const providedHeaders = headersToRecord(init?.headers);
-  const providedAuth = providedHeaders.Authorization ?? providedHeaders.authorization;
+  const providedAuth =
+    providedHeaders.Authorization ?? providedHeaders.authorization;
   const headers: Record<string, string> = {
     apikey: SUPABASE_ANON_KEY,
     ...providedHeaders,
@@ -318,7 +320,7 @@ async function callEdgeFunction(path: string, init?: RequestInit) {
         ? `Bearer ${token}`
         : `Bearer ${SUPABASE_ANON_KEY}`,
   };
-  
+
   return fetch(url, { ...init, headers });
 }
 export async function adminAuthLogin(payload: {
@@ -566,7 +568,10 @@ export async function fetchAdminAccounts() {
     }
     return ENABLE_MOCK_ADMIN_ACCOUNTS ? getLocalAdminAccounts() : [];
   } catch (err) {
-    if ((err as Error)?.message === "unauthorized" || !ENABLE_MOCK_ADMIN_ACCOUNTS) {
+    if (
+      (err as Error)?.message === "unauthorized" ||
+      !ENABLE_MOCK_ADMIN_ACCOUNTS
+    ) {
       throw err;
     }
 
@@ -604,7 +609,10 @@ export async function createAdminAccount(payload: {
     const body = (await res.json()) as { account: AdminAccountRecord };
     return body.account;
   } catch (err) {
-    if ((err as Error)?.message === "unauthorized" || !ENABLE_MOCK_ADMIN_ACCOUNTS) {
+    if (
+      (err as Error)?.message === "unauthorized" ||
+      !ENABLE_MOCK_ADMIN_ACCOUNTS
+    ) {
       throw err;
     }
 
@@ -657,7 +665,10 @@ export async function updateAdminAccount(
     const body = (await res.json()) as { account: AdminAccountRecord };
     return body.account;
   } catch (err) {
-    if ((err as Error)?.message === "unauthorized" || !ENABLE_MOCK_ADMIN_ACCOUNTS) {
+    if (
+      (err as Error)?.message === "unauthorized" ||
+      !ENABLE_MOCK_ADMIN_ACCOUNTS
+    ) {
       throw err;
     }
 

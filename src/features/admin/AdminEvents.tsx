@@ -596,9 +596,12 @@ export function AdminEvents() {
     (reg: EventRegistrationRecord) => {
       const status = getPaymentStatus(reg);
       if (status === "confirmed") return "confirmed" as const;
-      if (status === "cancelled" || status === "expired") return "cancelled" as const;
+      if (status === "cancelled" || status === "expired")
+        return "cancelled" as const;
       if (status === "pending") return "pending" as const;
-      return isPaidActiveRegEvent ? ("pending" as const) : ("confirmed" as const);
+      return isPaidActiveRegEvent
+        ? ("pending" as const)
+        : ("confirmed" as const);
     },
     [getPaymentStatus, isPaidActiveRegEvent]
   );
@@ -1998,9 +2001,7 @@ export function AdminEvents() {
                         <img
                           src={lightboxImage.url}
                           alt={
-                            language === "zh"
-                              ? "支付凭证大图"
-                              : "Payment proof"
+                            language === "zh" ? "支付凭证大图" : "Payment proof"
                           }
                           className="max-w-full max-h-[calc(90vh-140px)] object-contain rounded-lg bg-white"
                         />
@@ -2013,7 +2014,9 @@ export function AdminEvents() {
                           rel="noreferrer"
                           className="px-4 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 transition-colors text-sm"
                         >
-                          {language === "zh" ? "在新窗口打开" : "Open in new tab"}
+                          {language === "zh"
+                            ? "在新窗口打开"
+                            : "Open in new tab"}
                         </a>
                         <button
                           type="button"
@@ -2080,21 +2083,28 @@ export function AdminEvents() {
                             {language === "zh" ? (
                               <>
                                 已通过：{registrationsByBucket.confirmed.length}
-                                {" · "}待审核：{registrationsByBucket.pending.length}
-                                {" · "}已取消：{registrationsByBucket.cancelled.length}
+                                {" · "}待审核：
+                                {registrationsByBucket.pending.length}
+                                {" · "}已取消：
+                                {registrationsByBucket.cancelled.length}
                               </>
                             ) : (
                               <>
-                                Confirmed: {registrationsByBucket.confirmed.length}
-                                {" · "}Pending: {registrationsByBucket.pending.length}
-                                {" · "}Cancelled: {registrationsByBucket.cancelled.length}
+                                Confirmed:{" "}
+                                {registrationsByBucket.confirmed.length}
+                                {" · "}Pending:{" "}
+                                {registrationsByBucket.pending.length}
+                                {" · "}Cancelled:{" "}
+                                {registrationsByBucket.cancelled.length}
                               </>
                             )}
                           </div>
                           <div className="flex gap-2">
                             <button
                               onClick={exportRegistrations}
-                              disabled={registrationsByBucket.confirmed.length === 0}
+                              disabled={
+                                registrationsByBucket.confirmed.length === 0
+                              }
                               className="px-4 py-2 rounded-lg bg-[#2B5F9E] text-white hover:bg-[#234a7e] disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               {language === "zh"
@@ -2187,8 +2197,7 @@ export function AdminEvents() {
 
                         {!regsLoading &&
                           !regsError &&
-                          registrationsByBucket[registrationsTab].length >
-                            0 &&
+                          registrationsByBucket[registrationsTab].length > 0 &&
                           registrationsTab === "pending" && (
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                               {registrationsByBucket.pending.map((reg) => {
@@ -2218,18 +2227,12 @@ export function AdminEvents() {
 
                                     <div className="mt-3 space-y-1 text-sm text-gray-600">
                                       <p>
-                                        {language === "zh"
-                                          ? "电话"
-                                          : "Phone"}
-                                        : {reg.phone}
+                                        {language === "zh" ? "电话" : "Phone"}:{" "}
+                                        {reg.phone}
                                       </p>
+                                      <p>Email: {reg.email || "-"}</p>
                                       <p>
-                                        Email: {reg.email || "-"}
-                                      </p>
-                                      <p>
-                                        {language === "zh"
-                                          ? "票数"
-                                          : "Tickets"}
+                                        {language === "zh" ? "票数" : "Tickets"}
                                         : {reg.tickets}
                                       </p>
                                       <p>
@@ -2353,8 +2356,7 @@ export function AdminEvents() {
 
                         {!regsLoading &&
                           !regsError &&
-                          registrationsByBucket[registrationsTab].length >
-                            0 &&
+                          registrationsByBucket[registrationsTab].length > 0 &&
                           registrationsTab !== "pending" && (
                             <div className="space-y-2">
                               {registrationsByBucket[registrationsTab].map(
@@ -2368,10 +2370,8 @@ export function AdminEvents() {
                                         {reg.name}
                                       </p>
                                       <p className="text-sm text-gray-600">
-                                        {language === "zh"
-                                          ? "电话"
-                                          : "Phone"}
-                                        : {reg.phone}
+                                        {language === "zh" ? "电话" : "Phone"}:{" "}
+                                        {reg.phone}
                                         {reg.email
                                           ? ` · Email: ${reg.email}`
                                           : ""}
@@ -2385,9 +2385,7 @@ export function AdminEvents() {
                                     </div>
                                     <div className="text-sm text-gray-700">
                                       <p>
-                                        {language === "zh"
-                                          ? "票数"
-                                          : "Tickets"}
+                                        {language === "zh" ? "票数" : "Tickets"}
                                         : {reg.tickets}
                                       </p>
                                       <p>

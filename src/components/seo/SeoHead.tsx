@@ -47,7 +47,10 @@ export function SeoHead({
     (ogImage ?? site.defaultOgImage).trim() || site.defaultOgImage
   );
 
-  const robots = [noindex ? "noindex" : "index", nofollow ? "nofollow" : "follow"]
+  const robots = [
+    noindex ? "noindex" : "index",
+    nofollow ? "nofollow" : "follow",
+  ]
     .filter(Boolean)
     .join(",");
 
@@ -73,4 +76,3 @@ export function SeoHead({
     </Head>
   );
 }
-
