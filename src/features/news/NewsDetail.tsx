@@ -171,16 +171,15 @@ export function NewsDetail() {
         </div>
 
         {/* Related News or CTA */}
-        <div className="mt-12 p-6 bg-[#F5EFE6] rounded-2xl text-center">
-          <h3 className="text-[#2B5F9E] mb-4">{t("nav.events")}</h3>
-          <p className="text-gray-700 mb-4">
+        <div className="mt-12 py-10 px-6 bg-[#F5EFE6] rounded-2xl text-center">
+          <p className="text-gray-700 text-lg mb-6">
             {language === "zh"
               ? "查看我们即将举办的精彩活动"
               : "Check out our upcoming exciting events"}
           </p>
           <Link href="/events">
             <motion.button
-              className="px-6 py-2 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors"
+              className="px-8 py-3 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >

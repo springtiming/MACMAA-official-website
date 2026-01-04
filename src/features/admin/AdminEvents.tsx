@@ -2103,8 +2103,8 @@ export function AdminEvents() {
                               className="px-4 py-2 rounded-lg bg-[#2B5F9E] text-white hover:bg-[#234a7e] disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               {language === "zh"
-                                ? "导出已通过（Excel）"
-                                : "Export confirmed (Excel)"}
+                                ? "导出已通过申请"
+                                : "Export Approved"}
                             </button>
                           </div>
                         </div>
