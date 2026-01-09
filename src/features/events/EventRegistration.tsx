@@ -23,6 +23,11 @@ import {
   type EventRecord,
 } from "@/lib/supabaseApi";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
+import {
+  calculateMemberPricing,
+  calculateStripeFee,
+  calculateTotalWithStripeFee,
+} from "@/lib/memberPricing";
 
 type PaymentMethod = "card" | "cash" | "transfer" | null;
 type TransferMethod = "payid" | "traditional" | null;
@@ -285,31 +290,30 @@ export function EventRegistration() {
     }
   };
 
-  const memberFee = loadedEvent.member_fee ?? loadedEvent.fee;
-  const hasMemberDiscount =
-    loadedEvent.fee > 0 &&
-    loadedEvent.member_fee != null &&
-    Number(loadedEvent.member_fee) < Number(loadedEvent.fee);
-  const finalFee =
-    hasMemberDiscount && memberInfo
-      ? Number(memberFee)
-      : Number(loadedEvent.fee);
-  const savings = hasMemberDiscount
-    ? Number(loadedEvent.fee) - Number(memberFee)
-    : 0;
+  // 使用纯函数计算会员优惠价格
+  const tickets = Number(formData.participants) || 1;
+  const pricing = calculateMemberPricing({
+    regularPrice: Number(loadedEvent.fee) || 0,
+    memberPrice: loadedEvent.member_fee,
+    tickets,
+    isMemberVerified: !!memberInfo,
+  });
 
-  // Stripe 手续费计算：逆向计算确保协会收到原价
-  // 公式：totalWithFee = (原价 + 固定费) / (1 - 费率)
-  const STRIPE_FEE_RATE = 0.017; // 1.7%
-  const STRIPE_FEE_FIXED = 0.3; // $0.30 AUD
+  const {
+    totalFee,
+    hasMemberDiscount,
+    memberDiscountApplied,
+    savings,
+  } = pricing;
+
+  // 保持向后兼容的 memberFee 变量
+  const memberFee = loadedEvent.member_fee ?? loadedEvent.fee;
+
+  // Stripe 手续费计算
   const totalWithFee =
-    loadedEvent.fee > 0
-      ? Number(
-          ((finalFee + STRIPE_FEE_FIXED) / (1 - STRIPE_FEE_RATE)).toFixed(2)
-        )
-      : 0;
+    loadedEvent.fee > 0 ? calculateTotalWithStripeFee(totalFee) : 0;
   const stripeFee =
-    loadedEvent.fee > 0 ? Number((totalWithFee - finalFee).toFixed(2)) : 0;
+    loadedEvent.fee > 0 ? calculateStripeFee(totalFee) : 0;
 
   const resetMemberVerification = () => {
     setMemberEmail("");
@@ -740,10 +744,10 @@ export function EventRegistration() {
                 <p className="text-gray-600 mb-6">
                   {language === "zh"
                     ? `活动费用：${
-                        loadedEvent.fee === 0 ? "免费" : `$${finalFee} AUD`
+                        loadedEvent.fee === 0 ? "免费" : `$${totalFee} AUD`
                       }`
                     : `Event fee: ${
-                        loadedEvent.fee === 0 ? "Free" : `$${finalFee} AUD`
+                        loadedEvent.fee === 0 ? "Free" : `$${totalFee} AUD`
                       }`}
                 </p>
 
@@ -753,11 +757,22 @@ export function EventRegistration() {
                       {t("register.member.amountToPay")}
                     </p>
                     <p className="text-3xl font-bold text-[#2B5F9E]">
-                      ${finalFee} AUD
+                      ${totalFee} AUD
                     </p>
-                    {hasMemberDiscount && memberInfo && (
+                    {tickets > 1 && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        {language === "zh"
+                          ? `${tickets} 张票`
+                          : `${tickets} ticket${tickets > 1 ? "s" : ""}`}
+                      </p>
+                    )}
+                    {memberDiscountApplied && (
                       <p className="text-xs text-green-600 mt-1">
-                        {t("register.member.discountApplied")}
+                        {tickets > 1
+                          ? language === "zh"
+                            ? `会员优惠已应用（1张票享受会员价，节省 $${savings}）`
+                            : `Member discount applied (1 ticket at member price, save $${savings})`
+                          : t("register.member.discountApplied")}
                       </p>
                     )}
                   </div>
@@ -811,6 +826,11 @@ export function EventRegistration() {
                             <div className="text-right">
                               <p className="text-xs text-gray-500 mb-1">
                                 {t("register.member.memberPrice")}
+                                {tickets > 1 && (
+                                  <span className="text-orange-500 ml-1">
+                                    {language === "zh" ? "(仅限1张)" : "(1 ticket only)"}
+                                  </span>
+                                )}
                               </p>
                               <p className="text-2xl font-bold text-green-600">
                                 ${memberFee} AUD
@@ -824,6 +844,13 @@ export function EventRegistration() {
                                   ? `您节省了 $${savings}`
                                   : `You save $${savings}`}
                               </p>
+                              {tickets > 1 && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {language === "zh"
+                                    ? `总计: 1×$${memberFee} + ${tickets - 1}×$${loadedEvent.fee} = $${totalFee}`
+                                    : `Total: 1×$${memberFee} + ${tickets - 1}×$${loadedEvent.fee} = $${totalFee}`}
+                                </p>
+                              )}
                             </div>
                           )}
                         </div>
@@ -870,6 +897,11 @@ export function EventRegistration() {
                                       ? `省 $${savings}`
                                       : `Save $${savings}`}
                                   </span>
+                                </p>
+                                <p className="text-xs text-orange-500">
+                                  {language === "zh"
+                                    ? "* 会员优惠仅限1张票"
+                                    : "* Member price applies to 1 ticket only"}
                                 </p>
                               </div>
                             </label>
@@ -1048,9 +1080,10 @@ export function EventRegistration() {
                             <div className="flex items-center justify-between">
                               <span className="text-sm text-gray-600">
                                 {language === "zh" ? "活动费用" : "Event Fee"}
+                                {tickets > 1 && ` (${tickets} ${language === "zh" ? "张票" : "tickets"})`}
                               </span>
                               <span className="text-sm font-medium text-gray-800">
-                                ${finalFee.toFixed(2)} AUD
+                                ${totalFee.toFixed(2)} AUD
                               </span>
                             </div>
                             <div className="flex items-center justify-between">
@@ -1063,10 +1096,14 @@ export function EventRegistration() {
                                 ${stripeFee.toFixed(2)} AUD
                               </span>
                             </div>
-                            {hasMemberDiscount && memberInfo && (
+                            {memberDiscountApplied && (
                               <div className="pt-1">
                                 <p className="text-xs text-green-600">
-                                  {t("register.member.discountApplied")}
+                                  {tickets > 1
+                                    ? language === "zh"
+                                      ? `会员优惠已应用（1张票享受会员价，节省 $${savings}）`
+                                      : `Member discount applied (1 ticket at member price, save $${savings})`
+                                    : t("register.member.discountApplied")}
                                 </p>
                               </div>
                             )}
@@ -1231,14 +1268,14 @@ export function EventRegistration() {
                                       {t("register.payment.amount")}
                                     </p>
                                     <p className="text-lg text-[#EB8C3A]">
-                                      ${finalFee} AUD
+                                      ${totalFee} AUD
                                     </p>
                                   </div>
                                   <button
                                     type="button"
                                     onClick={() =>
                                       handleCopyToClipboard(
-                                        String(finalFee),
+                                        String(totalFee),
                                         "amount"
                                       )
                                     }
@@ -1357,14 +1394,14 @@ export function EventRegistration() {
                                       {t("register.payment.amount")}
                                     </p>
                                     <p className="text-lg text-[#EB8C3A]">
-                                      ${finalFee} AUD
+                                      ${totalFee} AUD
                                     </p>
                                   </div>
                                   <button
                                     type="button"
                                     onClick={() =>
                                       handleCopyToClipboard(
-                                        String(finalFee),
+                                        String(totalFee),
                                         "amount"
                                       )
                                     }
@@ -1395,15 +1432,20 @@ export function EventRegistration() {
                                     {language === "zh"
                                       ? "活动费用"
                                       : "Event Fee"}
+                                    {tickets > 1 && ` (${tickets} ${language === "zh" ? "张票" : "tickets"})`}
                                   </span>
                                   <span className="text-sm font-medium text-gray-800">
-                                    ${finalFee.toFixed(2)} AUD
+                                    ${totalFee.toFixed(2)} AUD
                                   </span>
                                 </div>
-                                {hasMemberDiscount && memberInfo && (
+                                {memberDiscountApplied && (
                                   <div className="pt-1">
                                     <p className="text-xs text-green-600">
-                                      {t("register.member.discountApplied")}
+                                      {tickets > 1
+                                        ? language === "zh"
+                                          ? `会员优惠已应用（1张票享受会员价，节省 $${savings}）`
+                                          : `Member discount applied (1 ticket at member price, save $${savings})`
+                                        : t("register.member.discountApplied")}
                                     </p>
                                   </div>
                                 )}
@@ -1413,7 +1455,7 @@ export function EventRegistration() {
                                       {language === "zh" ? "总计" : "Total"}
                                     </span>
                                     <span className="text-xl font-bold text-[#EB8C3A]">
-                                      ${finalFee.toFixed(2)} AUD
+                                      ${totalFee.toFixed(2)} AUD
                                     </span>
                                   </div>
                                 </div>

@@ -1,12 +1,13 @@
 import type { AppProps } from "next/app";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence } from "motion/react";
 import { Noto_Serif_SC } from "next/font/google";
-import { LanguageProvider } from "@/contexts/LanguageContext";
+import { LanguageProvider, useLanguage } from "@/contexts/LanguageContext";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 
 import "../index.css";
 import "../styles/glass-buttons.css";
@@ -33,8 +34,14 @@ const notoSerifSC = Noto_Serif_SC({
   variable: "--font-noto-serif-sc",
 });
 
-export default function App({ Component, pageProps }: AppProps) {
+/**
+ * 应用内部内容组件
+ * 需要在 LanguageProvider 内部才能使用 useLanguage
+ */
+function AppContent({ Component, pageProps }: AppProps) {
   const router = useRouter();
+  const { language } = useLanguage();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -42,7 +49,16 @@ export default function App({ Component, pageProps }: AppProps) {
   }, [router.asPath]);
 
   return (
-    <LanguageProvider>
+    <>
+      {/* 初始加载动画 */}
+      {isLoading && (
+        <LoadingScreen
+          language={language}
+          onLoadComplete={() => setIsLoading(false)}
+        />
+      )}
+
+      {/* 主内容 */}
       <div className={`flex flex-col min-h-screen ${notoSerifSC.variable}`}>
         <Header />
         <main className="flex-1">
@@ -54,6 +70,14 @@ export default function App({ Component, pageProps }: AppProps) {
         </main>
         <Footer />
       </div>
+    </>
+  );
+}
+
+export default function App(props: AppProps) {
+  return (
+    <LanguageProvider>
+      <AppContent {...props} />
     </LanguageProvider>
   );
 }
