@@ -2,6 +2,7 @@
   --font-weight-bold: 700;
 }
 
+/* 标题字体 - 使用霞鹜文楷 */
 h1,
 h2,
 h3,
@@ -10,14 +11,7 @@ h5,
 h6,
 .font-heading,
 [data-slot$="title"] {
-  font-family: var(
-    --app-heading-font-family,
-    "LXGW WenKai",
-    "霞鹜文楷",
-    "Noto Serif SC",
-    "Source Han Serif SC",
-    serif
-  );
+  font-family: "LXGW WenKai", "霞鹜文楷", "Noto Serif SC", "Source Han Serif SC", serif !important;
 }
 
 .font-bold {

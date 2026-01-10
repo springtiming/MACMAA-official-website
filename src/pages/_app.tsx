@@ -1,6 +1,6 @@
 import type { AppProps } from "next/app";
 import { useRouter } from "next/router";
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { AnimatePresence } from "motion/react";
 import { LanguageProvider, useLanguage } from "@/contexts/LanguageContext";
 import { Header } from "@/components/Header";
@@ -29,6 +29,24 @@ import "lxgw-wenkai-webfont/style.css";
 // 需要预加载的关键图片（首页 hero 背景等）
 const PRELOAD_IMAGES = ["/assets/hero.jpg"];
 
+function preloadImage(src: string): Promise<void> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.src = src;
+
+    if (typeof img.decode === "function") {
+      img
+        .decode()
+        .catch(() => {})
+        .finally(() => resolve());
+      return;
+    }
+
+    img.onload = () => resolve();
+    img.onerror = () => resolve();
+  });
+}
+
 /**
  * 应用内部内容组件
  * 需要在 LanguageProvider 内部才能使用 useLanguage
@@ -40,18 +58,7 @@ function AppContent({ Component, pageProps }: AppProps) {
   // 仅首次访问时显示加载动画（使用 sessionStorage 记录）
   // 初始状态设为 true，避免 SSR 和客户端 hydration mismatch
   const [isLoading, setIsLoading] = useState(true);
-  const imagesPreloadedRef = useRef(false);
-  const animationCompleteRef = useRef(false);
-
-  // 检查是否可以结束加载
-  const tryFinishLoading = useCallback(() => {
-    if (imagesPreloadedRef.current && animationCompleteRef.current) {
-      if (typeof window !== "undefined") {
-        sessionStorage.setItem("hasVisited", "true");
-      }
-      setIsLoading(false);
-    }
-  }, []);
+  const [loadingProgress, setLoadingProgress] = useState(0);
 
   // 在客户端挂载后检查是否已访问过，并预加载关键图片
   useEffect(() => {
@@ -63,25 +70,37 @@ function AppContent({ Component, pageProps }: AppProps) {
       return;
     }
 
-    // 预加载关键图片
-    let loadedCount = 0;
-    PRELOAD_IMAGES.forEach((src) => {
-      const img = new Image();
-      img.src = src;
-      img.onload = img.onerror = () => {
-        loadedCount++;
-        if (loadedCount >= PRELOAD_IMAGES.length) {
-          imagesPreloadedRef.current = true;
-          tryFinishLoading();
-        }
-      };
-    });
-  }, [tryFinishLoading]);
+    let cancelled = false;
+
+    // 进度条：快速到 50%，然后放缓，最多到 90% 等待关键资源加载完成。
+    const interval = window.setInterval(() => {
+      setLoadingProgress((prev) => {
+        if (prev >= 90) return prev;
+        const increment = prev < 50 ? Math.random() * 15 : Math.random() * 5;
+        return Math.min(prev + increment, 90);
+      });
+    }, 150);
+
+    Promise.all(PRELOAD_IMAGES.map(preloadImage))
+      .catch(() => {})
+      .finally(() => {
+        if (cancelled) return;
+        window.clearInterval(interval);
+        setLoadingProgress(100);
+      });
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, []);
 
   const handleLoadComplete = useCallback(() => {
-    animationCompleteRef.current = true;
-    tryFinishLoading();
-  }, [tryFinishLoading]);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("hasVisited", "true");
+    }
+    setIsLoading(false);
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -91,7 +110,11 @@ function AppContent({ Component, pageProps }: AppProps) {
   // 条件渲染：加载动画完全覆盖屏幕，不显示 Header/Footer
   if (isLoading) {
     return (
-      <LoadingScreen language={language} onLoadComplete={handleLoadComplete} />
+      <LoadingScreen
+        language={language}
+        progress={loadingProgress}
+        onLoadComplete={handleLoadComplete}
+      />
     );
   }
 
