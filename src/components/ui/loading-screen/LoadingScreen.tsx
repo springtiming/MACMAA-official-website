@@ -1,6 +1,5 @@
 import { motion, AnimatePresence } from "motion/react";
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 import { InkBackground } from "./InkBackground";
 import { RippleRings } from "./RippleRings";
 import { BrandLogo } from "./BrandLogo";
@@ -41,15 +40,9 @@ export function LoadingScreen({
 }: LoadingScreenProps) {
   const [internalProgress, setInternalProgress] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
 
   const progress = externalProgress ?? internalProgress;
   const config = variantConfig[variant];
-
-  // 客户端挂载检测（SSR 兼容）
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   // 自动进度逻辑（仅当没有外部进度控制时）
   useEffect(() => {
@@ -85,7 +78,7 @@ export function LoadingScreen({
     }
   }, [externalProgress, isLoaded, onLoadComplete]);
 
-  const content = (
+  return (
     <AnimatePresence>
       {!isLoaded && (
         <motion.div
@@ -139,11 +132,4 @@ export function LoadingScreen({
       )}
     </AnimatePresence>
   );
-
-  // SSR 兼容：在服务端直接返回内容，在客户端使用 Portal
-  if (!isMounted) {
-    return content;
-  }
-
-  return createPortal(content, document.body);
 }

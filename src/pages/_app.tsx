@@ -41,36 +41,45 @@ const notoSerifSC = Noto_Serif_SC({
 function AppContent({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const { language } = useLanguage();
-  const [isLoading, setIsLoading] = useState(true);
+
+  // 仅首次访问时显示加载动画（使用 sessionStorage 记录）
+  const [isLoading, setIsLoading] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return !sessionStorage.getItem("hasVisited");
+  });
+
+  const handleLoadComplete = () => {
+    sessionStorage.setItem("hasVisited", "true");
+    setIsLoading(false);
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     window.scrollTo(0, 0);
   }, [router.asPath]);
 
-  return (
-    <>
-      {/* 初始加载动画 */}
-      {isLoading && (
-        <LoadingScreen
-          language={language}
-          onLoadComplete={() => setIsLoading(false)}
-        />
-      )}
+  // 条件渲染：加载动画完全覆盖屏幕，不显示 Header/Footer
+  if (isLoading) {
+    return (
+      <LoadingScreen
+        language={language}
+        onLoadComplete={handleLoadComplete}
+      />
+    );
+  }
 
-      {/* 主内容 */}
-      <div className={`flex flex-col min-h-screen ${notoSerifSC.variable}`}>
-        <Header />
-        <main className="flex-1">
-          <AnimatePresence mode="wait" initial={false}>
-            <PageTransition key={router.asPath}>
-              <Component {...pageProps} />
-            </PageTransition>
-          </AnimatePresence>
-        </main>
-        <Footer />
-      </div>
-    </>
+  return (
+    <div className={`flex flex-col min-h-screen ${notoSerifSC.variable}`}>
+      <Header />
+      <main className="flex-1">
+        <AnimatePresence mode="wait" initial={false}>
+          <PageTransition key={router.asPath}>
+            <Component {...pageProps} />
+          </PageTransition>
+        </AnimatePresence>
+      </main>
+      <Footer />
+    </div>
   );
 }
 
