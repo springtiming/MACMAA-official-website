@@ -87,7 +87,7 @@ export function LoadingScreen({
       {!isLoaded && (
         <motion.div
           className={`fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden ${className ?? ""}`}
-          style={{ background: config.bgGradient }}
+          style={{ background: config.bgGradient, zIndex: 9999 }}
           initial={{ opacity: 1 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
