@@ -3,13 +3,27 @@ import { getFontFamilyCSS, getHeadingFontFamilyCSS } from "@/lib/fontLoader";
 
 export default function Document() {
   // 只设置正文字体，标题字体由 next/font 通过 CSS 变量注入
-  const initialFontVars = `:root{--app-font-family:${getFontFamilyCSS()};--app-heading-font-family:var(--font-noto-serif-sc, "Noto Serif SC"), ${getHeadingFontFamilyCSS()};}`;
+  const initialHeadCSS = `:root{--app-font-family:${getFontFamilyCSS()};--app-heading-font-family:var(--font-noto-serif-sc, "Noto Serif SC"), ${getHeadingFontFamilyCSS()};}
+html.vmca-has-visited .vmca-loading-screen{display:none !important;}`;
+
+  const setVisitedClassScript = `(() => {
+  try {
+    const visited = window.localStorage?.getItem("vmca_has_visited") === "true";
+    if (visited) document.documentElement.classList.add("vmca-has-visited");
+  } catch {}
+})();`;
 
   return (
     <Html lang="zh">
       <Head>
         <link rel="icon" href="/favicon.ico" />
-        <style dangerouslySetInnerHTML={{ __html: initialFontVars }} />
+        <script dangerouslySetInnerHTML={{ __html: setVisitedClassScript }} />
+        {/* 寒蝉正楷体 ChillKai */}
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/chillkai-webfont@latest/dist/ChillKai-Regular.css"
+        />
+        <style dangerouslySetInnerHTML={{ __html: initialHeadCSS }} />
       </Head>
       <body>
         <Main />

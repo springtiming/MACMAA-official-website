@@ -23,8 +23,7 @@ import "@fontsource/noto-sans-sc/400.css";
 import "@fontsource/noto-sans-sc/500.css";
 import "@fontsource/noto-sans-sc/700.css";
 
-// 霞鹜文楷 - 标题字体
-import "lxgw-wenkai-webfont/style.css";
+// 寒蝉正楷体通过 CDN 在 _document.tsx 中加载
 
 // 需要预加载的关键图片（首页 hero 背景等）
 const PRELOAD_IMAGES = ["/assets/hero.jpg"];
