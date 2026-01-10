@@ -1,6 +1,6 @@
 import type { AppProps } from "next/app";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { AnimatePresence } from "motion/react";
 import { LanguageProvider, useLanguage } from "@/contexts/LanguageContext";
 import { Header } from "@/components/Header";
@@ -26,6 +26,9 @@ import "@fontsource/noto-sans-sc/700.css";
 // 霞鹜文楷 - 标题字体
 import "lxgw-wenkai-webfont/style.css";
 
+// 需要预加载的关键图片（首页 hero 背景等）
+const PRELOAD_IMAGES = ["/assets/hero.jpg"];
+
 /**
  * 应用内部内容组件
  * 需要在 LanguageProvider 内部才能使用 useLanguage
@@ -35,15 +38,50 @@ function AppContent({ Component, pageProps }: AppProps) {
   const { language } = useLanguage();
 
   // 仅首次访问时显示加载动画（使用 sessionStorage 记录）
-  const [isLoading, setIsLoading] = useState(() => {
-    if (typeof window === "undefined") return true;
-    return !sessionStorage.getItem("hasVisited");
-  });
+  // 初始状态设为 true，避免 SSR 和客户端 hydration mismatch
+  const [isLoading, setIsLoading] = useState(true);
+  const imagesPreloadedRef = useRef(false);
+  const animationCompleteRef = useRef(false);
 
-  const handleLoadComplete = () => {
-    sessionStorage.setItem("hasVisited", "true");
-    setIsLoading(false);
-  };
+  // 检查是否可以结束加载
+  const tryFinishLoading = useCallback(() => {
+    if (imagesPreloadedRef.current && animationCompleteRef.current) {
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("hasVisited", "true");
+      }
+      setIsLoading(false);
+    }
+  }, []);
+
+  // 在客户端挂载后检查是否已访问过，并预加载关键图片
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const hasVisited = sessionStorage.getItem("hasVisited");
+    if (hasVisited) {
+      setIsLoading(false);
+      return;
+    }
+
+    // 预加载关键图片
+    let loadedCount = 0;
+    PRELOAD_IMAGES.forEach((src) => {
+      const img = new Image();
+      img.src = src;
+      img.onload = img.onerror = () => {
+        loadedCount++;
+        if (loadedCount >= PRELOAD_IMAGES.length) {
+          imagesPreloadedRef.current = true;
+          tryFinishLoading();
+        }
+      };
+    });
+  }, [tryFinishLoading]);
+
+  const handleLoadComplete = useCallback(() => {
+    animationCompleteRef.current = true;
+    tryFinishLoading();
+  }, [tryFinishLoading]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
