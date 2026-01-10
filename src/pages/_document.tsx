@@ -24,11 +24,6 @@ html.vmca-has-visited .vmca-loading-screen{display:none !important;}`;
       <Head>
         <link rel="icon" href="/favicon.ico" />
         <script dangerouslySetInnerHTML={{ __html: setVisitedClassScript }} />
-        {/* 寒蝉正楷体 ChillKai */}
-        <link
-          rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/chillkai-webfont@latest/dist/ChillKai-Regular.css"
-        />
         <style dangerouslySetInnerHTML={{ __html: initialHeadCSS }} />
       </Head>
       <body>
