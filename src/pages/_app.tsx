@@ -61,10 +61,7 @@ function AppContent({ Component, pageProps }: AppProps) {
   // 条件渲染：加载动画完全覆盖屏幕，不显示 Header/Footer
   if (isLoading) {
     return (
-      <LoadingScreen
-        language={language}
-        onLoadComplete={handleLoadComplete}
-      />
+      <LoadingScreen language={language} onLoadComplete={handleLoadComplete} />
     );
   }
 

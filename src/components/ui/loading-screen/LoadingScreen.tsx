@@ -70,7 +70,11 @@ export function LoadingScreen({
 
   // 外部进度达到 100% 时的处理
   useEffect(() => {
-    if (externalProgress !== undefined && externalProgress >= 100 && !isLoaded) {
+    if (
+      externalProgress !== undefined &&
+      externalProgress >= 100 &&
+      !isLoaded
+    ) {
       setTimeout(() => {
         setIsLoaded(true);
         onLoadComplete?.();

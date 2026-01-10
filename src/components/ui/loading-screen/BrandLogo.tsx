@@ -1,9 +1,5 @@
 import { motion } from "motion/react";
-import {
-  variantConfig,
-  defaultSubtitles,
-  type BrandLogoProps,
-} from "./types";
+import { variantConfig, defaultSubtitles, type BrandLogoProps } from "./types";
 
 /**
  * 品牌 Logo 组件

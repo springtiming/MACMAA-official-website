@@ -1,5 +1,4 @@
 import { useParallax } from "../hooks/useParallax";
-import { useState, useEffect } from "react";
 
 interface ParallaxBackgroundProps {
   imageUrl?: string; // 背景图片URL
@@ -19,23 +18,6 @@ export function ParallaxBackground({
   children,
 }: ParallaxBackgroundProps) {
   const offsetY = useParallax(speed);
-  const [imageLoaded, setImageLoaded] = useState(false);
-
-  useEffect(() => {
-    if (!imageUrl) {
-      setImageLoaded(true);
-      return;
-    }
-
-    const img = new Image();
-    img.src = imageUrl;
-    img.onload = () => {
-      setImageLoaded(true);
-    };
-    img.onerror = () => {
-      setImageLoaded(true);
-    };
-  }, [imageUrl]);
 
   return (
     <div className={`relative overflow-hidden ${className}`}>
@@ -50,8 +32,6 @@ export function ParallaxBackground({
             backgroundRepeat: "no-repeat",
             transform: `translateY(${offsetY}px)`,
             top: "-20%",
-            opacity: imageLoaded ? 1 : 0,
-            transition: "opacity 0.7s ease-in-out",
           }}
         />
       )}

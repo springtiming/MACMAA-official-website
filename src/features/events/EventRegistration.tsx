@@ -299,12 +299,8 @@ export function EventRegistration() {
     isMemberVerified: !!memberInfo,
   });
 
-  const {
-    totalFee,
-    hasMemberDiscount,
-    memberDiscountApplied,
-    savings,
-  } = pricing;
+  const { totalFee, hasMemberDiscount, memberDiscountApplied, savings } =
+    pricing;
 
   // 保持向后兼容的 memberFee 变量
   const memberFee = loadedEvent.member_fee ?? loadedEvent.fee;
@@ -312,8 +308,7 @@ export function EventRegistration() {
   // Stripe 手续费计算
   const totalWithFee =
     loadedEvent.fee > 0 ? calculateTotalWithStripeFee(totalFee) : 0;
-  const stripeFee =
-    loadedEvent.fee > 0 ? calculateStripeFee(totalFee) : 0;
+  const stripeFee = loadedEvent.fee > 0 ? calculateStripeFee(totalFee) : 0;
 
   const resetMemberVerification = () => {
     setMemberEmail("");
@@ -828,7 +823,9 @@ export function EventRegistration() {
                                 {t("register.member.memberPrice")}
                                 {tickets > 1 && (
                                   <span className="text-orange-500 ml-1">
-                                    {language === "zh" ? "(仅限1张)" : "(1 ticket only)"}
+                                    {language === "zh"
+                                      ? "(仅限1张)"
+                                      : "(1 ticket only)"}
                                   </span>
                                 )}
                               </p>
@@ -1080,7 +1077,8 @@ export function EventRegistration() {
                             <div className="flex items-center justify-between">
                               <span className="text-sm text-gray-600">
                                 {language === "zh" ? "活动费用" : "Event Fee"}
-                                {tickets > 1 && ` (${tickets} ${language === "zh" ? "张票" : "tickets"})`}
+                                {tickets > 1 &&
+                                  ` (${tickets} ${language === "zh" ? "张票" : "tickets"})`}
                               </span>
                               <span className="text-sm font-medium text-gray-800">
                                 ${totalFee.toFixed(2)} AUD
@@ -1432,7 +1430,8 @@ export function EventRegistration() {
                                     {language === "zh"
                                       ? "活动费用"
                                       : "Event Fee"}
-                                    {tickets > 1 && ` (${tickets} ${language === "zh" ? "张票" : "tickets"})`}
+                                    {tickets > 1 &&
+                                      ` (${tickets} ${language === "zh" ? "张票" : "tickets"})`}
                                   </span>
                                   <span className="text-sm font-medium text-gray-800">
                                     ${totalFee.toFixed(2)} AUD
