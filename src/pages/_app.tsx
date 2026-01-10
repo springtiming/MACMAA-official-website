@@ -25,6 +25,9 @@ import "@fontsource/noto-sans-sc/700.css";
 
 // 寒蝉正楷体通过 CDN 在 _document.tsx 中加载
 
+const HAS_VISITED_KEY = "vmca_has_visited";
+const VISITED_CLASS = "vmca-has-visited";
+
 // 需要预加载的关键图片（首页 hero 背景等）
 const PRELOAD_IMAGES = ["/assets/hero.jpg"];
 
@@ -54,8 +57,7 @@ function AppContent({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const { language } = useLanguage();
 
-  // 仅首次访问时显示加载动画（使用 sessionStorage 记录）
-  // 初始状态设为 true，避免 SSR 和客户端 hydration mismatch
+  // 初始状态设为 true：首次打开可显示开屏；已访问用户会在客户端挂载后快速关闭（并在 _document.tsx 中提前隐藏）
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
 
@@ -63,10 +65,14 @@ function AppContent({ Component, pageProps }: AppProps) {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const hasVisited = sessionStorage.getItem("hasVisited");
-    if (hasVisited) {
-      setIsLoading(false);
-      return;
+    try {
+      const hasVisited = window.localStorage?.getItem(HAS_VISITED_KEY) === "true";
+      if (hasVisited) {
+        setIsLoading(false);
+        return;
+      }
+    } catch {
+      // Ignore storage access errors (e.g. privacy mode)
     }
 
     let cancelled = false;
@@ -96,7 +102,12 @@ function AppContent({ Component, pageProps }: AppProps) {
 
   const handleLoadComplete = useCallback(() => {
     if (typeof window !== "undefined") {
-      sessionStorage.setItem("hasVisited", "true");
+      try {
+        window.localStorage?.setItem(HAS_VISITED_KEY, "true");
+        document.documentElement.classList.add(VISITED_CLASS);
+      } catch {
+        // ignore
+      }
     }
     setIsLoading(false);
   }, []);
@@ -106,19 +117,16 @@ function AppContent({ Component, pageProps }: AppProps) {
     window.scrollTo(0, 0);
   }, [router.asPath]);
 
-  // 条件渲染：加载动画完全覆盖屏幕，不显示 Header/Footer
-  if (isLoading) {
-    return (
-      <LoadingScreen
-        language={language}
-        progress={loadingProgress}
-        onLoadComplete={handleLoadComplete}
-      />
-    );
-  }
-
   return (
     <div className="flex flex-col min-h-screen">
+      {isLoading && (
+        <LoadingScreen
+          className="vmca-loading-screen"
+          language={language}
+          progress={loadingProgress}
+          onLoadComplete={handleLoadComplete}
+        />
+      )}
       <Header />
       <main className="flex-1">
         <AnimatePresence mode="wait" initial={false}>

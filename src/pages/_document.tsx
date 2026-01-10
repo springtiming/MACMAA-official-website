@@ -6,11 +6,17 @@ export default function Document() {
   const initialHeadCSS = `:root{--app-font-family:${getFontFamilyCSS()};--app-heading-font-family:var(--font-noto-serif-sc, "Noto Serif SC"), ${getHeadingFontFamilyCSS()};}
 html.vmca-has-visited .vmca-loading-screen{display:none !important;}`;
 
-  const setVisitedClassScript = `(() => {
+  const setVisitedClassScript = `(function () {
   try {
-    const visited = window.localStorage?.getItem("vmca_has_visited") === "true";
-    if (visited) document.documentElement.classList.add("vmca-has-visited");
-  } catch {}
+    if (
+      window.localStorage &&
+      window.localStorage.getItem("vmca_has_visited") === "true"
+    ) {
+      document.documentElement.classList.add("vmca-has-visited");
+    }
+  } catch (e) {
+    // ignore
+  }
 })();`;
 
   return (
