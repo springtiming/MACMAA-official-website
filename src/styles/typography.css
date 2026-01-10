@@ -12,13 +12,10 @@ h6,
 [data-slot$="title"] {
   font-family: var(
     --app-heading-font-family,
-    var(--font-noto-serif-sc),
+    "LXGW WenKai",
+    "霞鹜文楷",
     "Noto Serif SC",
     "Source Han Serif SC",
-    "Songti SC",
-    "STSong",
-    "SimSun",
-    "NSimSun",
     serif
   );
 }
