@@ -30,6 +30,7 @@ export function BrandLogo({
           className="font-bold tracking-[0.15em]"
           style={{
             fontSize: "clamp(3rem, 10vw, 4.5rem)",
+            fontFamily: '"Inter", "Noto Sans SC", system-ui, sans-serif',
             background: `linear-gradient(135deg, ${config.accent} 0%, ${config.accentDark} 100%)`,
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
@@ -50,6 +51,7 @@ export function BrandLogo({
           <div
             className="mt-3 text-sm font-light tracking-[0.15em]"
             style={{
+              fontFamily: '"Noto Sans SC", "Inter", system-ui, sans-serif',
               color: isDark ? "#9CA3AF" : config.accent,
               opacity: 0.7,
             }}
