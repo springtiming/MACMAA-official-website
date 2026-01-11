@@ -187,7 +187,7 @@ export const AVAILABLE_HEADING_FONTS: Record<string, HeadingFontConfig> = {
  * 修改此值即可切换标题字体
  */
 export const CURRENT_HEADING_FONT: keyof typeof AVAILABLE_HEADING_FONTS =
-  "lxgwWenKai";
+  "chillKai";
 
 /**
  * 获取当前字体配置
