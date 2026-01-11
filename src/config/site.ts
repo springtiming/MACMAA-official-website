@@ -20,9 +20,9 @@ export const site: SiteConfig = {
   url: normalizeSiteUrl(
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://macmaa.org.au"
   ),
-  defaultTitle: "澳洲万年市华人互助会",
+  defaultTitle: "澳洲万年市华人互助会官网",
   defaultDescription:
-    "澳洲万年市华人互助会（MACMAA）服务年长者，推动邻里互助、社区融合与文化传承。提供社区活动、新闻动态与会员申请等服务。",
+    "澳洲万年市华人互助会（MACMAA）官方网站。服务年长者，推动邻里互助、社区融合与文化传承。提供社区活动、新闻动态与会员申请等服务。",
   defaultOgImage: "/assets/486cb6c21a188aae71ad06b3d541eb54ff86e307.png",
 };
 
