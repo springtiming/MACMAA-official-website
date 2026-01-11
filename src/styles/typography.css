@@ -1,7 +1,7 @@
 /* 寒蝉正楷体 - 自托管（供标题字体配置使用） */
 @font-face {
   font-family: "ChillKai";
-  src: url("/fonts/ChillKai.woff2") format("woff2");
+  src: url("/fonts/ChillKai.ttf") format("truetype");
   font-weight: normal;
   font-style: normal;
   font-display: swap;
