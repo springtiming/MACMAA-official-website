@@ -85,7 +85,7 @@ export const variantConfig: Record<LoadingScreenVariant, VariantConfig> = {
   brand: {
     accent: "#2B5F9E",
     accentDark: "#1e4a7d",
-    bgGradient: "linear-gradient(180deg, #FAF7F2 0%, #F5EFE6 100%)",
+    bgGradient: "linear-gradient(180deg, #f0f4f8 0%, #e3ebf3 100%)",
     inkOpacity: 0.3,
   },
   minimal: {
