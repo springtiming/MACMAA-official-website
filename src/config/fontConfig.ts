@@ -151,27 +151,10 @@ export const CURRENT_FONT: keyof typeof AVAILABLE_FONTS = "interNotoSansSC";
  * 可用的标题字体配置
  */
 export const AVAILABLE_HEADING_FONTS: Record<string, HeadingFontConfig> = {
-  chillKai: {
-    name: "寒蝉正楷体",
-    family: '"ChillKai", serif',
-    description: "自托管楷体，笔意古雅，适合中文标题",
-  },
-  simsun: {
-    name: "宋体",
-    family:
-      '"SimSun", "NSimSun", "Songti SC", "STSong", "Noto Serif SC", "Source Han Serif SC", serif',
-    description: "经典中文宋体，适合正式标题",
-  },
-  notoSerifSC: {
-    name: "Noto Serif SC",
-    family:
-      '"Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong", "SimSun", "NSimSun", serif',
-    description: "Google 思源宋体，现代优雅",
-  },
-  inherit: {
-    name: "继承正文字体",
-    family: "inherit",
-    description: "标题使用与正文相同的字体",
+  serif: {
+    name: "衬线字体",
+    family: "serif",
+    description: "系统默认衬线字体",
   },
 };
 
@@ -180,7 +163,7 @@ export const AVAILABLE_HEADING_FONTS: Record<string, HeadingFontConfig> = {
  * 修改此值即可切换标题字体
  */
 export const CURRENT_HEADING_FONT: keyof typeof AVAILABLE_HEADING_FONTS =
-  "chillKai";
+  "serif";
 
 /**
  * 获取当前字体配置
