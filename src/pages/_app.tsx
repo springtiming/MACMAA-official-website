@@ -31,7 +31,8 @@ import "@fontsource/noto-sans-sc/400.css";
 import "@fontsource/noto-sans-sc/500.css";
 import "@fontsource/noto-sans-sc/700.css";
 
-// 寒蝉正楷体通过 CDN 在 _document.tsx 中加载
+import "lxgw-wenkai-webfont/lxgwwenkai-regular.css";
+import "lxgw-wenkai-webfont/lxgwwenkai-bold.css";
 
 function preloadImage(src: string): Promise<void> {
   return new Promise((resolve) => {
@@ -141,7 +142,7 @@ function AppContent({ Component, pageProps }: AppProps) {
       )}
       <Header />
       <main className="flex-1">
-        <AnimatePresence mode="wait" initial={false}>
+        <AnimatePresence mode="wait" initial={true}>
           <PageTransition key={router.asPath}>
             <Component {...pageProps} />
           </PageTransition>

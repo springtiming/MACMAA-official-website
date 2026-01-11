@@ -1,4 +1,4 @@
-/* 寒蝉正楷体 - 自托管 */
+/* 寒蝉正楷体 - 自托管（供标题字体配置使用） */
 @font-face {
   font-family: "ChillKai";
   src: url("/fonts/ChillKai.woff2") format("woff2");
@@ -11,7 +11,7 @@
   --font-weight-bold: 700;
 }
 
-/* 标题字体 - 使用寒蝉正楷体 */
+/* 标题字体 - 由配置系统通过 CSS 变量控制 */
 h1,
 h2,
 h3,
@@ -20,7 +20,7 @@ h5,
 h6,
 .font-heading,
 [data-slot$="title"] {
-  font-family: "ChillKai" !important;
+  font-family: var(--app-heading-font-family, var(--app-font-family));
 }
 
 .font-bold {
