@@ -151,16 +151,9 @@ export const CURRENT_FONT: keyof typeof AVAILABLE_FONTS = "interNotoSansSC";
  * 可用的标题字体配置
  */
 export const AVAILABLE_HEADING_FONTS: Record<string, HeadingFontConfig> = {
-  lxgwWenKai: {
-    name: "霞鹜文楷",
-    family:
-      '"LXGW WenKai", "霞鹜文楷", "Noto Serif SC", "Source Han Serif SC", serif',
-    description: "开源楷体，典雅温润，适合中文标题",
-  },
   chillKai: {
     name: "寒蝉正楷体",
-    family:
-      '"ChillKai", "LXGW WenKai", "霞鹜文楷", "Noto Serif SC", "Source Han Serif SC", serif',
+    family: '"ChillKai", serif',
     description: "自托管楷体，笔意古雅，适合中文标题",
   },
   simsun: {
