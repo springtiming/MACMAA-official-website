@@ -232,11 +232,6 @@ export function AdminDashboard() {
           <h2 className="text-gray-900 mb-2">
             {t("admin.dashboard.welcome")}, {adminUsername}
           </h2>
-          <p className="text-gray-600">
-            {language === "zh"
-              ? "这是管理仪表盘的原型界面，展示核心管理功能模块"
-              : "This is the prototype admin dashboard showcasing core management modules"}
-          </p>
           {statsError && (
             <p className="text-red-600 text-sm mt-2" role="alert">
               {statsError}

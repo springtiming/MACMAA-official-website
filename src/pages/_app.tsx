@@ -1,7 +1,7 @@
 import type { AppProps } from "next/app";
 import { useRouter } from "next/router";
 import { useEffect, useState, useCallback } from "react";
-import { AnimatePresence } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { LanguageProvider, useLanguage } from "@/contexts/LanguageContext";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -63,6 +63,8 @@ function AppContent({ Component, pageProps }: AppProps) {
   // 初始状态设为 true：默认 SSR 先渲染开屏；若资源已就绪，会在客户端挂载后快速关闭（并在 _document.tsx 中提前隐藏）
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
+  // 追踪开屏动画是否完全结束（包括淡出动画），用于触发首页渐入
+  const [splashComplete, setSplashComplete] = useState(false);
 
   // 在客户端挂载后检查是否已缓存关键资源，并预加载首页首屏 + 轮播图 + 协会简介关键图片
   useEffect(() => {
@@ -76,6 +78,7 @@ function AppContent({ Component, pageProps }: AppProps) {
         document.documentElement.classList.add(SPLASH_READY_CLASS);
         setIsLoading(false);
         setLoadingProgress(100);
+        setSplashComplete(true); // 缓存有效时直接完成
         return;
       }
     } catch {
@@ -123,6 +126,10 @@ function AppContent({ Component, pageProps }: AppProps) {
       }
     }
     setIsLoading(false);
+    // 等待 LoadingScreen 淡出动画完成后触发首页渐入
+    setTimeout(() => {
+      setSplashComplete(true);
+    }, 650); // LoadingScreen exit 动画 0.6s + 50ms 缓冲
   }, []);
 
   useEffect(() => {
@@ -140,15 +147,22 @@ function AppContent({ Component, pageProps }: AppProps) {
           onLoadComplete={handleLoadComplete}
         />
       )}
-      <Header />
-      <main className="flex-1">
-        <AnimatePresence mode="wait" initial={true}>
-          <PageTransition key={router.asPath}>
-            <Component {...pageProps} />
-          </PageTransition>
-        </AnimatePresence>
-      </main>
-      <Footer />
+      <motion.div
+        className="flex flex-col min-h-screen"
+        initial={{ opacity: 0, y: 30 }}
+        animate={splashComplete ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+        transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+      >
+        <Header />
+        <main className="flex-1">
+          <AnimatePresence mode="wait" initial={false}>
+            <PageTransition key={router.asPath}>
+              <Component {...pageProps} />
+            </PageTransition>
+          </AnimatePresence>
+        </main>
+        <Footer />
+      </motion.div>
     </div>
   );
 }
