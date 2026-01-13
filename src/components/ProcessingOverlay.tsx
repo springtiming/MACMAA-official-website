@@ -131,7 +131,7 @@ export function ProcessingOverlay({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.15 }}
+        transition={{ duration: 0.08 }}
         className="fixed inset-0 flex items-center justify-center p-4 z-[99999]"
         style={{
           backgroundColor: "rgba(0,0,0,0.6)",
@@ -142,19 +142,19 @@ export function ProcessingOverlay({
         <motion.div
           initial={
             state === "processing"
-              ? { scale: 0.98, opacity: 0, y: -4 }
-              : { scale: 0.8, opacity: 0, y: 20 }
+              ? { scale: 0.92, opacity: 0, y: -4 }
+              : { scale: 0.85, opacity: 0, y: 16 }
           }
           animate={
             state === "processing"
               ? { scale: [0.98, 1, 0.98], opacity: 1, y: [-4, 0, -4] }
               : { scale: 1, opacity: 1, y: 0 }
           }
-          exit={{ scale: 0.8, opacity: 0, y: 20 }}
+          exit={{ scale: 0.85, opacity: 0, y: 16 }}
           transition={
             state === "processing"
               ? {
-                  opacity: { duration: 0.15 },
+                  opacity: { duration: 0.08 },
                   scale: {
                     duration: 2.6,
                     repeat: Infinity,
@@ -166,7 +166,7 @@ export function ProcessingOverlay({
                     ease: "easeInOut",
                   },
                 }
-              : { duration: 0.15, ease: "easeOut" }
+              : { duration: 0.1, ease: "easeOut" }
           }
           className="w-full"
           style={{ maxWidth: "24rem" }}
@@ -189,9 +189,9 @@ export function ProcessingOverlay({
               {/* 图标 / 动画 */}
               <motion.div
                 className="flex justify-center mb-6"
-                initial={{ scale: 0.8, opacity: 0 }}
+                initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.15 }}
+                transition={{ duration: 0.08 }}
               >
                 <div className="relative flex items-center justify-center">
                   {state === "processing" ? (
@@ -233,9 +233,9 @@ export function ProcessingOverlay({
               {/* 标题 */}
               {title && (
                 <motion.h3
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.15 }}
+                  transition={{ duration: 0.08 }}
                   className={`${config.titleClass} text-center mb-3 font-semibold`}
                 >
                   {title}
@@ -245,9 +245,9 @@ export function ProcessingOverlay({
               {/* 消息 */}
               {message && (
                 <motion.p
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.15 }}
+                  transition={{ duration: 0.08 }}
                   className="text-gray-600 text-center text-sm"
                 >
                   {message}
@@ -257,9 +257,9 @@ export function ProcessingOverlay({
               {/* 处理中的进度条 */}
               {state === "processing" && (
                 <motion.div
-                  initial={{ opacity: 0, scaleX: 0.9 }}
+                  initial={{ opacity: 0, scaleX: 0.95 }}
                   animate={{ opacity: 1, scaleX: 1 }}
-                  transition={{ duration: 0.15 }}
+                  transition={{ duration: 0.08 }}
                   className="mt-6 h-2 rounded-full relative overflow-hidden"
                   style={{ background: config.progressTrack }}
                 >
@@ -269,7 +269,7 @@ export function ProcessingOverlay({
                       background: config.progressFill,
                       width: "42%",
                     }}
-                    animate={{ x: ["-40%", "105%"] }}
+                    animate={{ x: ["-100%", "138%"] }}
                     transition={{
                       duration: 1.9,
                       repeat: Infinity,

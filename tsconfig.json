@@ -35,8 +35,7 @@
   "include": [
     "next-env.d.ts",
     "src",
-    "api",
-    "server"
+    "api"
   ],
   "exclude": [
     "node_modules"

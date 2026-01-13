@@ -1,6 +1,6 @@
 {
   "extends": "./tsconfig.json",
-  "include": ["src/**/*", "api/**/*", "server/**/*", "supabase/functions/**/*", "vitest.config.ts"],
+  "include": ["src/**/*", "api/**/*", "supabase/functions/**/*", "vitest.config.ts"],
   "exclude": ["node_modules", "dist", "build"]
 }
 
