@@ -181,7 +181,10 @@ export function About() {
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      <Play className="w-8 h-8 sm:w-10 sm:h-10 text-[#2B5F9E] ml-1" fill="currentColor" />
+                      <Play
+                        className="w-8 h-8 sm:w-10 sm:h-10 text-[#2B5F9E] ml-1"
+                        fill="currentColor"
+                      />
                     </motion.div>
                     <span className="absolute bottom-6 text-white/80 text-sm">
                       {language === "zh" ? "点击播放" : "Click to play"}

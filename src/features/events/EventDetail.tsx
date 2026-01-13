@@ -12,19 +12,33 @@ import {
 } from "@/lib/supabaseHelpers";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 
-export function EventDetail() {
+type EventDetailProps = {
+  initialEvent?: EventRecord | null;
+};
+
+export function EventDetail({ initialEvent }: EventDetailProps) {
   const router = useRouter();
   const idParam = router.query.id;
   const id = Array.isArray(idParam) ? idParam[0] : idParam;
   const { language, t } = useLanguage();
-  const [event, setEvent] = useState<EventRecord | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [event, setEvent] = useState<EventRecord | null>(
+    () => initialEvent ?? null
+  );
+  const [loading, setLoading] = useState(() => !initialEvent);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
+    if (initialEvent?.id === id) {
+      setEvent(initialEvent);
+      setError(null);
+      setLoading(false);
+      return;
+    }
     let active = true;
     setLoading(true);
+    setError(null);
+    setEvent(null);
     fetchEventById(id)
       .then((data) => {
         if (active) setEvent(data);
@@ -39,7 +53,7 @@ export function EventDetail() {
     return () => {
       active = false;
     };
-  }, [id, t]);
+  }, [id, initialEvent, t]);
 
   if (loading) {
     return (

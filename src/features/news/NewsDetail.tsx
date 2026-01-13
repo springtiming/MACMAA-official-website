@@ -8,20 +8,34 @@ import { fetchNewsPostById, type NewsPostRecord } from "@/lib/supabaseApi";
 import { pickLocalized, resolveNewsCover } from "@/lib/supabaseHelpers";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 
-export function NewsDetail() {
+type NewsDetailProps = {
+  initialNews?: NewsPostRecord | null;
+};
+
+export function NewsDetail({ initialNews }: NewsDetailProps) {
   const router = useRouter();
   const idParam = router.query.id;
   const id = Array.isArray(idParam) ? idParam[0] : idParam;
   const { language, t } = useLanguage();
-  const [news, setNews] = useState<NewsPostRecord | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [news, setNews] = useState<NewsPostRecord | null>(
+    () => initialNews ?? null
+  );
+  const [loading, setLoading] = useState(() => !initialNews);
   const [error, setError] = useState<string | null>(null);
   const [shareSuccess, setShareSuccess] = useState(false);
 
   useEffect(() => {
     if (!id) return;
+    if (initialNews?.id === id) {
+      setNews(initialNews);
+      setError(null);
+      setLoading(false);
+      return;
+    }
     let active = true;
+    setError(null);
     setLoading(true);
+    setNews(null);
     fetchNewsPostById(id)
       .then((data) => {
         if (active) setNews(data);
@@ -35,7 +49,7 @@ export function NewsDetail() {
     return () => {
       active = false;
     };
-  }, [id, t]);
+  }, [id, initialNews, t]);
 
   const handleShare = async () => {
     if (!news || !id) return;
@@ -136,7 +150,12 @@ export function NewsDetail() {
                 {news.published_at
                   ? new Date(news.published_at).toLocaleDateString(
                       language === "zh" ? "zh-CN" : "en-US",
-                      { year: "numeric", month: "long", day: "numeric" }
+                      {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        timeZone: "UTC",
+                      }
                     )
                   : language === "zh"
                     ? "未公布"

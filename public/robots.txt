@@ -3,5 +3,4 @@ Disallow: /admin
 Disallow: /events/*/register
 Disallow: /api/
 
-Sitemap: https://macmaa.org.au/sitemap.xml
-
+Sitemap: /sitemap.xml

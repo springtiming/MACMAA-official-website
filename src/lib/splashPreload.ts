@@ -63,4 +63,3 @@ export function isSplashPreloadCacheValid(
   if (!Number.isFinite(record.ts)) return false;
   return now - record.ts <= SPLASH_PRELOAD_TTL_MS;
 }
-
