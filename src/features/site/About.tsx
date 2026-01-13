@@ -1,6 +1,7 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "motion/react";
-import { Target, Sparkles, Check } from "lucide-react";
+import { Target, Sparkles, Check, Play } from "lucide-react";
+import { useState, useRef } from "react";
 
 const businessCardUrl = "/assets/2aee091727a5d832328a3b5cf9e2dcdf4f43542d.png";
 const wechatQRCodeUrl = "/assets/9c9d7d0442d12b5d716010d1dbb6304d01dcc148.png";
@@ -8,6 +9,16 @@ const introVideoUrl = "/assets/6ef3d9c1c4c26200efb53bac0919ede0.mp4";
 
 export function About() {
   const { language, t } = useLanguage();
+  const [isVideoStarted, setIsVideoStarted] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const handlePlayVideo = () => {
+    setIsVideoStarted(true);
+    // 等待状态更新后播放视频
+    setTimeout(() => {
+      videoRef.current?.play();
+    }, 100);
+  };
 
   const services = [
     language === "zh"
@@ -143,15 +154,40 @@ export function About() {
 
               <div className="relative aspect-video bg-black rounded-xl overflow-hidden shadow-xl">
                 <video
+                  ref={videoRef}
                   className="w-full h-full object-cover"
                   src={introVideoUrl}
                   controls
                   controlsList="nodownload"
+                  preload="none"
                 >
                   {language === "zh"
                     ? "您的浏览器不支持视频播放，请尝试更新浏览器。"
                     : "Your browser does not support the video tag. Please update your browser."}
                 </video>
+
+                {/* 播放按钮覆盖层 */}
+                {!isVideoStarted && (
+                  <motion.button
+                    onClick={handlePlayVideo}
+                    className="absolute inset-0 flex items-center justify-center bg-black/60 cursor-pointer group"
+                    initial={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    whileHover={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+                    aria-label={language === "zh" ? "播放视频" : "Play video"}
+                  >
+                    <motion.div
+                      className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white/90 flex items-center justify-center shadow-lg"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Play className="w-8 h-8 sm:w-10 sm:h-10 text-[#2B5F9E] ml-1" fill="currentColor" />
+                    </motion.div>
+                    <span className="absolute bottom-6 text-white/80 text-sm">
+                      {language === "zh" ? "点击播放" : "Click to play"}
+                    </span>
+                  </motion.button>
+                )}
               </div>
             </motion.div>
           </div>

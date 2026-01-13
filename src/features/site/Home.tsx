@@ -85,6 +85,18 @@ export function Home() {
     activityImages.forEach((image, index) => {
       const img = new Image();
       img.src = image.url;
+
+      // 检查图片是否已在浏览器缓存中（开屏预加载过）
+      if (img.complete && img.naturalWidth > 0) {
+        setLoadedImages((prev) => {
+          if (prev[index]) return prev;
+          const next = [...prev];
+          next[index] = true;
+          return next;
+        });
+        return;
+      }
+
       img.onload = () => {
         setLoadedImages((prev) => {
           if (prev[index]) return prev;
