@@ -56,7 +56,7 @@ export function AdminConfirmDialog({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: 0.08 }}
           className="fixed inset-0 flex items-center justify-center p-4 z-50"
           style={{
             backgroundColor: "rgba(0,0,0,0.6)",
@@ -65,10 +65,10 @@ export function AdminConfirmDialog({
           onClick={onCancel}
         >
           <motion.div
-            initial={{ scale: 0.92, opacity: 0 }}
+            initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.92, opacity: 0 }}
-            transition={{ duration: 0.18, ease: [0.34, 1.56, 0.64, 1] }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            transition={{ duration: 0.1, ease: "easeOut" }}
             onClick={(event) => event.stopPropagation()}
             className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8"
             style={{ borderRadius: "1.75rem" }}
