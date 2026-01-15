@@ -36,6 +36,7 @@ import {
 import { pickLocalized } from "@/lib/supabaseHelpers";
 import { ImageUploadModal } from "@/components/ImageUploadModal";
 import { ProcessingOverlay } from "@/components/ProcessingOverlay";
+import { NotificationBadge } from "@/components/ui/notification-badge";
 import { useProcessingFeedback } from "@/hooks/useProcessingFeedback";
 import { AdminConfirmDialog } from "@/components/AdminConfirmDialog";
 import {
@@ -1010,7 +1011,7 @@ export function AdminEvents() {
                       <span className="hidden sm:inline">
                         {t("admin.events.reviewPayments")}
                       </span>
-                      <span className="glass-btn-badge">{pendingCount}</span>
+                      <NotificationBadge count={pendingCount} />
                     </button>
                     <button
                       onClick={() => {

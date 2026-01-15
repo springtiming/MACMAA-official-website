@@ -149,13 +149,13 @@ function AppContent({ Component, pageProps }: AppProps) {
       )}
       <motion.div
         className="flex flex-col min-h-screen"
-        initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
+        initial={{ opacity: 0, y: 12 }}
         animate={
           splashComplete
-            ? { opacity: 1, y: 0, filter: "blur(0px)" }
-            : { opacity: 0, y: 20, filter: "blur(10px)" }
+            ? { opacity: 1, y: 0 }
+            : { opacity: 0, y: 12 }
         }
-        transition={{ duration: 0.4, ease: "easeOut" }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
       >
         <Header />
         <main className="flex-1">

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { NotificationBadge } from "@/components/ui/notification-badge";
 import { motion } from "motion/react";
 import {
   Calendar,
@@ -28,6 +29,7 @@ export function AdminDashboard() {
   const [newsCount, setNewsCount] = useState(0);
   const [eventsCount, setEventsCount] = useState(0);
   const [pendingMembersCount, setPendingMembersCount] = useState(0);
+  const [pendingPaymentsCount, setPendingPaymentsCount] = useState(0);
   const [recentRegistrationsCount, setRecentRegistrationsCount] = useState(0);
   const [statsError, setStatsError] = useState<string | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
@@ -47,7 +49,7 @@ export function AdminDashboard() {
       fetchNewsPosts({ publishedOnly: false }),
       fetchMembers(),
       fetchAdminEventRegistrations(),
-    ])
+      ])
       .then(([events, news, members, registrations]) => {
         if (!active) return;
         setEventsCount(events.length);
@@ -62,6 +64,20 @@ export function AdminDashboard() {
           return !Number.isNaN(ts) && ts >= sevenDaysAgo;
         }).length;
         setRecentRegistrationsCount(recentRegistrations);
+
+        const pendingPayments = registrations.filter((registration) => {
+          const proof =
+            registration.payment_proof ??
+            registration.payment_proof_url ??
+            registration.paymentProof ??
+            registration.paymentProofUrl ??
+            "";
+          if (!proof) return false;
+          const status =
+            registration.payment_status ?? registration.paymentStatus ?? null;
+          return !status || status === "pending";
+        }).length;
+        setPendingPaymentsCount(pendingPayments);
       })
       .catch(() => {
         if (active) setStatsError(t("common.error"));
@@ -138,6 +154,7 @@ export function AdminDashboard() {
           : "Manage event publishing, registration stats, updates",
       color: "#2B5F9E",
       path: "/admin/events",
+      badgeCount: pendingPaymentsCount,
     },
     {
       icon: Newspaper,
@@ -148,6 +165,7 @@ export function AdminDashboard() {
           : "Publish news, edit content, manage categories",
       color: "#6BA868",
       path: "/admin/news",
+      badgeCount: 0,
     },
     {
       icon: Users,
@@ -158,6 +176,7 @@ export function AdminDashboard() {
           : "Review membership applications, manage member info",
       color: "#EB8C3A",
       path: "/admin/members",
+      badgeCount: pendingMembersCount,
     },
     {
       icon: Shield,
@@ -168,6 +187,7 @@ export function AdminDashboard() {
           : "Manage owner and admin accounts, configure permissions",
       color: "#DC2626",
       path: "/admin/accounts",
+      badgeCount: 0,
     },
     {
       icon: Settings,
@@ -178,6 +198,7 @@ export function AdminDashboard() {
           : "Personal account settings, password, notifications",
       color: "#8B5CF6",
       path: "/admin/settings",
+      badgeCount: 0,
     },
   ];
 
@@ -286,18 +307,19 @@ export function AdminDashboard() {
                 })
                 .map((section, index) => (
                   <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 + index * 0.1 }}
-                    whileHover={{ scale: 1.02 }}
-                    onClick={() => section.path && router.push(section.path)}
-                    className="bg-white rounded-xl p-6 shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
-                  >
-                    <div
-                      className="w-12 h-12 rounded-full flex items-center justify-center mb-4"
-                      style={{ backgroundColor: `${section.color}20` }}
-                    >
+                     key={index}
+                     initial={{ opacity: 0, y: 20 }}
+                     animate={{ opacity: 1, y: 0 }}
+                     transition={{ delay: 0.4 + index * 0.1 }}
+                     whileHover={{ scale: 1.02 }}
+                     onClick={() => section.path && router.push(section.path)}
+                     className="bg-white rounded-xl p-6 shadow-lg cursor-pointer hover:shadow-xl transition-shadow relative"
+                   >
+                     <NotificationBadge count={section.badgeCount} />
+                     <div
+                       className="w-12 h-12 rounded-full flex items-center justify-center mb-4"
+                       style={{ backgroundColor: `${section.color}20` }}
+                     >
                       <section.icon
                         className="w-6 h-6"
                         style={{ color: section.color }}
