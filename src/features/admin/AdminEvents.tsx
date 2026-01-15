@@ -1011,7 +1011,10 @@ export function AdminEvents() {
                       <span className="hidden sm:inline">
                         {t("admin.events.reviewPayments")}
                       </span>
-                      <NotificationBadge count={pendingCount} />
+                      <NotificationBadge
+                        count={pendingCount}
+                        className="-top-1.5 -right-1.5"
+                      />
                     </button>
                     <button
                       onClick={() => {

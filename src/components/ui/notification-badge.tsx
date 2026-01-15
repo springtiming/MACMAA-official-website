@@ -21,12 +21,21 @@ export function NotificationBadge({
   if (count === 0 && !showZero) return null;
 
   const displayCount = count > 99 ? "99+" : String(count);
+  const sizeClass =
+    displayCount.length === 1
+      ? "size-5"
+      : displayCount.length === 2
+        ? "size-6"
+        : "size-7";
+  const fontClass = displayCount.length >= 3 ? "text-[10px]" : "text-xs";
 
   return (
     <motion.span
       data-slot="notification-badge"
       className={cn(
-        "absolute -top-1.5 -right-1.5 min-w-[22px] h-[22px] px-[6px] inline-flex items-center justify-center rounded-full text-xs font-bold text-white border-2 border-white pointer-events-none select-none",
+        "absolute top-2 right-2 inline-flex items-center justify-center rounded-full font-bold text-white border-2 border-white pointer-events-none select-none leading-none",
+        sizeClass,
+        fontClass,
         className
       )}
       style={{
@@ -50,4 +59,3 @@ export function NotificationBadge({
     </motion.span>
   );
 }
-
