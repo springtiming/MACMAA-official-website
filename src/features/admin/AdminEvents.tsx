@@ -1013,7 +1013,7 @@ export function AdminEvents() {
                       </span>
                       <NotificationBadge
                         count={pendingCount}
-                        className="-top-1.5 -right-1.5"
+                        placement="outside"
                       />
                     </button>
                     <button

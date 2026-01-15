@@ -376,7 +376,7 @@ export function EventRegistration() {
         alert(t("register.member.verifySuccess"));
       } else {
         const error = await response.json();
-        alert(error.message || t("register.member.verifyFailed"));
+        alert(error.error || t("register.member.verifyFailed"));
       }
     } catch (err) {
       console.error("[member] verify failed", err);
