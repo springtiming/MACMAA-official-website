@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
         );
       }
 
-      return new Response("", { status: 204, headers: corsHeaders });
+      return new Response(null, { status: 204, headers: corsHeaders });
     }
 
     const { data, error } = await supabase
