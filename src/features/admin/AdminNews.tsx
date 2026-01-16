@@ -91,6 +91,7 @@ export function AdminNews() {
     title: processingTitle,
     message: processingMessage,
     runWithFeedback,
+    showError: showProcessingError,
     reset: resetProcessing,
   } = useProcessingFeedback();
 
@@ -190,21 +191,38 @@ export function AdminNews() {
     const action = type === "delete" ? "delete" : "deleteDraft";
     const messages = getFeedbackMessages(action);
     try {
-      await runWithFeedback(messages, async () => {
-        if (type === "delete") {
-          await deleteArticle(targetId);
-          setNewsList((prev) => prev.filter((n) => n.id !== targetId));
-          const drafts = await fetchMyDrafts();
-          setDraftList(drafts);
-          setSuccess(language === "zh" ? "已删除" : "Deleted");
-        } else {
-          await deleteDraft(targetId);
-          setDraftList((prev) => prev.filter((d) => d.id !== targetId));
-          setSuccess(language === "zh" ? "草稿已删除" : "Draft deleted");
+      await runWithFeedback(
+        messages,
+        async () => {
+          if (type === "delete") {
+            await deleteArticle(targetId);
+            setNewsList((prev) => prev.filter((n) => n.id !== targetId));
+            const drafts = await fetchMyDrafts();
+            setDraftList(drafts);
+            setSuccess(language === "zh" ? "已删除" : "Deleted");
+          } else {
+            await deleteDraft(targetId);
+            setDraftList((prev) => prev.filter((d) => d.id !== targetId));
+            setSuccess(language === "zh" ? "草稿已删除" : "Draft deleted");
+          }
+        },
+        {
+          onError: (err) => {
+            const detail =
+              err instanceof Error && err.message ? err.message : t("common.error");
+            console.error("[admin-news] delete failed", err);
+            setError(detail);
+            showProcessingError({
+              errorTitle: messages.errorTitle,
+              errorMessage: detail,
+            });
+          },
         }
-      });
-    } catch {
-      setError(t("common.error"));
+      );
+    } catch (err) {
+      const detail =
+        err instanceof Error && err.message ? err.message : t("common.error");
+      setError(detail);
     }
   };
 

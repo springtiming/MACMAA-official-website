@@ -825,10 +825,18 @@ export async function publishNewsFromDraft(versionId: string) {
 export async function deleteArticle(id: string) {
   const res = await callEdgeFunction(
     `news-admin?id=${encodeURIComponent(id)}`,
-    { method: "DELETE" }
+    { method: "DELETE", headers: { Accept: "application/json" } }
   );
   if (!res.ok && res.status !== 204) {
-    throw new Error("Failed to delete article");
+    const detail = await res
+      .json()
+      .then((body) =>
+        typeof body === "object" && body
+          ? JSON.stringify(body)
+          : String(body)
+      )
+      .catch(() => "");
+    throw new Error(detail ? `Failed to delete article: ${detail}` : "Failed to delete article");
   }
 }
 
