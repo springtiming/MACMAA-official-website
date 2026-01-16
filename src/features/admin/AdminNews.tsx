@@ -741,12 +741,12 @@ const newsValidationRules: ValidationRules<NewsValidationFields> = {
     required: true,
   },
   summaryZh: {
-    pattern: /^.{10,500}$/,
+    pattern: /^.{0,200}$/,
     errorType: "invalidSummaryZh",
     required: true,
   },
   summaryEn: {
-    pattern: /^.{10,500}$/,
+    pattern: /^.{0,200}$/,
     errorType: "invalidSummaryEn",
     required: true,
   },
@@ -780,12 +780,12 @@ const newsErrorMessages: ErrorMessages = {
     en: "Enter an English title with at least 2 characters",
   },
   invalidSummaryZh: {
-    zh: "请输入10-500字的中文摘要",
-    en: "Enter a Chinese summary between 10 and 500 characters",
+    zh: "请输入最多200字的中文摘要",
+    en: "Enter a Chinese summary with at most 200 characters",
   },
   invalidSummaryEn: {
-    zh: "请输入10-500字的英文摘要",
-    en: "Enter an English summary between 10 and 500 characters",
+    zh: "请输入最多200字的英文摘要",
+    en: "Enter an English summary with at most 200 characters",
   },
   invalidContentZh: {
     zh: "请输入中文正文内容",

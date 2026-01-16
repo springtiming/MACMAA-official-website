@@ -146,23 +146,23 @@ export function NotificationBadge({
   const circleSizeClass = (() => {
     if (variant === "raised") {
       if (size !== "auto") {
-        if (size === "sm") return "size-6";
-        if (size === "lg") return "size-10";
-        return "size-8";
+        if (size === "sm") return "w-6 h-6";
+        if (size === "lg") return "w-10 h-10";
+        return "w-8 h-8";
       }
-      if (countLength === 1) return "size-6";
-      if (countLength === 2) return "size-8";
-      return "size-10";
+      if (countLength === 1) return "w-6 h-6";
+      if (countLength === 2) return "w-8 h-8";
+      return "w-10 h-10";
     }
 
     if (size !== "auto") {
-      if (size === "sm") return "size-5";
-      if (size === "lg") return "size-7";
-      return "size-6";
+      if (size === "sm") return "w-5 h-5";
+      if (size === "lg") return "w-7 h-7";
+      return "w-6 h-6";
     }
-    if (countLength === 1) return "size-5";
-    if (countLength === 2) return "size-6";
-    return "size-7";
+    if (countLength === 1) return "w-5 h-5";
+    if (countLength === 2) return "w-6 h-6";
+    return "w-7 h-7";
   })();
 
   const pillSizeClass = (() => {

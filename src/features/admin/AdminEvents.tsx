@@ -1004,7 +1004,7 @@ export function AdminEvents() {
                     <button
                       onClick={() => openPaymentReview(event)}
                       disabled={pendingCount === 0}
-                      className="glass-btn glass-btn-warning min-w-[140px] disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="glass-btn glass-btn-warning relative overflow-visible min-w-[140px] disabled:opacity-50 disabled:cursor-not-allowed"
                       aria-label={t("admin.events.reviewPayments")}
                     >
                       <FileCheck className="w-4 h-4" />
