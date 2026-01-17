@@ -113,6 +113,8 @@ const translations: Record<Language, Record<string, string>> = {
     "register.member.autoDiscountHint":
       "验证后，您在报名其他活动时将自动享受会员价格",
     "register.member.invalidEmail": "请输入有效的邮箱地址",
+    "register.member.emailNotFound":
+      "该邮箱未在会员系统中注册。请确认您输入的是申请会员时填写的邮箱，或通过 {email} 联系我们。",
     "register.member.sendFailed": "发送失败，请稍后重试",
     "register.member.sendSuccess": "验证码已发送到您的邮箱，请查收",
     "register.member.invalidCode": "请输入 6 位验证码",
@@ -641,6 +643,8 @@ const translations: Record<Language, Record<string, string>> = {
     "register.member.autoDiscountHint":
       "Once verified, you will automatically get member prices for other events",
     "register.member.invalidEmail": "Please enter a valid email address",
+    "register.member.emailNotFound":
+      "This email is not registered in our member system. Please verify you're using the email from your membership application, or contact us at {email}.",
     "register.member.sendFailed": "Failed to send code, please try again",
     "register.member.sendSuccess": "Verification code sent to your email",
     "register.member.invalidCode": "Please enter 6-digit code",

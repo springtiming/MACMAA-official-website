@@ -1,4 +1,5 @@
 import { useLanguage } from "../contexts/LanguageContext";
+import { organization } from "../lib/seo/config";
 import {
   Mail,
   Phone,
@@ -40,15 +41,17 @@ export function Footer() {
             <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-blue-100">
               <div className="flex items-center gap-2">
                 <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                <span>macmaa112025@gmail.com</span>
+                <span>{organization.email}</span>
               </div>
               <div className="flex items-start gap-2">
                 <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 mt-0.5" />
-                <span>293-297 Manningham Rd, Templestowe Lower VIC 3107</span>
+                <span>
+                  {organization.address?.streetAddress}, {organization.address?.addressLocality} {organization.address?.addressRegion} {organization.address?.postalCode}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                <span>0451 727 631</span>
+                <span>{organization.telephone}</span>
               </div>
             </div>
           </div>

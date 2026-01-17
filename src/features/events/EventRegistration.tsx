@@ -22,6 +22,7 @@ import {
   uploadPaymentProof,
   type EventRecord,
 } from "@/lib/supabaseApi";
+import { organization } from "@/lib/seo/config";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import {
   calculateMemberPricing,
@@ -335,9 +336,18 @@ export function EventRegistration() {
         setVerificationCode("");
         setResendCooldown(60);
         alert(t("register.member.sendSuccess"));
+      } else if (response.status === 404) {
+        // Email not found in member database
+        const message = t("register.member.emailNotFound").replace(
+          "{email}",
+          organization.email || ""
+        );
+        alert(message);
       } else {
-        const error = await response.json();
-        alert(error.message || t("register.member.sendFailed"));
+        const error = (await response.json().catch(() => null)) as
+          | { error?: string; message?: string }
+          | null;
+        alert(error?.error || error?.message || t("register.member.sendFailed"));
       }
     } catch (err) {
       console.error("[member] send code failed", err);
