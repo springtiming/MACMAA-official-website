@@ -315,7 +315,10 @@ export function AdminDashboard() {
                      onClick={() => section.path && router.push(section.path)}
                      className="bg-white rounded-xl p-6 shadow-lg cursor-pointer hover:shadow-xl transition-shadow relative"
                    >
-                     <NotificationBadge count={section.badgeCount} />
+                     <NotificationBadge
+                       count={section.badgeCount}
+                       placement="outside"
+                     />
                      <div
                        className="w-12 h-12 rounded-full flex items-center justify-center mb-4"
                        style={{ backgroundColor: `${section.color}20` }}
