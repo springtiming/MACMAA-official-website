@@ -1,8 +1,8 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+import type { NextApiRequest, NextApiResponse } from "next";
 import type Stripe from "stripe";
-import { getStripeClient, getStripeWebhookSecret } from "../_stripe.js";
-import { getServiceRoleSupabase } from "../_supabaseAdminClient.js";
-import { sendEventRegistrationEmails } from "../_emailService.js";
+import { getStripeClient, getStripeWebhookSecret } from "@/server/api/_stripe";
+import { getServiceRoleSupabase } from "@/server/api/_supabaseAdminClient";
+import { sendEventRegistrationEmails } from "@/server/api/_emailService";
 
 export const config = {
   api: {
@@ -10,7 +10,7 @@ export const config = {
   },
 };
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).send("Method not allowed");
@@ -129,7 +129,7 @@ async function handleCheckoutSessionCompleted(
   }
 }
 
-async function readRawBody(req: VercelRequest): Promise<Buffer> {
+async function readRawBody(req: NextApiRequest): Promise<Buffer> {
   const chunks: Uint8Array[] = [];
   for await (const chunk of req) {
     chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);

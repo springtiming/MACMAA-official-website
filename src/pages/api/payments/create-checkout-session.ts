@@ -1,6 +1,6 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getStripeClient, STRIPE_DEFAULT_CURRENCY } from "../_stripe.js";
-import { getServiceRoleSupabase } from "../_supabaseAdminClient.js";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { getStripeClient, STRIPE_DEFAULT_CURRENCY } from "@/server/api/_stripe";
+import { getServiceRoleSupabase } from "@/server/api/_supabaseAdminClient";
 
 type CreateCheckoutPayload = {
   eventId?: string;
@@ -15,7 +15,7 @@ type CreateCheckoutPayload = {
   totalAmount?: number; // 包含手续费的总价（可选，用于向后兼容）
 };
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "OPTIONS") {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -172,7 +172,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 }
 
-function resolveOrigin(req: VercelRequest): string {
+function resolveOrigin(req: NextApiRequest): string {
   const originHeader = req.headers.origin;
   if (typeof originHeader === "string") return originHeader;
 

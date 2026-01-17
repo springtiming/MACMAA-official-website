@@ -1,5 +1,7 @@
 import { Resend } from "resend";
 
+// Server-side email helpers used by API routes.
+
 type SendEmailInput = {
   to: string | string[];
   subject: string;

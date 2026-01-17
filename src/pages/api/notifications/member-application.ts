@@ -1,7 +1,7 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { sendMemberApplicationSubmitted } from "../_emailService.js";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { sendMemberApplicationSubmitted } from "@/server/api/_emailService";
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "OPTIONS") {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");

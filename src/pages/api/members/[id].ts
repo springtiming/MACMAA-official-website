@@ -1,11 +1,14 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getSupabaseServiceClient, logSupabaseError } from "../_supabaseAdminClient.js";
-import { sendMemberApprovedEmail } from "../_emailService.js";
-import { requireAdmin } from "../_auth.js";
+import type { NextApiRequest, NextApiResponse } from "next";
+import {
+  getSupabaseServiceClient,
+  logSupabaseError,
+} from "@/server/api/_supabaseAdminClient";
+import { sendMemberApprovedEmail } from "@/server/api/_emailService";
+import { requireAdmin } from "@/server/api/_auth";
 
 type MemberStatus = "pending" | "approved" | "rejected";
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { id } = req.query;
     if (typeof id !== "string") {
@@ -35,7 +38,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 }
 
-async function handleUpdateStatus(id: string, req: VercelRequest, res: VercelResponse) {
+async function handleUpdateStatus(id: string, req: NextApiRequest, res: NextApiResponse) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   const admin = requireAdmin(req, res);
   if (!admin) {
@@ -87,7 +90,7 @@ async function handleUpdateStatus(id: string, req: VercelRequest, res: VercelRes
   return res.status(200).json({ member: data });
 }
 
-async function handleDelete(id: string, req: VercelRequest, res: VercelResponse) {
+async function handleDelete(id: string, req: NextApiRequest, res: NextApiResponse) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   const admin = requireAdmin(req, res);
   if (!admin) {

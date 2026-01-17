@@ -1,8 +1,11 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getSupabaseServiceClient } from "./_supabaseAdminClient.js";
-import { hashVerificationCode, normalizeEmail } from "./_memberVerificationStore.js";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { getSupabaseServiceClient } from "@/server/api/_supabaseAdminClient";
+import {
+  hashVerificationCode,
+  normalizeEmail,
+} from "@/server/api/_memberVerificationStore";
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "OPTIONS") {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");

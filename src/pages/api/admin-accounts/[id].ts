@@ -1,15 +1,15 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+import type { NextApiRequest, NextApiResponse } from "next";
 import {
   getSupabaseServiceClient,
   logSupabaseError,
-} from "../_supabaseAdminClient.js";
-import { requireOwner } from "../_auth.js";
-import { hashPassword } from "../_password.js";
+} from "@/server/api/_supabaseAdminClient";
+import { requireOwner } from "@/server/api/_auth";
+import { hashPassword } from "@/server/api/_password";
 
 const ACCOUNT_COLUMNS =
   "id, username, email, role, status, created_at, last_login_at";
 
-function setCors(res: VercelResponse) {
+function setCors(res: NextApiResponse) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "PATCH, DELETE, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -21,8 +21,8 @@ type UpdatePayload = {
 };
 
 export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse
+  req: NextApiRequest,
+  res: NextApiResponse
 ) {
   const { id } = req.query;
   if (typeof id !== "string") {
@@ -47,7 +47,7 @@ export default async function handler(
   return res.status(405).json({ error: "Method not allowed" });
 }
 
-async function updateAccount(id: string, req: VercelRequest, res: VercelResponse) {
+async function updateAccount(id: string, req: NextApiRequest, res: NextApiResponse) {
   setCors(res);
   const admin = requireOwner(req, res);
   if (!admin) {
@@ -89,7 +89,7 @@ async function updateAccount(id: string, req: VercelRequest, res: VercelResponse
   }
 }
 
-async function deleteAccount(id: string, req: VercelRequest, res: VercelResponse) {
+async function deleteAccount(id: string, req: NextApiRequest, res: NextApiResponse) {
   setCors(res);
   const admin = requireOwner(req, res);
   if (!admin) {

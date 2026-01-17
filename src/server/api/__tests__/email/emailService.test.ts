@@ -31,31 +31,31 @@ describe("Email Service", () => {
   describe("emailConfig", () => {
     it("should detect missing API key", async () => {
       delete process.env.RESEND_API_KEY;
-      const { emailConfig } = await import("../../_emailService.js");
+      const { emailConfig } = await import("@/server/api/_emailService");
       expect(emailConfig.hasApiKey).toBe(false);
     });
 
     it("should detect present API key", async () => {
       process.env.RESEND_API_KEY = "test-key";
-      const { emailConfig } = await import("../../_emailService.js");
+      const { emailConfig } = await import("@/server/api/_emailService");
       expect(emailConfig.hasApiKey).toBe(true);
     });
 
     it("should use default from email when not configured", async () => {
       delete process.env.RESEND_FROM_EMAIL;
-      const { emailConfig } = await import("../../_emailService.js");
+      const { emailConfig } = await import("@/server/api/_emailService");
       expect(emailConfig.defaultFrom).toBe("VMCA <onboarding@resend.dev>");
     });
 
     it("should use configured from email", async () => {
       process.env.RESEND_FROM_EMAIL = "Test <test@example.com>";
-      const { emailConfig } = await import("../../_emailService.js");
+      const { emailConfig } = await import("@/server/api/_emailService");
       expect(emailConfig.defaultFrom).toBe("Test <test@example.com>");
     });
 
     it("should read admin email from environment", async () => {
       process.env.ADMIN_NOTIFICATION_EMAIL = "admin@test.com";
-      const { emailConfig } = await import("../../_emailService.js");
+      const { emailConfig } = await import("@/server/api/_emailService");
       expect(emailConfig.adminEmail).toBe("admin@test.com");
     });
   });
@@ -63,7 +63,7 @@ describe("Email Service", () => {
   describe("sendEmail", () => {
     it("should skip sending when API key is missing", async () => {
       delete process.env.RESEND_API_KEY;
-      const { sendEmail } = await import("../../_emailService.js");
+      const { sendEmail } = await import("@/server/api/_emailService");
       const result = await sendEmail({
         to: "test@example.com",
         subject: "Test",
@@ -76,7 +76,7 @@ describe("Email Service", () => {
 
     it("should skip sending when no recipient", async () => {
       process.env.RESEND_API_KEY = "test-key";
-      const { sendEmail } = await import("../../_emailService.js");
+      const { sendEmail } = await import("@/server/api/_emailService");
       const result = await sendEmail({
         to: "",
         subject: "Test",
@@ -94,7 +94,7 @@ describe("Email Service", () => {
         error: null,
       });
 
-      const { sendEmail } = await import("../../_emailService.js");
+      const { sendEmail } = await import("@/server/api/_emailService");
       await sendEmail({
         to: ["test1@example.com", "test2@example.com"],
         subject: "Test",
@@ -117,7 +117,7 @@ describe("Email Service", () => {
         error: null,
       });
 
-      const { sendMemberApplicationSubmitted } = await import("../../_emailService.js");
+      const { sendMemberApplicationSubmitted } = await import("@/server/api/_emailService");
       const result = await sendMemberApplicationSubmitted({
         chineseName: "测试用户",
         englishName: "Test User",
@@ -143,7 +143,7 @@ describe("Email Service", () => {
         error: null,
       });
 
-      const { sendMemberApplicationSubmitted } = await import("../../_emailService.js");
+      const { sendMemberApplicationSubmitted } = await import("@/server/api/_emailService");
       await sendMemberApplicationSubmitted({
         chineseName: "测试用户",
         email: "test@example.com",
@@ -163,7 +163,7 @@ describe("Email Service", () => {
 
   describe("sendMemberApprovedEmail", () => {
     it("should skip when member has no email", async () => {
-      const { sendMemberApprovedEmail } = await import("../../_emailService.js");
+      const { sendMemberApprovedEmail } = await import("@/server/api/_emailService");
       const result = await sendMemberApprovedEmail({
         chinese_name: "测试用户",
         email: null,
@@ -180,7 +180,7 @@ describe("Email Service", () => {
         error: null,
       });
 
-      const { sendMemberApprovedEmail } = await import("../../_emailService.js");
+      const { sendMemberApprovedEmail } = await import("@/server/api/_emailService");
       const result = await sendMemberApprovedEmail({
         chinese_name: "测试用户",
         english_name: "Test User",
@@ -205,7 +205,7 @@ describe("Email Service", () => {
         error: null,
       });
 
-      const { sendEventRegistrationEmails } = await import("../../_emailService.js");
+      const { sendEventRegistrationEmails } = await import("@/server/api/_emailService");
       const result = await sendEventRegistrationEmails({
         eventTitleZh: "测试活动",
         eventTitleEn: "Test Event",
@@ -232,7 +232,7 @@ describe("Email Service", () => {
         error: null,
       });
 
-      const { sendEventRegistrationEmails } = await import("../../_emailService.js");
+      const { sendEventRegistrationEmails } = await import("@/server/api/_emailService");
       await sendEventRegistrationEmails(
         {
           eventTitleZh: "测试活动",

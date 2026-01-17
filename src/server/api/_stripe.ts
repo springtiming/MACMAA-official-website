@@ -1,7 +1,6 @@
 import Stripe from "stripe";
 
-// Centralized Stripe client for Vercel API routes.
-// This file is placed in api/ to ensure Vercel bundles it correctly.
+// Centralized Stripe client for server-side API routes.
 
 let cachedStripe: Stripe | null = null;
 

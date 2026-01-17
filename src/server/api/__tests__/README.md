@@ -3,7 +3,7 @@
 ## 目录结构
 
 ```
-api/__tests__/
+src/server/api/__tests__/
 ├── email/                    # 邮件功能测试
 │   ├── emailService.test.ts  # 邮件服务核心功能测试
 │   └── env-check.test.ts     # 环境变量检查测试
@@ -21,12 +21,12 @@ npm test
 
 ### 运行特定测试文件
 ```bash
-npm test -- api/__tests__/email/emailService.test.ts
+npm test -- src/server/api/__tests__/email/emailService.test.ts
 ```
 
 ### 运行特定测试套件
 ```bash
-npm test -- api/__tests__/email
+npm test -- src/server/api/__tests__/email
 ```
 
 ### 监视模式（开发时使用）

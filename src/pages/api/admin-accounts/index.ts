@@ -1,11 +1,11 @@
 import { randomUUID } from "node:crypto";
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+import type { NextApiRequest, NextApiResponse } from "next";
 import {
   getSupabaseServiceClient,
   logSupabaseError,
-} from "../_supabaseAdminClient.js";
-import { requireAdmin, requireOwner } from "../_auth.js";
-import { hashPassword } from "../_password.js";
+} from "@/server/api/_supabaseAdminClient";
+import { requireAdmin, requireOwner } from "@/server/api/_auth";
+import { hashPassword } from "@/server/api/_password";
 
 const ACCOUNT_COLUMNS =
   "id, username, email, role, status, created_at, last_login_at";
@@ -31,7 +31,7 @@ const DEFAULT_ACCOUNTS: Required<CreateAccountPayload>[] = [
   },
 ];
 
-function setCors(res: VercelResponse) {
+function setCors(res: NextApiResponse) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -45,8 +45,8 @@ type CreateAccountPayload = {
 };
 
 export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse
+  req: NextApiRequest,
+  res: NextApiResponse
 ) {
   if (req.method === "OPTIONS") {
     setCors(res);
@@ -65,7 +65,7 @@ export default async function handler(
   return res.status(405).json({ error: "Method not allowed" });
 }
 
-async function listAccounts(req: VercelRequest, res: VercelResponse) {
+async function listAccounts(req: NextApiRequest, res: NextApiResponse) {
   setCors(res);
   const admin = requireAdmin(req, res);
   if (!admin) {
@@ -99,7 +99,7 @@ async function listAccounts(req: VercelRequest, res: VercelResponse) {
   }
 }
 
-async function createAccount(req: VercelRequest, res: VercelResponse) {
+async function createAccount(req: NextApiRequest, res: NextApiResponse) {
   setCors(res);
   const admin = requireOwner(req, res);
   if (!admin) {

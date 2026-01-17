@@ -1,5 +1,5 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { verifyToken, extractTokenFromHeader } from "./_jwt.js";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { verifyToken, extractTokenFromHeader } from "./_jwt";
 
 export interface AdminAuthInfo {
   id: string;
@@ -13,8 +13,8 @@ export interface AdminAuthInfo {
  * @returns 如果验证成功返回管理员信息，否则返回null并设置响应状态
  */
 export function verifyAdminAuth(
-  req: VercelRequest,
-  res: VercelResponse
+  req: NextApiRequest,
+  res: NextApiResponse
 ): AdminAuthInfo | null {
   const authHeader = req.headers.authorization;
   const token = extractTokenFromHeader(authHeader);
@@ -43,8 +43,8 @@ export function verifyAdminAuth(
  * @returns 如果验证成功返回管理员信息，否则返回null并设置响应状态
  */
 export function requireAdmin(
-  req: VercelRequest,
-  res: VercelResponse
+  req: NextApiRequest,
+  res: NextApiResponse
 ): AdminAuthInfo | null {
   const admin = verifyAdminAuth(req, res);
   if (!admin) {
@@ -67,8 +67,8 @@ export function requireAdmin(
  * @returns 如果验证成功返回管理员信息，否则返回null并设置响应状态
  */
 export function requireOwner(
-  req: VercelRequest,
-  res: VercelResponse
+  req: NextApiRequest,
+  res: NextApiResponse
 ): AdminAuthInfo | null {
   const admin = verifyAdminAuth(req, res);
   if (!admin) {
