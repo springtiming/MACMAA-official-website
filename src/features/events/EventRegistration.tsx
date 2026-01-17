@@ -917,7 +917,7 @@ export function EventRegistration() {
                                   <label className="block text-sm text-gray-600 mb-2">
                                     {t("register.member.email")}
                                   </label>
-                                  <div className="flex gap-2">
+                                  <div className="flex flex-col sm:flex-row gap-2">
                                     <input
                                       type="email"
                                       value={memberEmail}
