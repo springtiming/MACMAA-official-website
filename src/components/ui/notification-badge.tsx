@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { motion, type HTMLMotionProps } from "motion/react";
 
 import { cn } from "./utils";
@@ -196,12 +197,12 @@ export function NotificationBadge({
       : "text-[0.6rem] sm:text-[0.65rem]";
   })();
 
-  const positionClass =
+  const positionStyle: CSSProperties =
     placement === "outside"
       ? variant === "raised"
-        ? "-top-2 -right-2"
-        : "-top-[0.3rem] -right-[0.3rem] sm:-top-1.5 sm:-right-1.5"
-      : "top-2 right-2";
+        ? { top: "-0.5rem", right: "-0.5rem" }
+        : { top: "-0.3rem", right: "-0.3rem" }
+      : { top: "0.5rem", right: "0.5rem" };
 
   const sizeClass = shape === "pill" ? pillSizeClass : circleSizeClass;
   const raisedVariableClasses =
@@ -231,7 +232,6 @@ export function NotificationBadge({
       data-slot="notification-badge"
       className={cn(
         "absolute z-10 inline-flex items-center justify-center rounded-full text-white pointer-events-none select-none leading-none",
-        positionClass,
         sizeClass,
         variant === "raised" ? "font-semibold" : "font-bold",
         fontClass,
@@ -242,6 +242,7 @@ export function NotificationBadge({
         className
       )}
       style={{
+        ...positionStyle,
         ...(variant === "raised"
           ? {
               background:
