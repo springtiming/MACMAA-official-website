@@ -938,12 +938,12 @@ export function EventRegistration() {
                                         isVerifying ||
                                         resendCooldown > 0
                                       }
-                                      className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap transition-colors ${
-                                        isVerifying || resendCooldown > 0
-                                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                                          : "bg-green-600 text-white hover:bg-green-700"
-                                      }`}
-                                    >
+	                                      className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap transition-colors ${
+	                                        isVerifying || resendCooldown > 0
+	                                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+	                                          : "bg-[#6BA868] text-white hover:bg-[#5a9157]"
+	                                      }`}
+	                                    >
                                       {isVerifying
                                         ? t("register.member.sending")
                                         : codeSent
@@ -990,13 +990,13 @@ export function EventRegistration() {
                                           verificationCode.length !== 6 ||
                                           isVerifying
                                         }
-                                        className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap transition-colors ${
-                                          verificationCode.length !== 6 ||
-                                          isVerifying
-                                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                                            : "bg-green-600 text-white hover:bg-green-700"
-                                        }`}
-                                      >
+	                                        className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap transition-colors ${
+	                                          verificationCode.length !== 6 ||
+	                                          isVerifying
+	                                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+	                                            : "bg-[#6BA868] text-white hover:bg-[#5a9157]"
+	                                        }`}
+	                                      >
                                         {isVerifying
                                           ? t("register.member.verifying")
                                           : t("register.member.verify")}
