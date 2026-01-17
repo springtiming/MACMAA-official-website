@@ -112,12 +112,12 @@ const eventValidationRules: ValidationRules<EventValidationFields> = {
     required: true,
   },
   descZh: {
-    pattern: /^.{10,2000}$/,
+    pattern: /^.{0,200}$/,
     errorType: "invalidEventDescZh",
     required: true,
   },
   descEn: {
-    pattern: /^.{10,2000}$/,
+    pattern: /^.{0,200}$/,
     errorType: "invalidEventDescEn",
     required: true,
   },
@@ -162,12 +162,12 @@ const eventErrorMessages: ErrorMessages = {
     en: "English title must contain at least 2 characters",
   },
   invalidEventDescZh: {
-    zh: "请输入10字以上的中文简介",
-    en: "Chinese description must be at least 10 characters",
+    zh: "请输入最多200字的中文简介",
+    en: "Chinese description must be at most 200 characters",
   },
   invalidEventDescEn: {
-    zh: "请输入10字以上的英文简介",
-    en: "English description must be at least 10 characters",
+    zh: "请输入最多200字的英文简介",
+    en: "English description must be at most 200 characters",
   },
   invalidEventDate: {
     zh: "请选择活动日期",
