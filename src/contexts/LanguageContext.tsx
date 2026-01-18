@@ -15,6 +15,7 @@ const translations: Record<Language, Record<string, string>> = {
     "nav.news": "新闻动态",
     "nav.events": "活动中心",
     "nav.membership": "会员申请",
+    "nav.volunteer": "志愿者招募",
     "nav.about": "协会简介",
     "nav.admin": "后台管理",
 
@@ -528,6 +529,23 @@ const translations: Record<Language, Record<string, string>> = {
     "common.loading": "加载中...",
     "common.free": "免费",
 
+    // Volunteer
+    "volunteer.title": "志愿者招募",
+    "volunteer.subtitle": "加入我们，一起组织社区活动，服务华人长者",
+    "volunteer.description":
+      "MACMAA 诚邀热心人士加入我们的志愿者团队。作为志愿者，您将有机会参与活动策划、现场协助、翻译服务等工作，为社区贡献力量。",
+    "volunteer.benefits.title": "志愿者福利",
+    "volunteer.benefits.1": "获得志愿服务时长证明",
+    "volunteer.benefits.2": "优先参与协会活动",
+    "volunteer.benefits.3": "结识志同道合的朋友",
+    "volunteer.benefits.4": "丰富个人经历与技能",
+    "volunteer.howToApply": "申请方式",
+    "volunteer.step1": "下载并填写志愿者申请表",
+    "volunteer.step2": "将填写好的表格发送至以下邮箱",
+    "volunteer.downloadForm": "下载申请表",
+    "volunteer.sendTo": "发送邮箱",
+    "volunteer.note": "我们会在收到您的申请后尽快与您联系。如有任何问题，欢迎通过邮件咨询。",
+
     // Footer
     "footer.contact": "联系我们",
     "footer.email": "邮箱",
@@ -543,6 +561,7 @@ const translations: Record<Language, Record<string, string>> = {
     "nav.news": "News",
     "nav.events": "Events",
     "nav.membership": "Membership",
+    "nav.volunteer": "Volunteer",
     "nav.about": "About Us",
     "nav.admin": "Admin",
 
@@ -1095,6 +1114,25 @@ const translations: Record<Language, Record<string, string>> = {
     "common.error": "Something went wrong. Please try again.",
     "common.loading": "Loading...",
     "common.free": "Free",
+
+    // Volunteer
+    "volunteer.title": "Volunteer Recruitment",
+    "volunteer.subtitle":
+      "Join us to organize community events and serve Chinese seniors",
+    "volunteer.description":
+      "MACMAA welcomes enthusiastic individuals to join our volunteer team. As a volunteer, you'll have opportunities to participate in event planning, on-site assistance, translation services, and more.",
+    "volunteer.benefits.title": "Volunteer Benefits",
+    "volunteer.benefits.1": "Receive volunteer service hour certificates",
+    "volunteer.benefits.2": "Priority access to association events",
+    "volunteer.benefits.3": "Meet like-minded friends",
+    "volunteer.benefits.4": "Enrich your experience and skills",
+    "volunteer.howToApply": "How to Apply",
+    "volunteer.step1": "Download and complete the volunteer application form",
+    "volunteer.step2": "Send the completed form to the email below",
+    "volunteer.downloadForm": "Download Form",
+    "volunteer.sendTo": "Send to",
+    "volunteer.note":
+      "We will contact you as soon as possible after receiving your application. If you have any questions, feel free to reach out via email.",
 
     // Footer
     "footer.contact": "Contact Us",
