@@ -28,6 +28,7 @@ const calligraphyPhotoUrl =
   "/assets/928ec88ac46c7ad8c5c157f2f73842edb6fb5c04.png";
 const leadershipPhotoUrl =
   "/assets/e64db2d9d10306a4e7b8be715dce92e0c0c49c49.png";
+const homeImageLoadCache = new Set<string>();
 
 export function Home() {
   const { t, language } = useLanguage();
@@ -73,21 +74,34 @@ export function Home() {
   );
 
   const [loadedImages, setLoadedImages] = useState<boolean[]>(() =>
-    activityImages.map(() => false)
+    activityImages.map((image) => homeImageLoadCache.has(image.url))
   );
 
   useEffect(() => {
-    setLoadedImages(activityImages.map(() => false));
+    setLoadedImages(
+      activityImages.map((image) => homeImageLoadCache.has(image.url))
+    );
   }, [activityImages]);
 
   // Preload all images in the background
   useEffect(() => {
     activityImages.forEach((image, index) => {
+      if (homeImageLoadCache.has(image.url)) {
+        setLoadedImages((prev) => {
+          if (prev[index]) return prev;
+          const next = [...prev];
+          next[index] = true;
+          return next;
+        });
+        return;
+      }
+
       const img = new Image();
       img.src = image.url;
 
       // 检查图片是否已在浏览器缓存中（开屏预加载过）
       if (img.complete && img.naturalWidth > 0) {
+        homeImageLoadCache.add(image.url);
         setLoadedImages((prev) => {
           if (prev[index]) return prev;
           const next = [...prev];
@@ -98,6 +112,7 @@ export function Home() {
       }
 
       img.onload = () => {
+        homeImageLoadCache.add(image.url);
         setLoadedImages((prev) => {
           if (prev[index]) return prev;
           const next = [...prev];
@@ -106,6 +121,7 @@ export function Home() {
         });
       };
       img.onerror = () => {
+        homeImageLoadCache.add(image.url);
         setLoadedImages((prev) => {
           if (prev[index]) return prev;
           const next = [...prev];
@@ -134,6 +150,10 @@ export function Home() {
   };
 
   const handleImageLoad = (index: number) => {
+    const image = activityImages[index];
+    if (image) {
+      homeImageLoadCache.add(image.url);
+    }
     setLoadedImages((prev) => {
       if (prev[index]) return prev;
       const next = [...prev];
