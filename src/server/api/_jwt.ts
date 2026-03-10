@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { Buffer } from "node:buffer";
 
 // Server-only JWT helpers for API routes.
 

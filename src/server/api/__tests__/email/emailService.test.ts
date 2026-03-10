@@ -44,7 +44,7 @@ describe("Email Service", () => {
     it("should use default from email when not configured", async () => {
       delete process.env.RESEND_FROM_EMAIL;
       const { emailConfig } = await import("@/server/api/_emailService");
-      expect(emailConfig.defaultFrom).toBe("VMCA <onboarding@resend.dev>");
+      expect(emailConfig.defaultFrom).toBe("MACMAA <onboarding@resend.dev>");
     });
 
     it("should use configured from email", async () => {

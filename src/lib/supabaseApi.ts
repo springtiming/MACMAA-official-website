@@ -487,7 +487,7 @@ export async function updateEventRegistrationPaymentStatus(payload: {
   return body.registration;
 }
 
-const LOCAL_ADMIN_ACCOUNTS_KEY = "vmca.mockAdminAccounts";
+const LOCAL_ADMIN_ACCOUNTS_KEY = "macmaa.mockAdminAccounts";
 const ENABLE_MOCK_ADMIN_ACCOUNTS =
   process.env.NODE_ENV !== "production" &&
   String(process.env.NEXT_PUBLIC_ENABLE_MOCK_ADMIN_ACCOUNTS ?? "") === "true";

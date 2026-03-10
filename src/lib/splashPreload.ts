@@ -1,5 +1,5 @@
-export const SPLASH_READY_CLASS = "vmca-preload-ready";
-export const SPLASH_PRELOAD_STORAGE_KEY = "vmca_preload_assets_v1";
+export const SPLASH_READY_CLASS = "macmaa-preload-ready";
+export const SPLASH_PRELOAD_STORAGE_KEY = "macmaa_preload_assets_v1";
 export const SPLASH_PRELOAD_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 // Home: hero + carousel images (critical for first load experience)

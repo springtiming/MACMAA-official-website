@@ -6,7 +6,7 @@ export interface AdminInfo {
   role: "owner" | "admin";
 }
 
-const ADMIN_USERNAME_KEY = "vmca.admin.username";
+const ADMIN_USERNAME_KEY = "macmaa.admin.username";
 
 export function setAdminUsername(username: string): void {
   if (typeof window === "undefined") return;

@@ -10,7 +10,7 @@ import {
 export default function Document() {
   // 在 SSR 阶段写入字体 CSS 变量（正文/标题）
   const initialHeadCSS = `:root{--app-font-family:${getFontFamilyCSS()};--app-heading-font-family:${getHeadingFontFamilyCSS()};}
- html.${SPLASH_READY_CLASS} .vmca-loading-screen{display:none !important;}`;
+ html.${SPLASH_READY_CLASS} .macmaa-loading-screen{display:none !important;}`;
 
   const setReadyClassScript = `(function () {
   try {

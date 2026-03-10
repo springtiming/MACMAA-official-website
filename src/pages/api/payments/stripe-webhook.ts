@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import type Stripe from "stripe";
+import { Buffer } from "node:buffer";
 import { getStripeClient, getStripeWebhookSecret } from "@/server/api/_stripe";
 import { getServiceRoleSupabase } from "@/server/api/_supabaseAdminClient";
 import { sendEventRegistrationEmails } from "@/server/api/_emailService";

@@ -25,7 +25,7 @@ export function getSupabaseServiceClient(): SupabaseClient {
     },
     global: {
       headers: {
-        "x-client-info": "vmca-web-admin-api",
+        "x-client-info": "macmaa-web-admin-api",
       },
     },
   });

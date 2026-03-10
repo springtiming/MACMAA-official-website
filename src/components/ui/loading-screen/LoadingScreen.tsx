@@ -22,7 +22,7 @@ import { variantConfig, loadingTexts, type LoadingScreenProps } from "./types";
  * // 自定义样式
  * <LoadingScreen
  *   variant="dark"
- *   logoText="VMCA"
+ *   logoText="MACMAA"
  *   subtitle="自定义副标题"
  *   language="en"
  * />

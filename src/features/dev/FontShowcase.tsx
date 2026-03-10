@@ -215,7 +215,7 @@ export function FontShowcase() {
       zh: "建设社区，连接文化",
     },
     paragraph: {
-      en: "The Victoria Mandarin Chinese Association (VMCA) is dedicated to fostering cultural exchange, supporting community members, and organizing meaningful events that bring people together. We welcome everyone to join our vibrant community and participate in our diverse range of activities.",
+      en: "The Victoria Mandarin Chinese Association (MACMAA) is dedicated to fostering cultural exchange, supporting community members, and organizing meaningful events that bring people together. We welcome everyone to join our vibrant community and participate in our diverse range of activities.",
       zh: "维多利亚州华人协会致力于促进文化交流，支持社区成员，组织有意义的活动，将人们聚集在一起。我们欢迎每个人加入我们充满活力的社区，参与我们多样化的活动。",
     },
     heading: {
@@ -246,7 +246,7 @@ export function FontShowcase() {
             <p>
               本页为开发者提供字体调试能力。核心候选字体优先使用本地
               <code className="px-1 mx-1 rounded bg-yellow-100 border border-yellow-200">
-                VMCA Inter / VMCA Noto Sans SC
+                MACMAA Inter / MACMAA Noto Sans SC
               </code>
               ，确保在当前环境下能看出差异。
             </p>

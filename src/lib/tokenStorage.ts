@@ -1,4 +1,4 @@
-const TOKEN_KEY = "vmca.admin.token";
+const TOKEN_KEY = "macmaa.admin.token";
 
 export type AdminTokenPayload = {
   id: string;

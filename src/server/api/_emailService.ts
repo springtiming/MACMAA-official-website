@@ -23,7 +23,7 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const resendClient = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
 
 const DEFAULT_FROM =
-  process.env.RESEND_FROM_EMAIL ?? "VMCA <onboarding@resend.dev>";
+  process.env.RESEND_FROM_EMAIL ?? "MACMAA <onboarding@resend.dev>";
 const ADMIN_EMAIL =
   process.env.ADMIN_NOTIFICATION_EMAIL ??
   process.env.ADMIN_EMAIL ??

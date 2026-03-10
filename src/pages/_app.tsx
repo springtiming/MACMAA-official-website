@@ -141,7 +141,7 @@ function AppContent({ Component, pageProps }: AppProps) {
     <div className="flex flex-col min-h-screen">
       {isLoading && (
         <LoadingScreen
-          className="vmca-loading-screen"
+          className="macmaa-loading-screen"
           language={language}
           progress={loadingProgress}
           onLoadComplete={handleLoadComplete}
