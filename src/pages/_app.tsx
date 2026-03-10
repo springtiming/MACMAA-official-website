@@ -138,7 +138,7 @@ function AppContent({ Component, pageProps }: AppProps) {
   }, [router.asPath]);
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-gray-50">
       {isLoading && (
         <LoadingScreen
           className="macmaa-loading-screen"
@@ -148,7 +148,7 @@ function AppContent({ Component, pageProps }: AppProps) {
         />
       )}
       <motion.div
-        className="flex flex-col min-h-screen"
+        className="flex flex-col min-h-screen bg-gray-50"
         initial={{ opacity: 0, y: 12 }}
         animate={
           splashComplete
