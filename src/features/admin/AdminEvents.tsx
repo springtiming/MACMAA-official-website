@@ -40,6 +40,12 @@ import { NotificationBadge } from "@/components/ui/notification-badge";
 import { useProcessingFeedback } from "@/hooks/useProcessingFeedback";
 import { AdminConfirmDialog } from "@/components/AdminConfirmDialog";
 import {
+  buildPaymentReviewConfirmCopy,
+  buildPaymentReviewFeedbackMessages,
+  mapPaymentDecisionToStatus,
+  type PaymentReviewDecision,
+} from "./paymentReviewFeedback";
+import {
   type ErrorMessages,
   type FormErrors,
   type ValidationConfig,
@@ -245,6 +251,14 @@ type PaymentProofLightboxPayload = {
   subtitle?: string;
 };
 
+type AdminEventsConfirmDialog =
+  | { type: "delete"; targetId: string }
+  | {
+      type: "paymentReview";
+      registrationId: string;
+      decision: PaymentReviewDecision;
+    };
+
 export function AdminEvents() {
   const { language, t } = useLanguage();
   const router = useRouter();
@@ -291,10 +305,8 @@ export function AdminEvents() {
   const [selectedUnsplashId, setSelectedUnsplashId] = useState<string | null>(
     null
   );
-  const [confirmDialog, setConfirmDialog] = useState<{
-    type: "delete";
-    targetId: string;
-  } | null>(null);
+  const [confirmDialog, setConfirmDialog] =
+    useState<AdminEventsConfirmDialog | null>(null);
   const {
     state: processingState,
     title: processingTitle,
@@ -715,35 +727,38 @@ export function AdminEvents() {
 
   const handlePaymentDecision = async (
     registrationId: string,
-    decision: "approve" | "reject"
+    decision: PaymentReviewDecision
   ) => {
-    const nextStatus = decision === "approve" ? "confirmed" : "cancelled";
+    const nextStatus = mapPaymentDecisionToStatus(decision);
+    const messages = buildPaymentReviewFeedbackMessages(t, decision);
     setPaymentUpdates((prev) => ({ ...prev, [registrationId]: true }));
     try {
-      const updated = await updateEventRegistrationPaymentStatus({
-        registrationId,
-        paymentStatus: nextStatus,
+      await runWithFeedback(messages, async () => {
+        const updated = await updateEventRegistrationPaymentStatus({
+          registrationId,
+          paymentStatus: nextStatus,
+        });
+        setAllRegistrations((prev) =>
+          prev.map((reg) =>
+            reg.id === registrationId
+              ? {
+                  ...reg,
+                  ...updated,
+                }
+              : reg
+          )
+        );
+        setRegistrations((prev) =>
+          prev.map((reg) =>
+            reg.id === registrationId
+              ? {
+                  ...reg,
+                  ...updated,
+                }
+              : reg
+          )
+        );
       });
-      setAllRegistrations((prev) =>
-        prev.map((reg) =>
-          reg.id === registrationId
-            ? {
-                ...reg,
-                ...updated,
-              }
-            : reg
-        )
-      );
-      setRegistrations((prev) =>
-        prev.map((reg) =>
-          reg.id === registrationId
-            ? {
-                ...reg,
-                ...updated,
-              }
-            : reg
-        )
-      );
     } catch (err) {
       console.error("[AdminEvents] update payment status", err);
       setError(t("common.error"));
@@ -835,27 +850,53 @@ export function AdminEvents() {
     setConfirmDialog({ type: "delete", targetId: id });
   };
 
-  const handleConfirmDelete = async () => {
+  const openPaymentDecisionConfirm = (
+    registrationId: string,
+    decision: PaymentReviewDecision
+  ) => {
+    setConfirmDialog({
+      type: "paymentReview",
+      registrationId,
+      decision,
+    });
+  };
+
+  const handleConfirmAction = async () => {
     if (!confirmDialog) return;
-    const { targetId } = confirmDialog;
+    const action = confirmDialog;
     setConfirmDialog(null);
-    const messages = getFeedbackMessages("delete");
-    try {
-      await runWithFeedback(messages, async () => {
-        await deleteEvent(targetId);
-        setEvents((prev) => prev.filter((e) => e.id !== targetId));
-      });
-    } catch {
-      setError(t("common.error"));
+
+    if (action.type === "delete") {
+      const messages = getFeedbackMessages("delete");
+      try {
+        await runWithFeedback(messages, async () => {
+          await deleteEvent(action.targetId);
+          setEvents((prev) => prev.filter((e) => e.id !== action.targetId));
+        });
+      } catch {
+        setError(t("common.error"));
+      }
+      return;
     }
+
+    await handlePaymentDecision(action.registrationId, action.decision);
   };
 
   const confirmCopy = confirmDialog
-    ? {
-        title: t("admin.events.confirm.delete.title"),
-        message: t("admin.events.confirm.delete.message"),
-      }
+    ? confirmDialog.type === "delete"
+      ? {
+          title: t("admin.events.confirm.delete.title"),
+          message: t("admin.events.confirm.delete.message"),
+        }
+      : buildPaymentReviewConfirmCopy(t, confirmDialog.decision)
     : { title: "", message: "" };
+
+  const confirmTone =
+    confirmDialog?.type === "delete" ||
+    (confirmDialog?.type === "paymentReview" &&
+      confirmDialog.decision === "reject")
+      ? "danger"
+      : "success";
 
   return (
     <div className="min-h-screen bg-[#F5EFE6] px-4 sm:px-6 lg:px-8 py-8">
@@ -1895,7 +1936,7 @@ export function AdminEvents() {
                                           type="button"
                                           disabled={isUpdating}
                                           onClick={() =>
-                                            handlePaymentDecision(
+                                            openPaymentDecisionConfirm(
                                               reg.id,
                                               "approve"
                                             )
@@ -1913,7 +1954,7 @@ export function AdminEvents() {
                                           type="button"
                                           disabled={isUpdating}
                                           onClick={() =>
-                                            handlePaymentDecision(
+                                            openPaymentDecisionConfirm(
                                               reg.id,
                                               "reject"
                                             )
@@ -2314,7 +2355,7 @@ export function AdminEvents() {
                                         type="button"
                                         disabled={isUpdating}
                                         onClick={() =>
-                                          handlePaymentDecision(
+                                          openPaymentDecisionConfirm(
                                             reg.id,
                                             "approve"
                                           )
@@ -2332,7 +2373,7 @@ export function AdminEvents() {
                                         type="button"
                                         disabled={isUpdating}
                                         onClick={() =>
-                                          handlePaymentDecision(
+                                          openPaymentDecisionConfirm(
                                             reg.id,
                                             "reject"
                                           )
@@ -2417,9 +2458,9 @@ export function AdminEvents() {
           message={confirmCopy.message}
           confirmLabel={t("admin.members.confirm.confirm")}
           cancelLabel={t("admin.members.confirm.cancel")}
-          tone="danger"
+          tone={confirmTone}
           onCancel={() => setConfirmDialog(null)}
-          onConfirm={handleConfirmDelete}
+          onConfirm={handleConfirmAction}
         />
       </div>
     </div>

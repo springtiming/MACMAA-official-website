@@ -263,6 +263,12 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.events.reviewPayments.approve": "通过",
     "admin.events.reviewPayments.reject": "拒绝",
     "admin.events.reviewPayments.close": "关闭",
+    "admin.events.confirm.reviewPayments.approve.title": "确认通过付款",
+    "admin.events.confirm.reviewPayments.approve.message":
+      "确定要通过该付款凭证吗？",
+    "admin.events.confirm.reviewPayments.reject.title": "确认拒绝付款",
+    "admin.events.confirm.reviewPayments.reject.message":
+      "确定要拒绝该付款凭证吗？",
     "admin.events.confirm.delete.title": "确认删除活动",
     "admin.events.confirm.delete.message":
       "确定要删除该活动吗？此操作无法撤销。",
@@ -278,6 +284,26 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.events.feedback.delete.successMessage": "活动已被删除",
     "admin.events.feedback.delete.errorTitle": "删除失败",
     "admin.events.feedback.delete.errorMessage": "无法删除活动，请稍后再试",
+    "admin.events.feedback.reviewPayments.approve.processingTitle":
+      "正在通过付款审核...",
+    "admin.events.feedback.reviewPayments.approve.processingMessage":
+      "正在更新付款状态",
+    "admin.events.feedback.reviewPayments.approve.successTitle": "审核已通过",
+    "admin.events.feedback.reviewPayments.approve.successMessage":
+      "付款状态已更新为已确认",
+    "admin.events.feedback.reviewPayments.approve.errorTitle": "审核失败",
+    "admin.events.feedback.reviewPayments.approve.errorMessage":
+      "无法更新付款状态，请稍后重试",
+    "admin.events.feedback.reviewPayments.reject.processingTitle":
+      "正在拒绝付款审核...",
+    "admin.events.feedback.reviewPayments.reject.processingMessage":
+      "正在更新付款状态",
+    "admin.events.feedback.reviewPayments.reject.successTitle": "审核已拒绝",
+    "admin.events.feedback.reviewPayments.reject.successMessage":
+      "付款状态已更新为已取消",
+    "admin.events.feedback.reviewPayments.reject.errorTitle": "操作失败",
+    "admin.events.feedback.reviewPayments.reject.errorMessage":
+      "无法更新付款状态，请稍后重试",
 
     // Admin - News Management
     "admin.news.title": "新闻管理",
@@ -818,6 +844,14 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.events.reviewPayments.approve": "Approve",
     "admin.events.reviewPayments.reject": "Reject",
     "admin.events.reviewPayments.close": "Close",
+    "admin.events.confirm.reviewPayments.approve.title":
+      "Confirm Payment Approval",
+    "admin.events.confirm.reviewPayments.approve.message":
+      "Are you sure you want to approve this payment proof?",
+    "admin.events.confirm.reviewPayments.reject.title":
+      "Confirm Payment Rejection",
+    "admin.events.confirm.reviewPayments.reject.message":
+      "Are you sure you want to reject this payment proof?",
     "admin.events.confirm.delete.title": "Confirm Event Deletion",
     "admin.events.confirm.delete.message":
       "This action will permanently delete the event. Continue?",
@@ -836,6 +870,30 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.events.feedback.delete.errorTitle": "Deletion failed",
     "admin.events.feedback.delete.errorMessage":
       "Unable to delete the event. Please try again later.",
+    "admin.events.feedback.reviewPayments.approve.processingTitle":
+      "Approving payment proof...",
+    "admin.events.feedback.reviewPayments.approve.processingMessage":
+      "Updating payment status",
+    "admin.events.feedback.reviewPayments.approve.successTitle":
+      "Payment approved",
+    "admin.events.feedback.reviewPayments.approve.successMessage":
+      "Payment status updated to confirmed",
+    "admin.events.feedback.reviewPayments.approve.errorTitle":
+      "Approval failed",
+    "admin.events.feedback.reviewPayments.approve.errorMessage":
+      "Unable to update payment status. Please try again later.",
+    "admin.events.feedback.reviewPayments.reject.processingTitle":
+      "Rejecting payment proof...",
+    "admin.events.feedback.reviewPayments.reject.processingMessage":
+      "Updating payment status",
+    "admin.events.feedback.reviewPayments.reject.successTitle":
+      "Payment rejected",
+    "admin.events.feedback.reviewPayments.reject.successMessage":
+      "Payment status updated to cancelled",
+    "admin.events.feedback.reviewPayments.reject.errorTitle":
+      "Rejection failed",
+    "admin.events.feedback.reviewPayments.reject.errorMessage":
+      "Unable to update payment status. Please try again later.",
 
     // Admin - News Management
     "admin.news.title": "News Management",
