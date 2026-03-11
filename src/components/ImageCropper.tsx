@@ -1,9 +1,10 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "motion/react";
 import Cropper from "react-easy-crop";
 import { X, Check, RotateCw } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
+import { getCropperViewportBounds } from "@/lib/imageCropperLayout";
 
 interface ImageCropperProps {
   image: string;
@@ -26,6 +27,9 @@ export function ImageCropper({
   aspect = 16 / 9,
 }: ImageCropperProps) {
   const { language } = useLanguage();
+  const [viewportHeight, setViewportHeight] = useState(() =>
+    typeof window !== "undefined" ? window.innerHeight : 900
+  );
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
@@ -45,6 +49,24 @@ export function ImageCropper({
       document.body.classList.remove("image-upload-modal-open");
     };
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
+    const handleResize = () => {
+      setViewportHeight(window.innerHeight);
+    };
+
+    window.addEventListener("resize", handleResize, { passive: true });
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  const { stageMaxHeight, stageMaxWidth } = useMemo(
+    () => getCropperViewportBounds(viewportHeight, aspect),
+    [viewportHeight, aspect]
+  );
 
   const createCroppedImage = async () => {
     if (!croppedAreaPixels) return;
@@ -66,96 +88,104 @@ export function ImageCropper({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/90 flex flex-col"
+      className="fixed inset-0 bg-black/90 overflow-y-auto"
       style={{ zIndex: 9999 }}
       onClick={(e) => e.target === e.currentTarget && onCancel()}
     >
-      <div className="flex items-center justify-between px-4 py-2 bg-black/60 backdrop-blur-sm">
-        <h2 className="text-white text-base sm:text-lg">
-          {language === "zh" ? "剪裁图片" : "Crop Image"}
-        </h2>
-        <button
-          onClick={onCancel}
-          className="p-1.5 text-white hover:bg-white/20 rounded-lg transition-colors"
-        >
-          <X className="w-5 h-5" />
-        </button>
-      </div>
-
-      {/* 中间区域限制最大宽度，并使用 16:9 比例，避免在大屏上过于巨大难以操作 */}
-      <div className="flex-1 flex items-center justify-center px-3 py-3">
-        <div className="relative w-full max-w-4xl aspect-video rounded-lg overflow-hidden bg-black">
-          <Cropper
-            image={image}
-            crop={crop}
-            zoom={zoom}
-            rotation={rotation}
-            aspect={aspect}
-            onCropChange={setCrop}
-            onZoomChange={setZoom}
-            onRotationChange={setRotation}
-            onCropComplete={onCropCompleteHandler}
-          />
-        </div>
-      </div>
-
-      <div className="bg-black/60 backdrop-blur-sm px-4 py-3 space-y-3">
-        {/* Zoom Control */}
-        <div className="space-y-1.5">
-          <label className="text-white text-sm">
-            {language === "zh" ? "缩放" : "Zoom"}
-          </label>
-          <input
-            type="range"
-            min={1}
-            max={3}
-            step={0.1}
-            value={zoom}
-            onChange={(e) => setZoom(Number(e.target.value))}
-            className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
-          />
-        </div>
-
-        {/* Rotation Control */}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <label className="text-white text-sm">
-              {language === "zh" ? "旋转" : "Rotation"}
-            </label>
-            <button
-              onClick={() => setRotation((r) => (r + 90) % 360)}
-              className="p-1.5 text-white hover:bg-white/20 rounded-lg transition-colors"
-              title={language === "zh" ? "旋转90度" : "Rotate 90°"}
-            >
-              <RotateCw className="w-4 h-4" />
-            </button>
-          </div>
-          <input
-            type="range"
-            min={0}
-            max={360}
-            step={1}
-            value={rotation}
-            onChange={(e) => setRotation(Number(e.target.value))}
-            className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
-          />
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-2 pt-1.5">
-          <button
-            onClick={createCroppedImage}
-            className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 bg-[#6BA868] text-white rounded-lg hover:bg-[#5a9157] transition-colors"
-          >
-            <Check className="w-4 h-4" />
-            {language === "zh" ? "确认" : "Confirm"}
-          </button>
+      <div className="min-h-full flex flex-col">
+        <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-2 bg-black/60 backdrop-blur-sm">
+          <h2 className="text-white text-base sm:text-lg">
+            {language === "zh" ? "剪裁图片" : "Crop Image"}
+          </h2>
           <button
             onClick={onCancel}
-            className="flex-1 px-4 py-2.5 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            className="p-1.5 text-white hover:bg-white/20 rounded-lg transition-colors"
           >
-            {language === "zh" ? "取消" : "Cancel"}
+            <X className="w-5 h-5" />
           </button>
+        </div>
+
+        <div className="flex-1 min-h-[220px] flex items-center justify-center px-3 py-3">
+          <div
+            className="relative w-full rounded-lg overflow-hidden bg-black"
+            style={{
+              aspectRatio: `${aspect}`,
+              maxWidth: `${stageMaxWidth}px`,
+              maxHeight: `${stageMaxHeight}px`,
+            }}
+          >
+            <Cropper
+              image={image}
+              crop={crop}
+              zoom={zoom}
+              rotation={rotation}
+              aspect={aspect}
+              onCropChange={setCrop}
+              onZoomChange={setZoom}
+              onRotationChange={setRotation}
+              onCropComplete={onCropCompleteHandler}
+            />
+          </div>
+        </div>
+
+        <div className="sticky bottom-0 z-10 bg-black/60 backdrop-blur-sm px-4 py-3 space-y-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+          {/* Zoom Control */}
+          <div className="space-y-1.5">
+            <label className="text-white text-sm">
+              {language === "zh" ? "缩放" : "Zoom"}
+            </label>
+            <input
+              type="range"
+              min={1}
+              max={3}
+              step={0.1}
+              value={zoom}
+              onChange={(e) => setZoom(Number(e.target.value))}
+              className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
+            />
+          </div>
+
+          {/* Rotation Control */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-white text-sm">
+                {language === "zh" ? "旋转" : "Rotation"}
+              </label>
+              <button
+                onClick={() => setRotation((r) => (r + 90) % 360)}
+                className="p-1.5 text-white hover:bg-white/20 rounded-lg transition-colors"
+                title={language === "zh" ? "旋转90度" : "Rotate 90°"}
+              >
+                <RotateCw className="w-4 h-4" />
+              </button>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={360}
+              step={1}
+              value={rotation}
+              onChange={(e) => setRotation(Number(e.target.value))}
+              className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
+            />
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-2 pt-1.5">
+            <button
+              onClick={createCroppedImage}
+              className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 bg-[#6BA868] text-white rounded-lg hover:bg-[#5a9157] transition-colors"
+            >
+              <Check className="w-4 h-4" />
+              {language === "zh" ? "确认" : "Confirm"}
+            </button>
+            <button
+              onClick={onCancel}
+              className="flex-1 px-4 py-2.5 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              {language === "zh" ? "取消" : "Cancel"}
+            </button>
+          </div>
         </div>
       </div>
     </motion.div>
