@@ -6,6 +6,7 @@ import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import { NewsSkeleton } from "@/components/NewsSkeleton";
 import { useState, useEffect } from "react";
 import { fetchNewsPosts, type NewsPostRecord } from "@/lib/supabaseApi";
+import { newsListDataCache } from "@/lib/listDataCache";
 import { resolveNewsCover } from "@/lib/supabaseHelpers";
 
 export function NewsList() {
@@ -16,20 +17,28 @@ export function NewsList() {
 
   useEffect(() => {
     let active = true;
+    const cachedEntry = newsListDataCache.get();
+
+    if (cachedEntry) {
+      setNewsList(cachedEntry.data);
+      setIsLoading(false);
+    } else {
+      setIsLoading(true);
+    }
 
     setError(null);
-    setIsLoading(true);
 
     const loadNews = async () => {
       try {
         const data = await fetchNewsPosts({ publishedOnly: true });
         if (!active) return;
+        newsListDataCache.set(data);
         setNewsList(data);
         setError(null);
       } catch {
-        if (active) setError(t("common.error"));
+        if (active && !cachedEntry) setError(t("common.error"));
       } finally {
-        if (active) {
+        if (active && !cachedEntry) {
           setIsLoading(false);
         }
       }

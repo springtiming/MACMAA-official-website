@@ -7,6 +7,7 @@ import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { EventSkeleton } from "@/components/EventSkeleton";
 import { fetchEvents, type EventRecord } from "@/lib/supabaseApi";
+import { eventsListDataCache } from "@/lib/listDataCache";
 import {
   formatEventDateTime,
   pickLocalized,
@@ -55,23 +56,35 @@ export function EventList() {
 
   useEffect(() => {
     let mounted = true;
-    setIsLoading(true);
+    const cachedEntry = eventsListDataCache.get();
+
+    if (cachedEntry) {
+      setEvents(cachedEntry.data);
+      setIsLoading(false);
+    } else {
+      setIsLoading(true);
+    }
+
+    setError(null);
     fetchEvents()
       .then((data) => {
         if (!mounted) return;
+        eventsListDataCache.set(data);
         setEvents(data);
         setError(null);
       })
       .catch(() => {
         if (!mounted) return;
-        setError(
-          language === "zh"
-            ? "加载活动失败，请稍后重试。"
-            : "Failed to load events. Please try again later."
-        );
+        if (!cachedEntry) {
+          setError(
+            language === "zh"
+              ? "加载活动失败，请稍后重试。"
+              : "Failed to load events. Please try again later."
+          );
+        }
       })
       .finally(() => {
-        if (mounted) setIsLoading(false);
+        if (mounted && !cachedEntry) setIsLoading(false);
       });
     return () => {
       mounted = false;
