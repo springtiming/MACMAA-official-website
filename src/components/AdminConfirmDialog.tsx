@@ -60,7 +60,6 @@ export function AdminConfirmDialog({
           className="fixed inset-0 flex items-center justify-center p-4 z-50"
           style={{
             backgroundColor: "rgba(0,0,0,0.6)",
-            backdropFilter: "blur(8px)",
           }}
           onClick={onCancel}
         >
