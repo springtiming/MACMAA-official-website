@@ -197,7 +197,6 @@ export function EventRegistration() {
   };
 
   const resetTransferData = () => {
-    setTransferMethod(null);
     clearPaymentProof();
     setCopiedField(null);
   };
