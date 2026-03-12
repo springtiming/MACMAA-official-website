@@ -433,7 +433,7 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.settings.emailUpdated": "邮箱已更新",
     "admin.settings.changePassword": "修改密码",
     "admin.settings.passwordRequirements":
-      "密码要求：至少8个字符，包含大小写字母和数字",
+      "密码要求：至少8个字符，包含大小写字母、数字和特殊字符",
     "admin.settings.currentPassword": "当前密码",
     "admin.settings.newPassword": "新密码",
     "admin.settings.confirmPassword": "确认新密码",
@@ -534,7 +534,7 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.accounts.form.password": "初始密码",
     "admin.accounts.form.passwordPlaceholder": "请设置初始密码",
     "admin.accounts.form.passwordHelp":
-      "密码要求：至少8个字符，包含大小写字母和数字",
+      "密码要求：至少8个字符，包含大小写字母、数字和特殊字符",
     "admin.accounts.form.role": "账户角色",
     "admin.accounts.permissionInfo.title": "权限说明",
     "admin.accounts.permissionInfo.owner1":
@@ -578,6 +578,7 @@ const translations: Record<Language, Record<string, string>> = {
     "footer.phone": "电话",
     "footer.address": "地址",
     "footer.follow": "关注我们",
+    "footer.wechat.scan": "扫码关注我们的微信公众号",
     "footer.rights":
       "© 2025 澳洲万年市华人互助会。本网站的所有内容、图片、设计和品牌标识均保留所有权利。",
   },
@@ -1036,7 +1037,7 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.settings.emailUpdated": "Email updated",
     "admin.settings.changePassword": "Change Password",
     "admin.settings.passwordRequirements":
-      "Password Requirements: At least 8 characters, including uppercase and lowercase letters and numbers",
+      "Password Requirements: At least 8 characters, including uppercase and lowercase letters, numbers, and special characters",
     "admin.settings.currentPassword": "Current Password",
     "admin.settings.newPassword": "New Password",
     "admin.settings.confirmPassword": "Confirm New Password",
@@ -1152,7 +1153,7 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.accounts.form.password": "Initial Password",
     "admin.accounts.form.passwordPlaceholder": "Set an initial password",
     "admin.accounts.form.passwordHelp":
-      "Password Requirements: At least 8 characters, including uppercase and lowercase letters and numbers",
+      "Password Requirements: At least 8 characters, including uppercase and lowercase letters, numbers, and special characters",
     "admin.accounts.form.role": "Account Role",
     "admin.accounts.permissionInfo.title": "Permission Information",
     "admin.accounts.permissionInfo.owner1":
@@ -1198,6 +1199,7 @@ const translations: Record<Language, Record<string, string>> = {
     "footer.phone": "Phone",
     "footer.address": "Address",
     "footer.follow": "Follow Us",
+    "footer.wechat.scan": "Scan to follow our WeChat Official Account",
     "footer.rights":
       "© 2025 Manningham Australian Chinese Mutual Aid Association. All rights to the website's content, images, design, and branding reserved.",
   },

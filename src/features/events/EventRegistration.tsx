@@ -12,7 +12,6 @@ import {
   X,
   Copy,
   CheckCircle,
-  Wallet,
 } from "lucide-react";
 import {
   createEventRegistration,
@@ -180,10 +179,10 @@ export function EventRegistration() {
   }
 
   const transferDetails = {
-    payId: "macmaa@payid.com.au",
-    accountName: "Manningham Australian Chinese Mutual Aid Association Inc.",
-    bsb: "063-000",
-    accountNumber: "1234 5678",
+    accountName: "MACMAA",
+    bsb: "083004",
+    accountNumber: "240500266",
+    bank: "NAB",
   };
 
   const clearPaymentProof = () => {
@@ -411,12 +410,8 @@ export function EventRegistration() {
     setSubmitting(true);
     setSubmitError(null);
     const tickets = Number(formData.participants) || 1;
-    const resolvedPaymentMethod =
-      paymentMethod === "transfer" && transferMethod === "payid"
-        ? "payid"
-        : paymentMethod;
-    const needsReview =
-      resolvedPaymentMethod === "transfer" || resolvedPaymentMethod === "payid";
+    const resolvedPaymentMethod = paymentMethod;
+    const needsReview = resolvedPaymentMethod === "transfer";
     try {
       await createEventRegistration({
         event_id: loadedEvent.id,
@@ -526,10 +521,6 @@ export function EventRegistration() {
 
     // 只处理银行转账
     if (paymentMethod === "transfer") {
-      if (!transferMethod) {
-        alert(t("register.payment.selectTransfer"));
-        return;
-      }
       if (isUploadingProof) {
         alert(t("register.payment.uploading"));
         return;
@@ -1162,276 +1153,136 @@ export function EventRegistration() {
                     >
                       <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl p-6 border-2 border-orange-200">
                         <h3 className="text-lg text-[#EB8C3A] mb-4">
-                          {t("register.payment.selectTransfer")}
+                          {t("register.payment.details.traditional")}
                         </h3>
 
-                        <div className="grid grid-cols-2 gap-3 mb-6">
-                          <button
-                            type="button"
-                            onClick={() => setTransferMethod("payid")}
-                            className={`p-4 rounded-lg border-2 transition-all ${
-                              transferMethod === "payid"
-                                ? "border-[#EB8C3A] bg-white shadow-md"
-                                : "border-orange-200 bg-white/50 hover:border-[#EB8C3A]/50"
-                            }`}
-                          >
-                            <Wallet className="w-6 h-6 mx-auto mb-2 text-[#EB8C3A]" />
-                            <p className="text-sm">
-                              {t("register.payment.payid")}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-1">
-                              {t("register.payment.payid.instant")}
-                            </p>
-                          </button>
+                        <div className="bg-white rounded-lg p-5 mb-4 border border-orange-200">
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                              <div>
+                                <p className="text-xs text-gray-500 mb-1">
+                                  {language === "zh" ? "银行" : "Bank"}
+                                </p>
+                                <p className="text-sm font-mono">
+                                  {transferDetails.bank}
+                                </p>
+                              </div>
+                            </div>
 
-                          <button
-                            type="button"
-                            onClick={() => setTransferMethod("traditional")}
-                            className={`p-4 rounded-lg border-2 transition-all ${
-                              transferMethod === "traditional"
-                                ? "border-[#EB8C3A] bg-white shadow-md"
-                                : "border-orange-200 bg-white/50 hover:border-[#EB8C3A]/50"
-                            }`}
-                          >
-                            <Building className="w-6 h-6 mx-auto mb-2 text-[#EB8C3A]" />
-                            <p className="text-sm">
-                              {t("register.payment.traditional")}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-1">
-                              {t("register.payment.traditional.bsb")}
-                            </p>
-                          </button>
+                            <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                              <div>
+                                <p className="text-xs text-gray-500 mb-1">
+                                  {t("register.payment.accountName")}
+                                </p>
+                                <p className="text-sm font-mono">
+                                  {transferDetails.accountName}
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleCopyToClipboard(
+                                    transferDetails.accountName,
+                                    "accountName"
+                                  )
+                                }
+                                className="p-2 hover:bg-white rounded-lg transition-colors"
+                              >
+                                {copiedField === "accountName" ? (
+                                  <CheckCircle className="w-4 h-4 text-green-500" />
+                                ) : (
+                                  <Copy className="w-4 h-4 text-gray-400" />
+                                )}
+                              </button>
+                            </div>
+
+                            <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                              <div>
+                                <p className="text-xs text-gray-500 mb-1">
+                                  {t("register.payment.bsb")}
+                                </p>
+                                <p className="text-sm font-mono">
+                                  {transferDetails.bsb}
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleCopyToClipboard(
+                                    transferDetails.bsb,
+                                    "bsb"
+                                  )
+                                }
+                                className="p-2 hover:bg-white rounded-lg transition-colors"
+                              >
+                                {copiedField === "bsb" ? (
+                                  <CheckCircle className="w-4 h-4 text-green-500" />
+                                ) : (
+                                  <Copy className="w-4 h-4 text-gray-400" />
+                                )}
+                              </button>
+                            </div>
+
+                            <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                              <div>
+                                <p className="text-xs text-gray-500 mb-1">
+                                  {t("register.payment.accountNumber")}
+                                </p>
+                                <p className="text-sm font-mono">
+                                  {transferDetails.accountNumber}
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleCopyToClipboard(
+                                    transferDetails.accountNumber,
+                                    "accountNumber"
+                                  )
+                                }
+                                className="p-2 hover:bg-white rounded-lg transition-colors"
+                              >
+                                {copiedField === "accountNumber" ? (
+                                  <CheckCircle className="w-4 h-4 text-green-500" />
+                                ) : (
+                                  <Copy className="w-4 h-4 text-gray-400" />
+                                )}
+                              </button>
+                            </div>
+
+                            <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                              <div>
+                                <p className="text-xs text-gray-500 mb-1">
+                                  {t("register.payment.amount")}
+                                </p>
+                                <p className="text-lg text-[#EB8C3A]">
+                                  ${totalFee} AUD
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleCopyToClipboard(
+                                    String(totalFee),
+                                    "amount"
+                                  )
+                                }
+                                className="p-2 hover:bg-white rounded-lg transition-colors"
+                              >
+                                {copiedField === "amount" ? (
+                                  <CheckCircle className="w-4 h-4 text-green-500" />
+                                ) : (
+                                  <Copy className="w-4 h-4 text-gray-400" />
+                                )}
+                              </button>
+                            </div>
+                          </div>
                         </div>
 
-                        <AnimatePresence mode="wait">
-                          {transferMethod === "payid" && (
-                            <motion.div
-                              key="payid"
-                              initial={{ opacity: 0, y: -10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: -10 }}
-                              className="bg-white rounded-lg p-5 mb-4 border border-orange-200"
-                            >
-                              <h4 className="text-sm text-gray-600 mb-3">
-                                {t("register.payment.details.payid")}
-                              </h4>
-                              <div className="space-y-3">
-                                <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
-                                  <div>
-                                    <p className="text-xs text-gray-500 mb-1">
-                                      {t("register.payment.payid")}
-                                    </p>
-                                    <p className="text-sm font-mono">
-                                      {transferDetails.payId}
-                                    </p>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleCopyToClipboard(
-                                        transferDetails.payId,
-                                        "payid"
-                                      )
-                                    }
-                                    className="p-2 hover:bg-white rounded-lg transition-colors"
-                                  >
-                                    {copiedField === "payid" ? (
-                                      <CheckCircle className="w-4 h-4 text-green-500" />
-                                    ) : (
-                                      <Copy className="w-4 h-4 text-gray-400" />
-                                    )}
-                                  </button>
-                                </div>
-
-                                <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
-                                  <div>
-                                    <p className="text-xs text-gray-500 mb-1">
-                                      {t("register.payment.accountName")}
-                                    </p>
-                                    <p className="text-sm">
-                                      {transferDetails.accountName}
-                                    </p>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleCopyToClipboard(
-                                        transferDetails.accountName,
-                                        "accountName"
-                                      )
-                                    }
-                                    className="p-2 hover:bg-white rounded-lg transition-colors"
-                                  >
-                                    {copiedField === "accountName" ? (
-                                      <CheckCircle className="w-4 h-4 text-green-500" />
-                                    ) : (
-                                      <Copy className="w-4 h-4 text-gray-400" />
-                                    )}
-                                  </button>
-                                </div>
-
-                                <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
-                                  <div>
-                                    <p className="text-xs text-gray-500 mb-1">
-                                      {t("register.payment.amount")}
-                                    </p>
-                                    <p className="text-lg text-[#EB8C3A]">
-                                      ${totalFee} AUD
-                                    </p>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleCopyToClipboard(
-                                        String(totalFee),
-                                        "amount"
-                                      )
-                                    }
-                                    className="p-2 hover:bg-white rounded-lg transition-colors"
-                                  >
-                                    {copiedField === "amount" ? (
-                                      <CheckCircle className="w-4 h-4 text-green-500" />
-                                    ) : (
-                                      <Copy className="w-4 h-4 text-gray-400" />
-                                    )}
-                                  </button>
-                                </div>
-                              </div>
-                            </motion.div>
-                          )}
-
-                          {transferMethod === "traditional" && (
-                            <motion.div
-                              key="traditional"
-                              initial={{ opacity: 0, y: -10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: -10 }}
-                              className="bg-white rounded-lg p-5 mb-4 border border-orange-200"
-                            >
-                              <h4 className="text-sm text-gray-600 mb-3">
-                                {t("register.payment.details.traditional")}
-                              </h4>
-                              <div className="space-y-3">
-                                <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
-                                  <div>
-                                    <p className="text-xs text-gray-500 mb-1">
-                                      {t("register.payment.bsb")}
-                                    </p>
-                                    <p className="text-sm font-mono">
-                                      {transferDetails.bsb}
-                                    </p>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleCopyToClipboard(
-                                        transferDetails.bsb,
-                                        "bsb"
-                                      )
-                                    }
-                                    className="p-2 hover:bg-white rounded-lg transition-colors"
-                                  >
-                                    {copiedField === "bsb" ? (
-                                      <CheckCircle className="w-4 h-4 text-green-500" />
-                                    ) : (
-                                      <Copy className="w-4 h-4 text-gray-400" />
-                                    )}
-                                  </button>
-                                </div>
-
-                                <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
-                                  <div>
-                                    <p className="text-xs text-gray-500 mb-1">
-                                      {t("register.payment.accountNumber")}
-                                    </p>
-                                    <p className="text-sm font-mono">
-                                      {transferDetails.accountNumber}
-                                    </p>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleCopyToClipboard(
-                                        transferDetails.accountNumber.replace(
-                                          /\s/g,
-                                          ""
-                                        ),
-                                        "accountNumber"
-                                      )
-                                    }
-                                    className="p-2 hover:bg-white rounded-lg transition-colors"
-                                  >
-                                    {copiedField === "accountNumber" ? (
-                                      <CheckCircle className="w-4 h-4 text-green-500" />
-                                    ) : (
-                                      <Copy className="w-4 h-4 text-gray-400" />
-                                    )}
-                                  </button>
-                                </div>
-
-                                <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
-                                  <div>
-                                    <p className="text-xs text-gray-500 mb-1">
-                                      {t("register.payment.accountName")}
-                                    </p>
-                                    <p className="text-sm">
-                                      {transferDetails.accountName}
-                                    </p>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleCopyToClipboard(
-                                        transferDetails.accountName,
-                                        "accountName"
-                                      )
-                                    }
-                                    className="p-2 hover:bg-white rounded-lg transition-colors"
-                                  >
-                                    {copiedField === "accountName" ? (
-                                      <CheckCircle className="w-4 h-4 text-green-500" />
-                                    ) : (
-                                      <Copy className="w-4 h-4 text-gray-400" />
-                                    )}
-                                  </button>
-                                </div>
-
-                                <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
-                                  <div>
-                                    <p className="text-xs text-gray-500 mb-1">
-                                      {t("register.payment.amount")}
-                                    </p>
-                                    <p className="text-lg text-[#EB8C3A]">
-                                      ${totalFee} AUD
-                                    </p>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleCopyToClipboard(
-                                        String(totalFee),
-                                        "amount"
-                                      )
-                                    }
-                                    className="p-2 hover:bg-white rounded-lg transition-colors"
-                                  >
-                                    {copiedField === "amount" ? (
-                                      <CheckCircle className="w-4 h-4 text-green-500" />
-                                    ) : (
-                                      <Copy className="w-4 h-4 text-gray-400" />
-                                    )}
-                                  </button>
-                                </div>
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-
-                        {transferMethod && (
-                          <motion.div
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                          >
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                        >
                             {/* 费用明细 - 与在线支付对齐 */}
                             <div className="bg-white rounded-lg p-5 mb-4 border border-orange-200">
                               <div className="space-y-3">
@@ -1608,7 +1459,6 @@ export function EventRegistration() {
                               </p>
                             )}
                           </motion.div>
-                        )}
                       </div>
                     </motion.div>
                   )}
