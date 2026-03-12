@@ -13,11 +13,14 @@ import {
   AlertTriangle,
   RotateCcw,
   Download,
+  History,
 } from "lucide-react";
 import {
   ConcurrencyError,
   deleteMember,
+  fetchMemberReviewLogs,
   fetchMembers,
+  type ReviewAuditLogRecord,
   updateMemberStatus,
   type MemberRecord,
 } from "@/lib/supabaseApi";
@@ -25,6 +28,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { ProcessingOverlay } from "@/components/ProcessingOverlay";
 import { useProcessingFeedback } from "@/hooks/useProcessingFeedback";
 import { AdminConfirmDialog } from "@/components/AdminConfirmDialog";
+import { ReviewAuditLogModal } from "@/components/admin/ReviewAuditLogModal";
 import * as XLSX from "xlsx";
 
 type MemberFilter = "all" | "pending" | "approved" | "rejected";
@@ -49,6 +53,12 @@ export function AdminMembers() {
     type: "approve" | "reject" | "revoke" | "delete" | "reopen";
     member: MemberRecord;
   } | null>(null);
+  const [reviewLogMember, setReviewLogMember] = useState<MemberRecord | null>(
+    null
+  );
+  const [reviewLogs, setReviewLogs] = useState<ReviewAuditLogRecord[]>([]);
+  const [reviewLogsLoading, setReviewLogsLoading] = useState(false);
+  const [reviewLogsError, setReviewLogsError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const {
@@ -300,6 +310,28 @@ export function AdminMembers() {
     XLSX.writeFile(wb, fileName);
   };
 
+  const openReviewLogs = async (member: MemberRecord) => {
+    setReviewLogMember(member);
+    setReviewLogs([]);
+    setReviewLogsError(null);
+    setReviewLogsLoading(true);
+    try {
+      const logs = await fetchMemberReviewLogs(member.id);
+      setReviewLogs(logs);
+    } catch {
+      setReviewLogsError(t("common.error"));
+    } finally {
+      setReviewLogsLoading(false);
+    }
+  };
+
+  const closeReviewLogs = () => {
+    setReviewLogMember(null);
+    setReviewLogs([]);
+    setReviewLogsError(null);
+    setReviewLogsLoading(false);
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending":
@@ -494,6 +526,17 @@ export function AdminMembers() {
                         >
                           <Eye className="w-4 h-4" />
                         </button>
+                        <button
+                          onClick={() => openReviewLogs(member)}
+                          className="p-2 text-[#2B5F9E] hover:bg-[#2B5F9E] hover:text-white rounded-lg transition-colors"
+                          title={
+                            language === "zh"
+                              ? "查看审核日志"
+                              : "View review logs"
+                          }
+                        >
+                          <History className="w-4 h-4" />
+                        </button>
                         {member.status === "pending" && (
                           <>
                             <button
@@ -586,6 +629,22 @@ export function AdminMembers() {
           }
           onCancel={() => setConfirmDialog(null)}
           onConfirm={handleConfirm}
+        />
+        <ReviewAuditLogModal
+          open={Boolean(reviewLogMember)}
+          title={
+            reviewLogMember
+              ? language === "zh"
+                ? `${reviewLogMember.chinese_name || reviewLogMember.english_name} 的审核日志`
+                : `Review log · ${reviewLogMember.english_name || reviewLogMember.chinese_name}`
+              : ""
+          }
+          module="member_review"
+          language={language === "zh" ? "zh" : "en"}
+          logs={reviewLogs}
+          loading={reviewLogsLoading}
+          error={reviewLogsError}
+          onClose={closeReviewLogs}
         />
 
         {/* Member Detail Modal */}

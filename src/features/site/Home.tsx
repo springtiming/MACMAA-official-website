@@ -10,6 +10,7 @@ import {
   ArrowRight,
   ChevronLeft,
   ChevronRight,
+  X,
 } from "lucide-react";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import { useState, useEffect, useMemo } from "react";
@@ -28,11 +29,32 @@ const calligraphyPhotoUrl =
   "/assets/928ec88ac46c7ad8c5c157f2f73842edb6fb5c04.png";
 const leadershipPhotoUrl =
   "/assets/e64db2d9d10306a4e7b8be715dce92e0c0c49c49.png";
+const aboutWechatQrcodeUrl = "/assets/wechat-qrcode.png";
 const homeImageLoadCache = new Set<string>();
+
+function RisenWeChatIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 64 64" fill="none" className={className} aria-hidden="true">
+      <path
+        d="M26.4 7.5c-10.7 0-19.4 7.3-19.4 16.3 0 4.7 2.4 8.9 6.5 11.9l-2 7.1 7.8-4.1c2.2.6 4.5.9 7.1.9 10.7 0 19.4-7.3 19.4-16.3S37.1 7.5 26.4 7.5Z"
+        fill="currentColor"
+      />
+      <path
+        d="M41.2 22.5c-9.2 0-16.8 6.3-16.8 14.1 0 7.8 7.6 14.1 16.8 14.1 2.2 0 4.3-.4 6.3-1.1l7.2 3.8-1.9-6c3.4-2.5 5.5-6.1 5.5-10.3 0-7.8-7.6-14.1-16.8-14.1Z"
+        fill="currentColor"
+      />
+      <circle cx="20.5" cy="22.5" r="2.7" fill="#F5EFE6" />
+      <circle cx="35.2" cy="22.5" r="2.7" fill="#F5EFE6" />
+      <circle cx="36.8" cy="35.3" r="2.4" fill="#F5EFE6" />
+      <circle cx="48.1" cy="35.3" r="2.4" fill="#F5EFE6" />
+    </svg>
+  );
+}
 
 export function Home() {
   const { t, language } = useLanguage();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showAboutWechatQr, setShowAboutWechatQr] = useState(false);
 
   const activityImages = useMemo(
     () => [
@@ -303,57 +325,128 @@ export function Home() {
           </p>
         </motion.div>
 
-        {/* Services Icons */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="flex flex-wrap justify-center gap-6 sm:gap-8 md:gap-12 mb-8 sm:mb-12 px-2"
-        >
-          {services.map((service, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: index * 0.1 }}
-              className="flex flex-col items-center gap-2 group w-20 sm:w-24"
-            >
-              <div
-                className="w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
-                style={{ backgroundColor: `${service.color}20` }}
-              >
-                <service.icon
-                  className="w-7 h-7 sm:w-8 sm:h-8"
-                  style={{ color: service.color }}
-                />
-              </div>
-              <span className="text-xs sm:text-sm text-gray-700 text-center max-w-[100px]">
-                {service.title}
-              </span>
-            </motion.div>
-          ))}
-        </motion.div>
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 sm:gap-8 lg:gap-10 items-start">
+          {/* Services Icons */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="xl:col-span-8"
+          >
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-3 gap-3 sm:gap-4 px-2">
+              {services.map((service, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: index * 0.08 }}
+                  className="group rounded-2xl bg-white/80 border border-[#2B5F9E]/10 p-4 sm:p-5 text-center shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <div
+                    className="w-12 h-12 sm:w-14 sm:h-14 rounded-full mx-auto mb-3 flex items-center justify-center transition-transform group-hover:scale-110"
+                    style={{ backgroundColor: `${service.color}20` }}
+                  >
+                    <service.icon
+                      className="w-6 h-6 sm:w-7 sm:h-7"
+                      style={{ color: service.color }}
+                    />
+                  </div>
+                  <span className="text-xs sm:text-sm text-gray-700 leading-snug block">
+                    {service.title}
+                  </span>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
 
-        {/* Learn More Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center px-4"
-        >
-          <Link href="/about">
-            <motion.button
-              className="px-6 sm:px-8 py-3 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors inline-flex items-center gap-2"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              {language === "zh" ? "了解更多" : "Learn More"}
-              <ArrowRight className="w-4 h-4" />
-            </motion.button>
-          </Link>
-        </motion.div>
+          {/* About Actions */}
+          <motion.aside
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="xl:col-span-4"
+          >
+            <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#2B5F9E] to-[#2A4365] p-5 sm:p-6 text-white shadow-xl">
+              <h3 className="text-lg sm:text-xl font-semibold">
+                {language === "zh" ? "快速了解我们" : "Quick Actions"}
+              </h3>
+              <p className="mt-2 text-blue-50/90 text-sm leading-relaxed">
+                {language === "zh"
+                  ? "从这里了解协会详情、加入会员，或直接扫码关注微信公众号。"
+                  : "Explore the association, join membership, or follow us on WeChat from here."}
+              </p>
+
+              <div className="mt-5 space-y-3">
+                <Link href="/about" className="block">
+                  <motion.button
+                    className="w-full px-5 py-3 rounded-xl bg-white text-[#2B5F9E] font-medium inline-flex items-center justify-center gap-2 hover:bg-[#F5EFE6] transition-colors"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    {language === "zh" ? "了解更多" : "Learn More"}
+                    <ArrowRight className="w-4 h-4" />
+                  </motion.button>
+                </Link>
+
+                <Link href="/membership" className="block">
+                  <motion.button
+                    className="w-full px-5 py-3 rounded-xl border border-white/60 text-white font-medium inline-flex items-center justify-center gap-2 hover:bg-white/10 transition-colors"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    {t("nav.membership")}
+                  </motion.button>
+                </Link>
+
+                <motion.button
+                  onClick={() => setShowAboutWechatQr((v) => !v)}
+                  className="w-full px-5 py-3 rounded-xl border border-[#6BA868]/70 bg-[#6BA868]/15 text-white font-medium inline-flex items-center justify-center gap-2 hover:bg-[#6BA868]/25 transition-colors"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <span className="w-5 h-5 text-[#EAF8EA]">
+                    <RisenWeChatIcon className="w-full h-full" />
+                  </span>
+                  <span>
+                    {language === "zh" ? "微信公众号" : "WeChat Official Account"}
+                  </span>
+                </motion.button>
+              </div>
+
+              {showAboutWechatQr && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-4 rounded-xl bg-white p-4 text-[#2B5F9E]"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm font-medium">
+                      {language === "zh"
+                        ? "扫码关注公众号"
+                        : "Scan to follow our WeChat"}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setShowAboutWechatQr(false)}
+                      className="p-1 rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+                      aria-label={language === "zh" ? "关闭二维码" : "Close QR code"}
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <img
+                    src={aboutWechatQrcodeUrl}
+                    alt="WeChat QR Code"
+                    className="w-full max-w-[180px] mx-auto rounded-lg shadow-md"
+                  />
+                </motion.div>
+              )}
+            </div>
+          </motion.aside>
+        </div>
       </section>
 
       {/* Weekly Activities */}

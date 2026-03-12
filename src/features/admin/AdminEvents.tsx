@@ -19,6 +19,7 @@ import {
   Image as ImageIcon,
   CheckCircle,
   XCircle,
+  History,
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { searchPhotos, type UnsplashPhoto } from "@/lib/unsplashApi";
@@ -27,11 +28,13 @@ import {
   saveEvent,
   deleteEvent,
   fetchAdminEventRegistrations,
+  fetchPaymentReviewLogs,
   getPaymentProofSignedUrl,
   updateEventRegistrationPaymentStatus,
   type EventRecord,
   type UpsertEventInput,
   type EventRegistrationRecord,
+  type ReviewAuditLogRecord,
 } from "@/lib/supabaseApi";
 import { pickLocalized } from "@/lib/supabaseHelpers";
 import { ImageUploadModal } from "@/components/ImageUploadModal";
@@ -39,6 +42,7 @@ import { ProcessingOverlay } from "@/components/ProcessingOverlay";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { useProcessingFeedback } from "@/hooks/useProcessingFeedback";
 import { AdminConfirmDialog } from "@/components/AdminConfirmDialog";
+import { ReviewAuditLogModal } from "@/components/admin/ReviewAuditLogModal";
 import {
   buildPaymentReviewConfirmCopy,
   buildPaymentReviewFeedbackMessages,
@@ -291,6 +295,11 @@ export function AdminEvents() {
   const [paymentUpdates, setPaymentUpdates] = useState<Record<string, boolean>>(
     {}
   );
+  const [reviewLogRegistration, setReviewLogRegistration] =
+    useState<EventRegistrationRecord | null>(null);
+  const [reviewLogs, setReviewLogs] = useState<ReviewAuditLogRecord[]>([]);
+  const [reviewLogsLoading, setReviewLogsLoading] = useState(false);
+  const [reviewLogsError, setReviewLogsError] = useState<string | null>(null);
   const [registrationsTab, setRegistrationsTab] = useState<
     "confirmed" | "pending" | "cancelled"
   >("confirmed");
@@ -723,6 +732,28 @@ export function AdminEvents() {
   const closePaymentReview = () => {
     setActivePaymentEvent(null);
     setLightboxImage(null);
+  };
+
+  const openPaymentReviewLogs = async (registration: EventRegistrationRecord) => {
+    setReviewLogRegistration(registration);
+    setReviewLogs([]);
+    setReviewLogsError(null);
+    setReviewLogsLoading(true);
+    try {
+      const logs = await fetchPaymentReviewLogs(registration.id);
+      setReviewLogs(logs);
+    } catch {
+      setReviewLogsError(t("common.error"));
+    } finally {
+      setReviewLogsLoading(false);
+    }
+  };
+
+  const closePaymentReviewLogs = () => {
+    setReviewLogRegistration(null);
+    setReviewLogs([]);
+    setReviewLogsError(null);
+    setReviewLogsLoading(false);
   };
 
   const handlePaymentDecision = async (
@@ -1931,7 +1962,7 @@ export function AdminEvents() {
                                         </p>
                                       </div>
 
-                                      <div className="mt-4 flex gap-2">
+                                      <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
                                         <button
                                           type="button"
                                           disabled={isUpdating}
@@ -1948,6 +1979,18 @@ export function AdminEvents() {
                                             {t(
                                               "admin.events.reviewPayments.approve"
                                             )}
+                                          </span>
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => openPaymentReviewLogs(reg)}
+                                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 border border-[#2B5F9E] text-[#2B5F9E] rounded-lg hover:bg-[#2B5F9E] hover:text-white transition-colors"
+                                        >
+                                          <History className="w-4 h-4" />
+                                          <span>
+                                            {language === "zh"
+                                              ? "审核日志"
+                                              : "Audit log"}
                                           </span>
                                         </button>
                                         <button
@@ -2350,7 +2393,7 @@ export function AdminEvents() {
                                       </p>
                                     </div>
 
-                                    <div className="mt-4 flex gap-2">
+                                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
                                       <button
                                         type="button"
                                         disabled={isUpdating}
@@ -2367,6 +2410,18 @@ export function AdminEvents() {
                                           {language === "zh"
                                             ? "通过"
                                             : "Approve"}
+                                        </span>
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => openPaymentReviewLogs(reg)}
+                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 border border-[#2B5F9E] text-[#2B5F9E] rounded-lg hover:bg-[#2B5F9E] hover:text-white transition-colors"
+                                      >
+                                        <History className="w-4 h-4" />
+                                        <span>
+                                          {language === "zh"
+                                            ? "审核日志"
+                                            : "Audit log"}
                                         </span>
                                       </button>
                                       <button
@@ -2461,6 +2516,22 @@ export function AdminEvents() {
           tone={confirmTone}
           onCancel={() => setConfirmDialog(null)}
           onConfirm={handleConfirmAction}
+        />
+        <ReviewAuditLogModal
+          open={Boolean(reviewLogRegistration)}
+          title={
+            reviewLogRegistration
+              ? language === "zh"
+                ? `${reviewLogRegistration.name} 的付款审核日志`
+                : `Payment review log · ${reviewLogRegistration.name}`
+              : ""
+          }
+          module="payment_review"
+          language={language === "zh" ? "zh" : "en"}
+          logs={reviewLogs}
+          loading={reviewLogsLoading}
+          error={reviewLogsError}
+          onClose={closePaymentReviewLogs}
         />
       </div>
     </div>

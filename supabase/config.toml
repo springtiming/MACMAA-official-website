@@ -367,6 +367,9 @@ verify_jwt = false
 [functions.payment-proofs]
 verify_jwt = false
 
+[functions.review-logs]
+verify_jwt = false
+
 [functions.unsplash]
 verify_jwt = false
 

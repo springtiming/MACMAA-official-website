@@ -102,6 +102,20 @@ export interface EventRegistrationRecord {
   created_at: string;
 }
 
+export interface ReviewAuditLogRecord {
+  id: string;
+  module: "member_review" | "payment_review";
+  target_type: "member" | "registration";
+  target_id: string;
+  action_type: string;
+  from_status: string | null;
+  to_status: string | null;
+  reviewed_by: string | null;
+  reviewed_by_username: string | null;
+  reviewed_at: string;
+  metadata: Record<string, unknown> | null;
+}
+
 interface FetchNewsOptions {
   publishedOnly?: boolean;
   limit?: number;
@@ -495,6 +509,36 @@ export async function updateEventRegistrationPaymentStatus(payload: {
     registration: EventRegistrationRecord;
   };
   return body.registration;
+}
+
+async function fetchReviewAuditLogs(
+  module: "member_review" | "payment_review",
+  targetId: string
+) {
+  const params = new URLSearchParams({
+    module,
+    targetId,
+  });
+  const res = await callEdgeFunction(`review-logs?${params.toString()}`, {
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch review logs");
+  }
+
+  const body = (await res.json()) as { logs: ReviewAuditLogRecord[] };
+  return body.logs ?? [];
+}
+
+export async function fetchMemberReviewLogs(memberId: string) {
+  return fetchReviewAuditLogs("member_review", memberId);
+}
+
+export async function fetchPaymentReviewLogs(registrationId: string) {
+  return fetchReviewAuditLogs("payment_review", registrationId);
 }
 
 const LOCAL_ADMIN_ACCOUNTS_KEY = "macmaa.mockAdminAccounts";
