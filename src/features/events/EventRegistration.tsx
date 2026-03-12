@@ -30,7 +30,6 @@ import {
 } from "@/lib/memberPricing";
 
 type PaymentMethod = "card" | "cash" | "transfer" | null;
-type TransferMethod = "payid" | "traditional" | null;
 type MemberInfo = {
   name: string;
   email: string;
@@ -72,7 +71,6 @@ export function EventRegistration() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [step, setStep] = useState<"form" | "payment" | "success">("form");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(null);
-  const [transferMethod, setTransferMethod] = useState<TransferMethod>(null);
   const [paymentProofPreview, setPaymentProofPreview] = useState<string | null>(
     null
   );
