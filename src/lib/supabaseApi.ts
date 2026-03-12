@@ -1,5 +1,6 @@
 import type { PostgrestError } from "@supabase/supabase-js";
 import { getSupabaseClient, logSupabaseError } from "./supabaseClient";
+import { isStrongAdminPassword } from "./passwordPolicy";
 
 export interface NewsPostRecord {
   id: string;
@@ -339,6 +340,15 @@ export async function adminAuthLogin(payload: {
   if (res.status === 401) {
     throw new Error("invalid-credentials");
   }
+  if (res.status === 423) {
+    const body = (await res.json().catch(() => null)) as
+      | { locked_until?: string }
+      | null;
+    if (body?.locked_until) {
+      throw new Error(`account-locked:${body.locked_until}`);
+    }
+    throw new Error("account-locked");
+  }
   if (!res.ok) {
     throw new Error("login-failed");
   }
@@ -586,6 +596,10 @@ export async function createAdminAccount(payload: {
   password: string;
   role: "owner" | "admin";
 }) {
+  if (!isStrongAdminPassword(payload.password)) {
+    throw new Error("weak-password");
+  }
+
   try {
     const fetchInit = await createAuthenticatedFetchInit({
       method: "POST",
@@ -598,6 +612,14 @@ export async function createAdminAccount(payload: {
 
     if (res.status === 409) {
       throw new Error("duplicate");
+    }
+    if (res.status === 400) {
+      const body = (await res.json().catch(() => null)) as
+        | { code?: string }
+        | null;
+      if (body?.code === "WEAK_PASSWORD") {
+        throw new Error("weak-password");
+      }
     }
     if (!res.ok) {
       if (res.status === 401 || res.status === 403) {
@@ -645,6 +667,10 @@ export async function updateAdminAccount(
   id: string,
   payload: { email?: string; password?: string }
 ) {
+  if (payload.password && !isStrongAdminPassword(payload.password)) {
+    throw new Error("weak-password");
+  }
+
   try {
     const fetchInit = await createAuthenticatedFetchInit({
       method: "PATCH",
@@ -656,6 +682,14 @@ export async function updateAdminAccount(
     const res = await fetch(`${ADMIN_ACCOUNTS_API_BASE}/${id}`, fetchInit);
 
     if (!res.ok) {
+      if (res.status === 400) {
+        const body = (await res.json().catch(() => null)) as
+          | { code?: string }
+          | null;
+        if (body?.code === "WEAK_PASSWORD") {
+          throw new Error("weak-password");
+        }
+      }
       if (res.status === 401 || res.status === 403) {
         throw new Error("unauthorized");
       }

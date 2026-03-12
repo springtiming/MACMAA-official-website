@@ -3,8 +3,9 @@ import {
   getSupabaseServiceClient,
   logSupabaseError,
 } from "@/server/api/_supabaseAdminClient";
-import { requireOwner } from "@/server/api/_auth";
+import { requireAdmin, requireOwner } from "@/server/api/_auth";
 import { hashPassword } from "@/server/api/_password";
+import { isStrongAdminPassword } from "@/lib/passwordPolicy";
 
 const ACCOUNT_COLUMNS =
   "id, username, email, role, status, created_at, last_login_at";
@@ -49,9 +50,14 @@ export default async function handler(
 
 async function updateAccount(id: string, req: NextApiRequest, res: NextApiResponse) {
   setCors(res);
-  const admin = requireOwner(req, res);
+  const admin = requireAdmin(req, res);
   if (!admin) {
     return;
+  }
+  if (admin.role !== "owner" && admin.id !== id) {
+    return res
+      .status(403)
+      .json({ error: "Forbidden", code: "INSUFFICIENT_PERMISSIONS" });
   }
 
   const body = parseJsonBody(req.body) as UpdatePayload | null;
@@ -62,6 +68,12 @@ async function updateAccount(id: string, req: NextApiRequest, res: NextApiRespon
   const updates: Record<string, unknown> = {};
   if (body.email) updates.email = body.email;
   if (body.password) {
+    if (!isStrongAdminPassword(body.password)) {
+      return res.status(400).json({
+        error: "Weak password",
+        code: "WEAK_PASSWORD",
+      });
+    }
     updates.password_hash = await hashPassword(body.password);
   }
 

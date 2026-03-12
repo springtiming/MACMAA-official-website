@@ -44,6 +44,7 @@ import { ProcessingOverlay } from "@/components/ProcessingOverlay";
 import { useProcessingFeedback } from "@/hooks/useProcessingFeedback";
 import { AdminConfirmDialog } from "@/components/AdminConfirmDialog";
 import { getCurrentAdmin } from "@/lib/auth";
+import { isStrongAdminPassword } from "@/lib/passwordPolicy";
 
 export function AdminAccounts() {
   const router = useRouter();
@@ -77,6 +78,7 @@ export function AdminAccounts() {
     password: "",
     role: "admin" as "admin" | "owner",
   });
+  const passwordMeetsPolicy = isStrongAdminPassword(newAccount.password);
 
   const getFeedbackMessages = (action: "create" | "delete") => ({
     processingTitle: t(`admin.accounts.feedback.${action}.processingTitle`),
@@ -138,6 +140,14 @@ export function AdminAccounts() {
 
   const handleCreateAccount = async () => {
     setError(null);
+    if (!passwordMeetsPolicy) {
+      setError(
+        language === "zh"
+          ? "密码必须至少8位，且包含大小写字母、数字和特殊字符"
+          : "Password must be at least 8 characters and include uppercase, lowercase, number, and special character"
+      );
+      return;
+    }
     const messages = getFeedbackMessages("create");
     try {
       await runWithFeedback(messages, async () => {
@@ -165,6 +175,10 @@ export function AdminAccounts() {
       const msg =
         (err as Error).message === "duplicate"
           ? duplicateMsg
+          : (err as Error).message === "weak-password"
+            ? language === "zh"
+              ? "密码必须至少8位，且包含大小写字母、数字和特殊字符"
+              : "Password must be at least 8 characters and include uppercase, lowercase, number, and special character"
           : t("common.error");
       setError(msg);
     } finally {
@@ -521,7 +535,13 @@ export function AdminAccounts() {
                 </button>
               </div>
               <p className="text-xs text-gray-500">
-                {t("admin.accounts.form.passwordHelp")}
+                {newAccount.password && !passwordMeetsPolicy ? (
+                  <span className="text-red-600">
+                    {t("admin.accounts.form.passwordHelp")}
+                  </span>
+                ) : (
+                  t("admin.accounts.form.passwordHelp")
+                )}
               </p>
             </div>
             <div className="space-y-2">
@@ -566,7 +586,8 @@ export function AdminAccounts() {
               disabled={
                 !newAccount.username ||
                 !newAccount.email ||
-                !newAccount.password
+                !newAccount.password ||
+                !passwordMeetsPolicy
               }
               className="bg-[#2B5F9E] hover:bg-[#234a7e]"
             >

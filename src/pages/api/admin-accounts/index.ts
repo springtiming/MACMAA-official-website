@@ -6,6 +6,7 @@ import {
 } from "@/server/api/_supabaseAdminClient";
 import { requireAdmin, requireOwner } from "@/server/api/_auth";
 import { hashPassword } from "@/server/api/_password";
+import { isStrongAdminPassword } from "@/lib/passwordPolicy";
 
 const ACCOUNT_COLUMNS =
   "id, username, email, role, status, created_at, last_login_at";
@@ -26,7 +27,7 @@ const DEFAULT_ACCOUNTS: Required<CreateAccountPayload>[] = [
   {
     username: "admin",
     email: "admin@macmaa.org",
-    password: "demo123",
+    password: "Demo@123",
     role: "admin",
   },
 ];
@@ -115,6 +116,12 @@ async function createAccount(req: NextApiRequest, res: NextApiResponse) {
     !body.role
   ) {
     return res.status(400).json({ error: "Missing required fields" });
+  }
+  if (!isStrongAdminPassword(body.password)) {
+    return res.status(400).json({
+      error: "Weak password",
+      code: "WEAK_PASSWORD",
+    });
   }
 
   try {

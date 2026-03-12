@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.86.0";
 import { verifyPassword } from "../_shared/password.ts";
 import { generateToken } from "../_shared/jwt.ts";
+import { isLoginLocked, nextFailedLoginState } from "../_shared/loginSecurity.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -36,7 +37,9 @@ Deno.serve(async (req) => {
   try {
     const { data, error } = await supabase
       .from("admin_accounts")
-      .select("id, username, role, status, password_hash")
+      .select(
+        "id, username, role, status, password_hash, failed_login_attempts, locked_until"
+      )
       .eq("username", payload.username)
       .eq("status", "active")
       .maybeSingle();
@@ -49,6 +52,18 @@ Deno.serve(async (req) => {
     if (!data) {
       return json({ error: "Invalid credentials" }, 401);
     }
+    const nowMs = Date.now();
+
+    if (isLoginLocked(data.locked_until, nowMs)) {
+      return json(
+        {
+          error: "Account locked",
+          code: "ACCOUNT_LOCKED",
+          locked_until: data.locked_until,
+        },
+        423
+      );
+    }
 
     // 验证密码（支持bcrypt和旧SHA-256兼容）
     const isPasswordValid = await verifyPasswordOrLegacy(
@@ -57,7 +72,43 @@ Deno.serve(async (req) => {
     );
 
     if (!isPasswordValid) {
-      return json({ error: "Invalid credentials" }, 401);
+      const next = nextFailedLoginState(
+        data.failed_login_attempts,
+        data.locked_until,
+        nowMs
+      );
+
+      const { error: updateError } = await supabase
+        .from("admin_accounts")
+        .update({
+          failed_login_attempts: next.failedAttempts,
+          locked_until: next.lockedUntil,
+        })
+        .eq("id", data.id);
+
+      if (updateError) {
+        console.error("[admin-auth] failed-attempt-update", updateError);
+      }
+
+      if (next.isLocked) {
+        return json(
+          {
+            error: "Account locked",
+            code: "ACCOUNT_LOCKED",
+            locked_until: next.lockedUntil,
+          },
+          423
+        );
+      }
+
+      return json(
+        {
+          error: "Invalid credentials",
+          code: "INVALID_CREDENTIALS",
+          remaining_attempts: next.remainingAttempts,
+        },
+        401
+      );
     }
 
     // 生成JWT token
@@ -66,7 +117,11 @@ Deno.serve(async (req) => {
     // 更新最后登录时间
     await supabase
       .from("admin_accounts")
-      .update({ last_login_at: new Date().toISOString() })
+      .update({
+        last_login_at: new Date(nowMs).toISOString(),
+        failed_login_attempts: 0,
+        locked_until: null,
+      })
       .eq("id", data.id);
 
     return json({

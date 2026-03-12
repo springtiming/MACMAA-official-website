@@ -51,14 +51,28 @@ export function AdminLogin() {
       sessionStorage.setItem("adminRole", response.admin.role);
       router.push("/admin/dashboard");
     } catch (err) {
+      const errMessage = (err as Error)?.message ?? "";
+      const lockPrefix = "account-locked:";
+      const lockUntil =
+        errMessage.startsWith(lockPrefix)
+          ? errMessage.slice(lockPrefix.length)
+          : "";
+      const lockUntilMs = Date.parse(lockUntil);
+      const remainingMinutes = Number.isFinite(lockUntilMs)
+        ? Math.max(1, Math.ceil((lockUntilMs - Date.now()) / 60000))
+        : 60;
       const message =
-        (err as Error)?.message === "invalid-credentials"
+        errMessage === "invalid-credentials"
           ? language === "zh"
             ? "用户名或密码错误"
             : "Invalid username or password"
-          : language === "zh"
-            ? "登录失败，请稍后再试"
-            : "Login failed, please try again";
+          : errMessage.startsWith("account-locked")
+            ? language === "zh"
+              ? `账号已锁定，请在 ${remainingMinutes} 分钟后重试`
+              : `Account is locked. Try again in ${remainingMinutes} minute(s).`
+            : language === "zh"
+              ? "登录失败，请稍后再试"
+              : "Login failed, please try again";
       setError(message);
     } finally {
       setIsSubmitting(false);

@@ -20,11 +20,12 @@ import {
   type AdminAccountRecord,
 } from "@/lib/supabaseApi";
 import { getCurrentAdmin } from "@/lib/auth";
+import { isStrongAdminPassword } from "@/lib/passwordPolicy";
 import { ProcessingOverlay } from "@/components/ProcessingOverlay";
 import { useProcessingFeedback } from "@/hooks/useProcessingFeedback";
 
 export function AdminSettings() {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const router = useRouter();
 
   const [successMessage, setSuccessMessage] = useState("");
@@ -129,6 +130,14 @@ export function AdminSettings() {
       alert(t("admin.settings.passwordMismatch"));
       return;
     }
+    if (!isStrongAdminPassword(newPassword)) {
+      alert(
+        language === "zh"
+          ? "新密码必须至少8位，且包含大小写字母、数字和特殊字符"
+          : "New password must be at least 8 characters and include uppercase, lowercase, number, and special character"
+      );
+      return;
+    }
     setSavingPassword(true);
     setError(null);
     const messages = getFeedbackMessages("password");
@@ -141,8 +150,14 @@ export function AdminSettings() {
         setConfirmPassword("");
         setTimeout(() => setSuccessMessage(""), 3000);
       });
-    } catch {
-      setError(t("common.error"));
+    } catch (err) {
+      setError(
+        (err as Error).message === "weak-password"
+          ? language === "zh"
+            ? "密码必须至少8位，且包含大小写字母、数字和特殊字符"
+            : "Password must be at least 8 characters and include uppercase, lowercase, number, and special character"
+          : t("common.error")
+      );
     } finally {
       setSavingPassword(false);
     }
