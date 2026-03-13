@@ -414,13 +414,18 @@ export function Membership() {
                   <div className="space-y-3 text-gray-700">
                     <p>
                       {language === "zh"
-                        ? "1. 请先阅读会员申请要求与守则。"
-                        : "1. Review the membership requirements and code of conduct first."}
+                        ? "会员权益：参加协会活动可享会员优惠。"
+                        : "Member benefit: enjoy discounts on association events."}
                     </p>
                     <p>
                       {language === "zh"
-                        ? "2. 点击下方“报名”按钮进入申请表。"
-                        : '2. Click "Apply Now" below to open the application form.'}
+                        ? "会费：AUD 20/年。"
+                        : "Membership fee: AUD 20/year."}
+                    </p>
+                    <p>
+                      {language === "zh"
+                        ? "提交申请后，通常 3 个工作日内邮件通知审核结果。"
+                        : "You will usually receive the review result by email within 3 business days."}
                     </p>
                   </div>
                   <motion.button
@@ -430,7 +435,7 @@ export function Membership() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    {language === "zh" ? "报名" : "Apply Now"}
+                    {language === "zh" ? "立即报名" : "Apply Now"}
                   </motion.button>
                 </div>
               </div>

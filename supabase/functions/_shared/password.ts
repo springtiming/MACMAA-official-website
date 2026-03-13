@@ -1,6 +1,6 @@
-import { hash, compare } from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
+import bcrypt from "https://esm.sh/bcryptjs@3.0.3";
 
-const SALT_ROUNDS = 12; // bcrypt成本因子
+const SALT_ROUNDS = 12; // bcrypt 成本因子
 
 /**
  * 生成密码哈希
@@ -8,7 +8,7 @@ const SALT_ROUNDS = 12; // bcrypt成本因子
  * @returns 密码哈希字符串
  */
 export async function hashPassword(password: string): Promise<string> {
-  return hash(password, SALT_ROUNDS);
+  return bcrypt.hashSync(password, SALT_ROUNDS);
 }
 
 /**
@@ -21,7 +21,7 @@ export async function verifyPassword(
   password: string,
   hash: string
 ): Promise<boolean> {
-  return compare(password, hash);
+  return bcrypt.compareSync(password, hash);
 }
 
 
