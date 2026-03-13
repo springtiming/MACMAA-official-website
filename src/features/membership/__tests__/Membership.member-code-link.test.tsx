@@ -38,14 +38,16 @@ vi.mock("motion/react", () => {
   };
 });
 
-describe("Membership agreement section", () => {
-  it("renders a dedicated member code trigger link in agree2 text", () => {
+describe("Membership page", () => {
+  it("renders guide section with apply button before showing membership form", () => {
     const html = renderToStaticMarkup(
       <LanguageProvider>
         <Membership />
       </LanguageProvider>
     );
 
-    expect(html).toContain('data-member-code-trigger="true"');
+    expect(html).toContain('data-membership-guide="true"');
+    expect(html).toContain("报名");
+    expect(html).not.toContain('data-member-code-trigger="true"');
   });
 });

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion, AnimatePresence } from "motion/react";
 import { Users, Check, AlertCircle } from "lucide-react";
@@ -139,9 +139,11 @@ type FormErrors = {
 export function Membership() {
   const { language, t } = useLanguage();
   const [submitted, setSubmitted] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [memberCodeOpen, setMemberCodeOpen] = useState(false);
+  const formSectionRef = useRef<HTMLDivElement | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
   const [formData, setFormData] = useState({
@@ -350,6 +352,21 @@ export function Membership() {
       .finally(() => setSubmitting(false));
   };
 
+  const handleOpenForm = () => {
+    if (!showForm) {
+      setShowForm(true);
+    }
+
+    if (typeof window !== "undefined") {
+      window.setTimeout(() => {
+        formSectionRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 80);
+    }
+  };
+
   // Helper to get input className with error state
   const getInputClassName = (fieldName: string, baseClassName: string = "") => {
     const hasError = touched[fieldName] && errors[fieldName];
@@ -397,21 +414,53 @@ export function Membership() {
                 </div>
               </div>
 
-              {/* Application Form */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-                className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-5 sm:p-8"
-              >
-                <h2 className="text-[#2B5F9E] mb-5 sm:mb-6 text-2xl sm:text-3xl">
-                  {t("membership.form.title")}
-                </h2>
+              <div data-membership-guide="true" className="space-y-6 mb-8">
+                <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-5 sm:p-8">
+                  <h2 className="text-[#2B5F9E] mb-4 text-2xl sm:text-3xl">
+                    {language === "zh" ? "申请说明" : "Application Guide"}
+                  </h2>
+                  <div className="space-y-3 text-gray-700">
+                    <p>
+                      {language === "zh"
+                        ? "1. 请先阅读会员申请要求与守则。"
+                        : "1. Review the membership requirements and code of conduct first."}
+                    </p>
+                    <p>
+                      {language === "zh"
+                        ? "2. 点击下方“报名”按钮进入申请表。"
+                        : '2. Click "Apply Now" below to open the application form.'}
+                    </p>
+                  </div>
+                  <motion.button
+                    type="button"
+                    onClick={handleOpenForm}
+                    className="mt-6 inline-flex items-center gap-2 px-6 py-3 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    {language === "zh" ? "报名" : "Apply Now"}
+                  </motion.button>
+                </div>
+              </div>
 
-                <form
-                  onSubmit={handleSubmit}
-                  className="space-y-5 sm:space-y-6"
+              {/* Application Form */}
+              {showForm && (
+                <motion.div
+                  ref={formSectionRef}
+                  id="membership-application-form"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15 }}
+                  className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-5 sm:p-8"
                 >
+                  <h2 className="text-[#2B5F9E] mb-5 sm:mb-6 text-2xl sm:text-3xl">
+                    {t("membership.form.title")}
+                  </h2>
+
+                  <form
+                    onSubmit={handleSubmit}
+                    className="space-y-5 sm:space-y-6"
+                  >
                   {/* Personal Information */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                     <div>
@@ -893,62 +942,63 @@ export function Membership() {
                       {submitError}
                     </motion.div>
                   )}
-                </form>
+                  </form>
 
-                {/* Privacy Statement */}
-                <div className="mt-8 p-4 bg-[#F5EFE6] rounded-lg">
-                  <h4 className="text-[#2B5F9E] mb-2">
-                    {t("membership.privacy.title")}
-                  </h4>
-                  <p className="text-sm text-gray-700">
-                    {t("membership.privacy.desc")}
-                  </p>
-                </div>
+                  {/* Privacy Statement */}
+                  <div className="mt-8 p-4 bg-[#F5EFE6] rounded-lg">
+                    <h4 className="text-[#2B5F9E] mb-2">
+                      {t("membership.privacy.title")}
+                    </h4>
+                    <p className="text-sm text-gray-700">
+                      {t("membership.privacy.desc")}
+                    </p>
+                  </div>
 
-                <Dialog open={memberCodeOpen} onOpenChange={setMemberCodeOpen}>
-                  <DialogContent className="max-h-[85vh] overflow-hidden p-0 sm:max-w-3xl">
-                    <DialogHeader className="border-b bg-[#F5EFE6] px-6 py-4 text-left">
-                      <DialogTitle className="text-[#2B5F9E] text-xl sm:text-2xl">
-                        {MEMBER_CODE_OF_CONDUCT.titleZh} /{" "}
-                        {MEMBER_CODE_OF_CONDUCT.titleEn}
-                      </DialogTitle>
-                      <p className="text-sm text-gray-600">
-                        {MEMBER_CODE_OF_CONDUCT.associationZh} /{" "}
-                        {MEMBER_CODE_OF_CONDUCT.associationEn}
-                      </p>
-                    </DialogHeader>
+                  <Dialog open={memberCodeOpen} onOpenChange={setMemberCodeOpen}>
+                    <DialogContent className="max-h-[85vh] overflow-hidden p-0 sm:max-w-3xl">
+                      <DialogHeader className="border-b bg-[#F5EFE6] px-6 py-4 text-left">
+                        <DialogTitle className="text-[#2B5F9E] text-xl sm:text-2xl">
+                          {MEMBER_CODE_OF_CONDUCT.titleZh} /{" "}
+                          {MEMBER_CODE_OF_CONDUCT.titleEn}
+                        </DialogTitle>
+                        <p className="text-sm text-gray-600">
+                          {MEMBER_CODE_OF_CONDUCT.associationZh} /{" "}
+                          {MEMBER_CODE_OF_CONDUCT.associationEn}
+                        </p>
+                      </DialogHeader>
 
-                    <div className="max-h-[65vh] space-y-6 overflow-y-auto px-6 py-5 text-sm sm:text-base">
-                      {MEMBER_CODE_OF_CONDUCT.sections.map((section) => (
-                        <section key={section.titleEn} className="space-y-3">
-                          <h4 className="font-semibold text-[#2B5F9E]">
-                            {section.titleZh}
-                          </h4>
-                          <p className="text-sm text-gray-500">
-                            {section.titleEn}
-                          </p>
-                          <div className="space-y-3">
-                            {section.items.map((item, idx) => (
-                              <div key={`${section.titleEn}-${idx}`}>
-                                <p className="leading-relaxed text-gray-800">
-                                  {idx + 1}. {item.zh}
-                                </p>
-                                <p className="mt-1 text-sm leading-relaxed text-gray-600">
-                                  {idx + 1}. {item.en}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        </section>
-                      ))}
-                      <p className="border-t pt-4 text-sm text-gray-500">
-                        最后更新：{MEMBER_CODE_OF_CONDUCT.lastUpdatedZh} / Last
-                        updated: {MEMBER_CODE_OF_CONDUCT.lastUpdatedEn}
-                      </p>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </motion.div>
+                      <div className="max-h-[65vh] space-y-6 overflow-y-auto px-6 py-5 text-sm sm:text-base">
+                        {MEMBER_CODE_OF_CONDUCT.sections.map((section) => (
+                          <section key={section.titleEn} className="space-y-3">
+                            <h4 className="font-semibold text-[#2B5F9E]">
+                              {section.titleZh}
+                            </h4>
+                            <p className="text-sm text-gray-500">
+                              {section.titleEn}
+                            </p>
+                            <div className="space-y-3">
+                              {section.items.map((item, idx) => (
+                                <div key={`${section.titleEn}-${idx}`}>
+                                  <p className="leading-relaxed text-gray-800">
+                                    {idx + 1}. {item.zh}
+                                  </p>
+                                  <p className="mt-1 text-sm leading-relaxed text-gray-600">
+                                    {idx + 1}. {item.en}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          </section>
+                        ))}
+                        <p className="border-t pt-4 text-sm text-gray-500">
+                          最后更新：{MEMBER_CODE_OF_CONDUCT.lastUpdatedZh} / Last
+                          updated: {MEMBER_CODE_OF_CONDUCT.lastUpdatedEn}
+                        </p>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </motion.div>
+              )}
             </motion.div>
           ) : (
             <motion.div

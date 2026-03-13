@@ -373,6 +373,9 @@ verify_jwt = false
 [functions.unsplash]
 verify_jwt = false
 
+[functions.volunteers]
+verify_jwt = false
+
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 

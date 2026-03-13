@@ -39,23 +39,25 @@ vi.mock("motion/react", () => {
 });
 
 describe("Volunteer page", () => {
-  it("renders embedded volunteer application form instead of download flow", () => {
+  it("renders guide section with apply action before showing the form", () => {
     const html = renderToStaticMarkup(
       <LanguageProvider>
         <Volunteer />
       </LanguageProvider>
     );
 
-    expect(html).toContain('data-volunteer-form="true"');
+    expect(html).toContain('data-volunteer-guide="true"');
+    expect(html).toContain("报名");
+    expect(html).not.toContain('data-volunteer-form="true"');
   });
 
-  it("renders optional gender field in basic information section", () => {
+  it("keeps form content hidden on initial render", () => {
     const html = renderToStaticMarkup(
       <LanguageProvider>
         <Volunteer />
       </LanguageProvider>
     );
 
-    expect(html).toContain("性别（可选）");
+    expect(html).not.toContain("性别（可选）");
   });
 });

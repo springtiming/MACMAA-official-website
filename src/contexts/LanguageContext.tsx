@@ -557,20 +557,26 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Volunteer
     "volunteer.title": "志愿者招募",
-    "volunteer.subtitle": "加入我们，一起组织社区活动，服务华人长者",
-    "volunteer.description":
-      "MACMAA 诚邀热心人士加入我们的志愿者团队。作为志愿者，您将有机会参与活动策划、现场协助、翻译服务等工作，为社区贡献力量。",
-    "volunteer.benefits.title": "志愿者福利",
-    "volunteer.benefits.1": "获得志愿服务时长证明",
-    "volunteer.benefits.2": "优先参与协会活动",
-    "volunteer.benefits.3": "结识志同道合的朋友",
-    "volunteer.benefits.4": "丰富个人经历与技能",
-    "volunteer.howToApply": "申请方式",
-    "volunteer.step1": "下载并填写志愿者申请表",
-    "volunteer.step2": "将填写好的表格发送至以下邮箱",
-    "volunteer.downloadForm": "下载申请表",
-    "volunteer.sendTo": "发送邮箱",
-    "volunteer.note": "我们会在收到您的申请后尽快与您联系。如有任何问题，欢迎通过邮件咨询。",
+    "volunteer.subtitle": "欢迎加入我们温暖而充满活力的志愿者团队！",
+    "volunteer.responsibilities.title": "工作内容（可远程线上完成）",
+    "volunteer.responsibilities.1":
+      "协助撰写、整理中英文文书材料（宣传文案、感谢信、活动总结、会议记录等）",
+    "volunteer.responsibilities.2": "协助日常事务处理与资料归档",
+    "volunteer.responsibilities.3": "参与组织线上/线下社区活动",
+    "volunteer.responsibilities.4":
+      "根据专长协助设计宣传资料或管理社交媒体（如愿意）",
+    "volunteer.requirements.title": "我们希望你是",
+    "volunteer.requirements.1": "英文书写与沟通能力良好，也懂些中文",
+    "volunteer.requirements.2": "留学生或希望积累社区服务经验者优先",
+    "volunteer.requirements.3": "做事细心，具责任感，乐于学习",
+    "volunteer.requirements.4":
+      "每周能安排一定自由时间（时间灵活、任务制）",
+    "volunteer.benefits.title": "我们提供",
+    "volunteer.benefits.1":
+      "官方荣誉志愿者证书（适用于简历、奖学金、学术加分）",
+    "volunteer.benefits.2": "参与有影响力的社区项目，积累真实经验",
+    "volunteer.benefits.3": "灵活远程协作，尊重个人安排",
+    "volunteer.benefits.4": "结识志同道合的朋友，提升软实力与社会参与感",
 
     // Footer
     "footer.contact": "联系我们",
@@ -1177,21 +1183,35 @@ const translations: Record<Language, Record<string, string>> = {
     // Volunteer
     "volunteer.title": "Volunteer Recruitment",
     "volunteer.subtitle":
-      "Join us to organize community events and serve Chinese seniors",
-    "volunteer.description":
-      "MACMAA welcomes enthusiastic individuals to join our volunteer team. As a volunteer, you'll have opportunities to participate in event planning, on-site assistance, translation services, and more.",
-    "volunteer.benefits.title": "Volunteer Benefits",
-    "volunteer.benefits.1": "Receive volunteer service hour certificates",
-    "volunteer.benefits.2": "Priority access to association events",
-    "volunteer.benefits.3": "Meet like-minded friends",
-    "volunteer.benefits.4": "Enrich your experience and skills",
-    "volunteer.howToApply": "How to Apply",
-    "volunteer.step1": "Download and complete the volunteer application form",
-    "volunteer.step2": "Send the completed form to the email below",
-    "volunteer.downloadForm": "Download Form",
-    "volunteer.sendTo": "Send to",
-    "volunteer.note":
-      "We will contact you as soon as possible after receiving your application. If you have any questions, feel free to reach out via email.",
+      "Welcome to join our warm and dynamic volunteer team!",
+    "volunteer.responsibilities.title":
+      "Responsibilities (can be completed remotely)",
+    "volunteer.responsibilities.1":
+      "Assist in writing and organising documents in Chinese and English (promotional copy, thank-you letters, event summaries, meeting minutes, etc.)",
+    "volunteer.responsibilities.2":
+      "Help with daily administrative tasks and filing",
+    "volunteer.responsibilities.3":
+      "Participate in organising online/offline community events",
+    "volunteer.responsibilities.4":
+      "Optionally assist with graphic design or social media management based on your strengths",
+    "volunteer.requirements.title": "We're looking for someone who",
+    "volunteer.requirements.1":
+      "Has good English writing and communication skills with some Chinese proficiency",
+    "volunteer.requirements.2":
+      "Is an international student or someone seeking community service experience",
+    "volunteer.requirements.3":
+      "Is detail-oriented, responsible, and eager to learn",
+    "volunteer.requirements.4":
+      "Can commit some flexible hours per week (task-based schedule)",
+    "volunteer.benefits.title": "What we offer",
+    "volunteer.benefits.1":
+      "Official volunteer certificate (for CV, scholarships & academic credit)",
+    "volunteer.benefits.2":
+      "Gain real experience through impactful community projects",
+    "volunteer.benefits.3":
+      "Flexible remote collaboration that respects your schedule",
+    "volunteer.benefits.4":
+      "Meet like-minded friends and build soft skills & social engagement",
 
     // Footer
     "footer.contact": "Contact Us",

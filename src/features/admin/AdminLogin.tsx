@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "motion/react";
-import { Lock, User, ShieldAlert } from "lucide-react";
+import { Lock, User } from "lucide-react";
 import { adminAuthLogin } from "@/lib/supabaseApi";
 import { setToken } from "@/lib/tokenStorage";
 import { isAuthenticated, setAdminUsername } from "@/lib/auth";
@@ -159,15 +159,6 @@ export function AdminLogin() {
                 {error}
               </motion.div>
             )}
-
-            <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 text-xs">
-              <ShieldAlert className="w-4 h-4 flex-shrink-0 mt-0.5" />
-              <span>
-                {language === "zh"
-                  ? "连续输错 5 次密码，账号将被锁定 60 分钟"
-                  : "5 consecutive failed attempts will lock the account for 60 minutes"}
-              </span>
-            </div>
 
             <motion.button
               type="submit"
