@@ -34,7 +34,12 @@ const homeImageLoadCache = new Set<string>();
 
 function RisenWeChatIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 64 64" fill="none" className={className} aria-hidden="true">
+    <svg
+      viewBox="0 0 64 64"
+      fill="none"
+      className={className}
+      aria-hidden="true"
+    >
       <path
         d="M26.4 7.5c-10.7 0-19.4 7.3-19.4 16.3 0 4.7 2.4 8.9 6.5 11.9l-2 7.1 7.8-4.1c2.2.6 4.5.9 7.1.9 10.7 0 19.4-7.3 19.4-16.3S37.1 7.5 26.4 7.5Z"
         fill="currentColor"
@@ -411,7 +416,9 @@ export function Home() {
                     <RisenWeChatIcon className="w-full h-full" />
                   </span>
                   <span>
-                    {language === "zh" ? "微信公众号" : "WeChat Official Account"}
+                    {language === "zh"
+                      ? "微信公众号"
+                      : "WeChat Official Account"}
                   </span>
                 </motion.button>
               </div>
@@ -432,7 +439,9 @@ export function Home() {
                       type="button"
                       onClick={() => setShowAboutWechatQr(false)}
                       className="p-1 rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
-                      aria-label={language === "zh" ? "关闭二维码" : "Close QR code"}
+                      aria-label={
+                        language === "zh" ? "关闭二维码" : "Close QR code"
+                      }
                     >
                       <X className="w-4 h-4" />
                     </button>

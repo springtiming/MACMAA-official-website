@@ -1,5 +1,18 @@
 import React, { useRef, useState } from "react";
-import { AlertCircle, Award, Briefcase, Check, Clock, FileText, Heart, Laptop, Megaphone, Sparkles, UserCheck, Users } from "lucide-react";
+import {
+  AlertCircle,
+  Award,
+  Briefcase,
+  Check,
+  Clock,
+  FileText,
+  Heart,
+  Laptop,
+  Megaphone,
+  Sparkles,
+  UserCheck,
+  Users,
+} from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { createVolunteerApplication } from "@/lib/supabaseApi";
@@ -29,7 +42,11 @@ const INTEREST_OPTIONS: Option[] = [
     zh: "文案 / 翻译",
     en: "Writing / Translation",
   },
-  { value: "sustainability", zh: "社区环保活动", en: "Sustainability Programs" },
+  {
+    value: "sustainability",
+    zh: "社区环保活动",
+    en: "Sustainability Programs",
+  },
   { value: "other", zh: "其他", en: "Other" },
 ];
 
@@ -103,7 +120,14 @@ export function Volunteer() {
     });
   };
 
-  const toggleArray = (field: "languageSkills" | "interests" | "weekdayAvailability" | "weekendAvailability", value: string) => {
+  const toggleArray = (
+    field:
+      | "languageSkills"
+      | "interests"
+      | "weekdayAvailability"
+      | "weekendAvailability",
+    value: string
+  ) => {
     setFormData((prev) => {
       const current = prev[field];
       const next = current.includes(value)
@@ -116,7 +140,8 @@ export function Volunteer() {
   const validate = () => {
     const next: FormErrors = {};
     const currentYear = new Date().getFullYear();
-    if (!formData.name.trim()) next.name = l("请填写姓名", "Please enter your name");
+    if (!formData.name.trim())
+      next.name = l("请填写姓名", "Please enter your name");
     if (formData.birthYear.trim()) {
       const year = Number(formData.birthYear);
       if (!Number.isInteger(year) || year < 1900 || year > currentYear) {
@@ -133,40 +158,78 @@ export function Volunteer() {
       next.suburb = l("请填写居住区域", "Please enter residential suburb");
     }
     if (formData.languageSkills.length === 0) {
-      next.languageSkills = l("请至少选择一项语言能力", "Please select at least one language");
+      next.languageSkills = l(
+        "请至少选择一项语言能力",
+        "Please select at least one language"
+      );
     }
-    if (formData.languageSkills.includes("other") && !formData.languageOther.trim()) {
+    if (
+      formData.languageSkills.includes("other") &&
+      !formData.languageOther.trim()
+    ) {
       next.languageOther = l("请补充其他语言", "Please specify other language");
     }
     if (formData.interests.length === 0) {
-      next.interests = l("请至少选择一项服务意向", "Please select at least one interest");
+      next.interests = l(
+        "请至少选择一项服务意向",
+        "Please select at least one interest"
+      );
     }
-    if (formData.interests.includes("other") && !formData.interestOther.trim()) {
-      next.interestOther = l("请补充其他服务意向", "Please specify other interest");
+    if (
+      formData.interests.includes("other") &&
+      !formData.interestOther.trim()
+    ) {
+      next.interestOther = l(
+        "请补充其他服务意向",
+        "Please specify other interest"
+      );
     }
     if (
       formData.weekdayAvailability.length === 0 &&
       formData.weekendAvailability.length === 0
     ) {
-      next.availability = l("请至少选择一个可参与时间", "Please select at least one available time");
+      next.availability = l(
+        "请至少选择一个可参与时间",
+        "Please select at least one available time"
+      );
     }
     if (!formData.monthlyHours) {
-      next.monthlyHours = l("请选择每月可服务小时数", "Please select monthly hours");
+      next.monthlyHours = l(
+        "请选择每月可服务小时数",
+        "Please select monthly hours"
+      );
     }
     if (!formData.emergencyName.trim()) {
-      next.emergencyName = l("请填写紧急联系人", "Please enter emergency contact name");
+      next.emergencyName = l(
+        "请填写紧急联系人",
+        "Please enter emergency contact name"
+      );
     }
     if (!formData.emergencyRelation.trim()) {
       next.emergencyRelation = l("请填写关系", "Please enter relationship");
     }
     if (!PHONE_PATTERN.test(formData.emergencyPhone.trim())) {
-      next.emergencyPhone = l("请填写有效紧急联系电话", "Please enter a valid emergency phone");
+      next.emergencyPhone = l(
+        "请填写有效紧急联系电话",
+        "Please enter a valid emergency phone"
+      );
     }
-    if (!formData.agreeTruth) next.agreeTruth = l("请确认信息真实", "Please confirm accuracy");
-    if (!formData.agreeUnpaid) next.agreeUnpaid = l("请确认志愿服务无薪酬", "Please confirm unpaid volunteering");
-    if (!formData.agreeGuidelines) next.agreeGuidelines = l("请同意遵守行为守则", "Please agree to conduct guidelines");
-    if (!formData.agreeContact) next.agreeContact = l("请同意联系授权", "Please agree to contact");
-    if (!formData.agreePrivacy) next.agreePrivacy = l("请同意隐私声明", "Please agree to privacy policy");
+    if (!formData.agreeTruth)
+      next.agreeTruth = l("请确认信息真实", "Please confirm accuracy");
+    if (!formData.agreeUnpaid)
+      next.agreeUnpaid = l(
+        "请确认志愿服务无薪酬",
+        "Please confirm unpaid volunteering"
+      );
+    if (!formData.agreeGuidelines)
+      next.agreeGuidelines = l(
+        "请同意遵守行为守则",
+        "Please agree to conduct guidelines"
+      );
+    if (!formData.agreeContact)
+      next.agreeContact = l("请同意联系授权", "Please agree to contact");
+    if (!formData.agreePrivacy)
+      next.agreePrivacy = l("请同意隐私声明", "Please agree to privacy policy");
     return next;
   };
 
@@ -183,7 +246,8 @@ export function Volunteer() {
       await createVolunteerApplication({
         name: formData.name.trim(),
         birth_year: formData.birthYear ? Number(formData.birthYear) : null,
-        gender: (formData.gender as "male" | "female" | "prefer-not-to-say") || null,
+        gender:
+          (formData.gender as "male" | "female" | "prefer-not-to-say") || null,
         phone: formData.phone.trim(),
         email: formData.email.trim(),
         suburb: formData.suburb.trim(),
@@ -205,7 +269,9 @@ export function Volunteer() {
       });
       setSubmitted(true);
     } catch {
-      setSubmitError(l("提交失败，请稍后重试。", "Submission failed, please try again."));
+      setSubmitError(
+        l("提交失败，请稍后重试。", "Submission failed, please try again.")
+      );
     } finally {
       setSubmitting(false);
     }
@@ -260,7 +326,11 @@ export function Volunteer() {
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <AnimatePresence mode="wait">
           {!submitted ? (
-            <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <motion.div
+              key="content"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
               <div className="text-center mb-8">
                 <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-[#2B5F9E] to-[#6BA868] rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
                   <Users className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
@@ -373,24 +443,64 @@ export function Volunteer() {
                         )}
                       </p>
                     </div>
-                    <form data-volunteer-form="true" onSubmit={handleSubmit} className="space-y-6">
+                    <form
+                      data-volunteer-form="true"
+                      onSubmit={handleSubmit}
+                      className="space-y-6"
+                    >
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input className="w-full px-3 py-2.5 border rounded-lg" placeholder={l("姓名*", "Name*")} value={formData.name} onChange={(e) => updateField("name", e.target.value)} />
-                        <input className="w-full px-3 py-2.5 border rounded-lg" placeholder={l("出生年份", "Year of Birth")} value={formData.birthYear} onChange={(e) => updateField("birthYear", e.target.value)} />
-                        <input className="w-full px-3 py-2.5 border rounded-lg" placeholder={l("电话*", "Phone*")} value={formData.phone} onChange={(e) => updateField("phone", e.target.value)} />
-                        <input className="w-full px-3 py-2.5 border rounded-lg" placeholder={l("邮箱*", "Email*")} value={formData.email} onChange={(e) => updateField("email", e.target.value)} />
-                        <input className="w-full px-3 py-2.5 border rounded-lg md:col-span-2" placeholder={l("居住区域*", "Residential Suburb*")} value={formData.suburb} onChange={(e) => updateField("suburb", e.target.value)} />
+                        <input
+                          className="w-full px-3 py-2.5 border rounded-lg"
+                          placeholder={l("姓名*", "Name*")}
+                          value={formData.name}
+                          onChange={(e) => updateField("name", e.target.value)}
+                        />
+                        <input
+                          className="w-full px-3 py-2.5 border rounded-lg"
+                          placeholder={l("出生年份", "Year of Birth")}
+                          value={formData.birthYear}
+                          onChange={(e) =>
+                            updateField("birthYear", e.target.value)
+                          }
+                        />
+                        <input
+                          className="w-full px-3 py-2.5 border rounded-lg"
+                          placeholder={l("电话*", "Phone*")}
+                          value={formData.phone}
+                          onChange={(e) => updateField("phone", e.target.value)}
+                        />
+                        <input
+                          className="w-full px-3 py-2.5 border rounded-lg"
+                          placeholder={l("邮箱*", "Email*")}
+                          value={formData.email}
+                          onChange={(e) => updateField("email", e.target.value)}
+                        />
+                        <input
+                          className="w-full px-3 py-2.5 border rounded-lg md:col-span-2"
+                          placeholder={l("居住区域*", "Residential Suburb*")}
+                          value={formData.suburb}
+                          onChange={(e) =>
+                            updateField("suburb", e.target.value)
+                          }
+                        />
                         <div className="md:col-span-2 space-y-2">
-                          <p className="text-[#2B5F9E]">{l("性别（可选）", "Gender (Optional)")}</p>
+                          <p className="text-[#2B5F9E]">
+                            {l("性别（可选）", "Gender (Optional)")}
+                          </p>
                           <div className="flex flex-wrap gap-4">
                             {GENDER_OPTIONS.map((opt) => (
-                              <label key={opt.value} className="flex items-center gap-2">
+                              <label
+                                key={opt.value}
+                                className="flex items-center gap-2"
+                              >
                                 <input
                                   type="radio"
                                   name="gender"
                                   value={opt.value}
                                   checked={formData.gender === opt.value}
-                                  onChange={(e) => updateField("gender", e.target.value)}
+                                  onChange={(e) =>
+                                    updateField("gender", e.target.value)
+                                  }
                                 />
                                 <span>{l(opt.zh, opt.en)}</span>
                               </label>
@@ -405,46 +515,103 @@ export function Volunteer() {
                       {renderError("suburb")}
 
                       <div className="space-y-2">
-                        <p className="text-[#2B5F9E]">{l("语言能力（可多选）", "Language Skills (Multiple choices)")}</p>
+                        <p className="text-[#2B5F9E]">
+                          {l(
+                            "语言能力（可多选）",
+                            "Language Skills (Multiple choices)"
+                          )}
+                        </p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                           {LANGUAGE_OPTIONS.map((opt) => (
-                            <label key={opt.value} className="flex items-center gap-2">
-                              <input type="checkbox" checked={formData.languageSkills.includes(opt.value)} onChange={() => toggleArray("languageSkills", opt.value)} />
+                            <label
+                              key={opt.value}
+                              className="flex items-center gap-2"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={formData.languageSkills.includes(
+                                  opt.value
+                                )}
+                                onChange={() =>
+                                  toggleArray("languageSkills", opt.value)
+                                }
+                              />
                               <span>{l(opt.zh, opt.en)}</span>
                             </label>
                           ))}
                         </div>
                         {formData.languageSkills.includes("other") && (
-                          <input className="w-full px-3 py-2.5 border rounded-lg" placeholder={l("其他语言", "Other language")} value={formData.languageOther} onChange={(e) => updateField("languageOther", e.target.value)} />
+                          <input
+                            className="w-full px-3 py-2.5 border rounded-lg"
+                            placeholder={l("其他语言", "Other language")}
+                            value={formData.languageOther}
+                            onChange={(e) =>
+                              updateField("languageOther", e.target.value)
+                            }
+                          />
                         )}
                         {renderError("languageSkills")}
                         {renderError("languageOther")}
                       </div>
 
                       <div className="space-y-2">
-                        <p className="text-[#2B5F9E]">{l("志愿服务意向（可多选）", "Volunteer Interests (Multiple choices)")}</p>
+                        <p className="text-[#2B5F9E]">
+                          {l(
+                            "志愿服务意向（可多选）",
+                            "Volunteer Interests (Multiple choices)"
+                          )}
+                        </p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                           {INTEREST_OPTIONS.map((opt) => (
-                            <label key={opt.value} className="flex items-center gap-2">
-                              <input type="checkbox" checked={formData.interests.includes(opt.value)} onChange={() => toggleArray("interests", opt.value)} />
+                            <label
+                              key={opt.value}
+                              className="flex items-center gap-2"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={formData.interests.includes(opt.value)}
+                                onChange={() =>
+                                  toggleArray("interests", opt.value)
+                                }
+                              />
                               <span>{l(opt.zh, opt.en)}</span>
                             </label>
                           ))}
                         </div>
                         {formData.interests.includes("other") && (
-                          <input className="w-full px-3 py-2.5 border rounded-lg" placeholder={l("其他服务意向", "Other interest")} value={formData.interestOther} onChange={(e) => updateField("interestOther", e.target.value)} />
+                          <input
+                            className="w-full px-3 py-2.5 border rounded-lg"
+                            placeholder={l("其他服务意向", "Other interest")}
+                            value={formData.interestOther}
+                            onChange={(e) =>
+                              updateField("interestOther", e.target.value)
+                            }
+                          />
                         )}
                         {renderError("interests")}
                         {renderError("interestOther")}
                       </div>
 
                       <div className="space-y-2">
-                        <p className="text-[#2B5F9E]">{l("可参与时间", "Availability")}</p>
+                        <p className="text-[#2B5F9E]">
+                          {l("可参与时间", "Availability")}
+                        </p>
                         <p>{l("平日", "Weekdays")}</p>
                         <div className="flex flex-wrap gap-4">
                           {TIME_OPTIONS.map((opt) => (
-                            <label key={`wd-${opt.value}`} className="flex items-center gap-2">
-                              <input type="checkbox" checked={formData.weekdayAvailability.includes(opt.value)} onChange={() => toggleArray("weekdayAvailability", opt.value)} />
+                            <label
+                              key={`wd-${opt.value}`}
+                              className="flex items-center gap-2"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={formData.weekdayAvailability.includes(
+                                  opt.value
+                                )}
+                                onChange={() =>
+                                  toggleArray("weekdayAvailability", opt.value)
+                                }
+                              />
                               <span>{l(opt.zh, opt.en)}</span>
                             </label>
                           ))}
@@ -452,14 +619,33 @@ export function Volunteer() {
                         <p>{l("周末", "Weekends")}</p>
                         <div className="flex flex-wrap gap-4">
                           {TIME_OPTIONS.map((opt) => (
-                            <label key={`we-${opt.value}`} className="flex items-center gap-2">
-                              <input type="checkbox" checked={formData.weekendAvailability.includes(opt.value)} onChange={() => toggleArray("weekendAvailability", opt.value)} />
+                            <label
+                              key={`we-${opt.value}`}
+                              className="flex items-center gap-2"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={formData.weekendAvailability.includes(
+                                  opt.value
+                                )}
+                                onChange={() =>
+                                  toggleArray("weekendAvailability", opt.value)
+                                }
+                              />
                               <span>{l(opt.zh, opt.en)}</span>
                             </label>
                           ))}
                         </div>
-                        <select className="w-full px-3 py-2.5 border rounded-lg" value={formData.monthlyHours} onChange={(e) => updateField("monthlyHours", e.target.value)}>
-                          <option value="">{l("每月可服务小时数*", "Approx. hours per month*")}</option>
+                        <select
+                          className="w-full px-3 py-2.5 border rounded-lg"
+                          value={formData.monthlyHours}
+                          onChange={(e) =>
+                            updateField("monthlyHours", e.target.value)
+                          }
+                        >
+                          <option value="">
+                            {l("每月可服务小时数*", "Approx. hours per month*")}
+                          </option>
                           {HOURS_OPTIONS.map((opt) => (
                             <option key={opt.value} value={opt.value}>
                               {l(opt.zh, opt.en)}
@@ -471,9 +657,30 @@ export function Volunteer() {
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <input className="w-full px-3 py-2.5 border rounded-lg" placeholder={l("紧急联系人姓名*", "Emergency Name*")} value={formData.emergencyName} onChange={(e) => updateField("emergencyName", e.target.value)} />
-                        <input className="w-full px-3 py-2.5 border rounded-lg" placeholder={l("关系*", "Relationship*")} value={formData.emergencyRelation} onChange={(e) => updateField("emergencyRelation", e.target.value)} />
-                        <input className="w-full px-3 py-2.5 border rounded-lg" placeholder={l("紧急联系电话*", "Emergency Phone*")} value={formData.emergencyPhone} onChange={(e) => updateField("emergencyPhone", e.target.value)} />
+                        <input
+                          className="w-full px-3 py-2.5 border rounded-lg"
+                          placeholder={l("紧急联系人姓名*", "Emergency Name*")}
+                          value={formData.emergencyName}
+                          onChange={(e) =>
+                            updateField("emergencyName", e.target.value)
+                          }
+                        />
+                        <input
+                          className="w-full px-3 py-2.5 border rounded-lg"
+                          placeholder={l("关系*", "Relationship*")}
+                          value={formData.emergencyRelation}
+                          onChange={(e) =>
+                            updateField("emergencyRelation", e.target.value)
+                          }
+                        />
+                        <input
+                          className="w-full px-3 py-2.5 border rounded-lg"
+                          placeholder={l("紧急联系电话*", "Emergency Phone*")}
+                          value={formData.emergencyPhone}
+                          onChange={(e) =>
+                            updateField("emergencyPhone", e.target.value)
+                          }
+                        />
                       </div>
                       {renderError("emergencyName")}
                       {renderError("emergencyRelation")}
@@ -481,14 +688,52 @@ export function Volunteer() {
 
                       <div className="space-y-2">
                         {[
-                          ["agreeTruth", l("我确认所填信息真实准确。", "I confirm information is accurate.")],
-                          ["agreeUnpaid", l("我理解志愿服务为无薪。", "I understand volunteering is unpaid.")],
-                          ["agreeGuidelines", l("我同意遵守协会行为守则。", "I agree to follow conduct guidelines.")],
-                          ["agreeContact", l("我同意协会联系我。", "I consent to be contacted.")],
-                          ["agreePrivacy", l("我同意隐私声明。", "I agree to the privacy policy.")],
+                          [
+                            "agreeTruth",
+                            l(
+                              "我确认所填信息真实准确。",
+                              "I confirm information is accurate."
+                            ),
+                          ],
+                          [
+                            "agreeUnpaid",
+                            l(
+                              "我理解志愿服务为无薪。",
+                              "I understand volunteering is unpaid."
+                            ),
+                          ],
+                          [
+                            "agreeGuidelines",
+                            l(
+                              "我同意遵守协会行为守则。",
+                              "I agree to follow conduct guidelines."
+                            ),
+                          ],
+                          [
+                            "agreeContact",
+                            l(
+                              "我同意协会联系我。",
+                              "I consent to be contacted."
+                            ),
+                          ],
+                          [
+                            "agreePrivacy",
+                            l(
+                              "我同意隐私声明。",
+                              "I agree to the privacy policy."
+                            ),
+                          ],
                         ].map(([key, text]) => (
                           <label key={key} className="flex items-center gap-2">
-                            <input type="checkbox" checked={Boolean(formData[key as keyof typeof formData])} onChange={(e) => updateField(key, e.target.checked)} />
+                            <input
+                              type="checkbox"
+                              checked={Boolean(
+                                formData[key as keyof typeof formData]
+                              )}
+                              onChange={(e) =>
+                                updateField(key, e.target.checked)
+                              }
+                            />
                             <span>{text} *</span>
                           </label>
                         ))}
@@ -506,25 +751,46 @@ export function Volunteer() {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                       >
-                        {submitting ? l("提交中...", "Submitting...") : l("提交志愿者申请", "Submit Volunteer Application")}
+                        {submitting
+                          ? l("提交中...", "Submitting...")
+                          : l("提交志愿者申请", "Submit Volunteer Application")}
                       </motion.button>
 
-                      {submitError && <p className="text-red-600 text-sm text-center">{submitError}</p>}
+                      {submitError && (
+                        <p className="text-red-600 text-sm text-center">
+                          {submitError}
+                        </p>
+                      )}
                     </form>
                   </div>
                 </motion.div>
               )}
             </motion.div>
           ) : (
-            <motion.div key="success" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
+            <motion.div
+              key="success"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-12"
+            >
               <div className="w-20 h-20 bg-[#6BA868] rounded-full flex items-center justify-center mx-auto mb-6">
                 <Check className="w-10 h-10 text-white" />
               </div>
-              <h2 className="text-[#2B5F9E] mb-4">{l("申请已提交！", "Application Submitted!")}</h2>
+              <h2 className="text-[#2B5F9E] mb-4">
+                {l("申请已提交！", "Application Submitted!")}
+              </h2>
               <p className="text-gray-700 mb-8 max-w-md mx-auto">
-                {l("感谢您的申请，我们会尽快联系您。", "Thank you. We will contact you soon.")}
+                {l(
+                  "感谢您的申请，我们会尽快联系您。",
+                  "Thank you. We will contact you soon."
+                )}
               </p>
-              <motion.button onClick={() => (window.location.href = "/")} className="px-8 py-3 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e]" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <motion.button
+                onClick={() => (window.location.href = "/")}
+                className="px-8 py-3 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e]"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
                 {l("返回首页", "Back to Home")}
               </motion.button>
             </motion.div>

@@ -117,7 +117,9 @@ describe("Email Service", () => {
         error: null,
       });
 
-      const { sendMemberApplicationSubmitted } = await import("@/server/api/_emailService");
+      const { sendMemberApplicationSubmitted } = await import(
+        "@/server/api/_emailService"
+      );
       const result = await sendMemberApplicationSubmitted({
         chineseName: "测试用户",
         englishName: "Test User",
@@ -143,7 +145,9 @@ describe("Email Service", () => {
         error: null,
       });
 
-      const { sendMemberApplicationSubmitted } = await import("@/server/api/_emailService");
+      const { sendMemberApplicationSubmitted } = await import(
+        "@/server/api/_emailService"
+      );
       await sendMemberApplicationSubmitted({
         chineseName: "测试用户",
         email: "test@example.com",
@@ -163,7 +167,9 @@ describe("Email Service", () => {
 
   describe("sendMemberApprovedEmail", () => {
     it("should skip when member has no email", async () => {
-      const { sendMemberApprovedEmail } = await import("@/server/api/_emailService");
+      const { sendMemberApprovedEmail } = await import(
+        "@/server/api/_emailService"
+      );
       const result = await sendMemberApprovedEmail({
         chinese_name: "测试用户",
         email: null,
@@ -180,7 +186,9 @@ describe("Email Service", () => {
         error: null,
       });
 
-      const { sendMemberApprovedEmail } = await import("@/server/api/_emailService");
+      const { sendMemberApprovedEmail } = await import(
+        "@/server/api/_emailService"
+      );
       const result = await sendMemberApprovedEmail({
         chinese_name: "测试用户",
         english_name: "Test User",
@@ -205,7 +213,9 @@ describe("Email Service", () => {
         error: null,
       });
 
-      const { sendEventRegistrationEmails } = await import("@/server/api/_emailService");
+      const { sendEventRegistrationEmails } = await import(
+        "@/server/api/_emailService"
+      );
       const result = await sendEventRegistrationEmails({
         eventTitleZh: "测试活动",
         eventTitleEn: "Test Event",
@@ -232,7 +242,9 @@ describe("Email Service", () => {
         error: null,
       });
 
-      const { sendEventRegistrationEmails } = await import("@/server/api/_emailService");
+      const { sendEventRegistrationEmails } = await import(
+        "@/server/api/_emailService"
+      );
       await sendEventRegistrationEmails(
         {
           eventTitleZh: "测试活动",
@@ -255,9 +267,3 @@ describe("Email Service", () => {
     });
   });
 });
-
-
-
-
-
-

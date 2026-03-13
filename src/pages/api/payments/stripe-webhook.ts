@@ -11,7 +11,10 @@ export const config = {
   },
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).send("Method not allowed");
@@ -95,16 +98,16 @@ async function handleCheckoutSessionCompleted(
     );
   }
 
-  const { error: insertError } = await supabase.from("event_registrations").insert(
-    {
+  const { error: insertError } = await supabase
+    .from("event_registrations")
+    .insert({
       event_id: event.id,
       name,
       email,
       phone,
       tickets,
       payment_method: "card",
-    }
-  );
+    });
 
   if (insertError) {
     throw new Error(

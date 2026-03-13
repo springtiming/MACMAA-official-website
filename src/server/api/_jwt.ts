@@ -45,7 +45,10 @@ function base64UrlDecode(str: string): Buffer {
  * @param role 管理员角色
  * @returns JWT token字符串
  */
-export function generateToken(adminId: string, role: "owner" | "admin"): string {
+export function generateToken(
+  adminId: string,
+  role: "owner" | "admin"
+): string {
   const now = Math.floor(Date.now() / 1000);
   const header = {
     alg: "HS256",
@@ -125,7 +128,9 @@ export function verifyToken(token: string): AdminTokenPayload | null {
  * @param authHeader Authorization头的值，格式: "Bearer <token>"
  * @returns token字符串，如果格式不正确则返回null
  */
-export function extractTokenFromHeader(authHeader: string | undefined): string | null {
+export function extractTokenFromHeader(
+  authHeader: string | undefined
+): string | null {
   if (!authHeader) {
     return null;
   }

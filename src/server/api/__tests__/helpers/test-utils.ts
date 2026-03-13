@@ -29,9 +29,3 @@ export function wait(ms: number): Promise<void> {
 export function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
-
-
-
-
-
-

@@ -15,21 +15,25 @@ src/server/api/__tests__/
 ## 运行测试
 
 ### 运行所有测试
+
 ```bash
 npm test
 ```
 
 ### 运行特定测试文件
+
 ```bash
 npm test -- src/server/api/__tests__/email/emailService.test.ts
 ```
 
 ### 运行特定测试套件
+
 ```bash
 npm test -- src/server/api/__tests__/email
 ```
 
 ### 监视模式（开发时使用）
+
 ```bash
 npm test -- --watch
 ```
@@ -52,9 +56,3 @@ npm test -- --watch
 2. **每个测试只测试一个功能点**
 3. **使用 Mock 避免外部依赖**：如邮件服务、数据库等
 4. **清理测试环境**：使用 `beforeEach` 和 `afterEach` 重置状态
-
-
-
-
-
-

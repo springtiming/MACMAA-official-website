@@ -209,7 +209,9 @@ export function AdminNews() {
         {
           onError: (err) => {
             const detail =
-              err instanceof Error && err.message ? err.message : t("common.error");
+              err instanceof Error && err.message
+                ? err.message
+                : t("common.error");
             console.error("[admin-news] delete failed", err);
             setError(detail);
             showProcessingError({

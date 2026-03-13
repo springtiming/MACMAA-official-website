@@ -43,7 +43,10 @@ const LANGUAGE_LABELS: Record<string, { zh: string; en: string }> = {
 
 const INTEREST_LABELS: Record<string, { zh: string; en: string }> = {
   "event-support": { zh: "活动现场协助", en: "Event Support" },
-  "elderly-support": { zh: "长者关怀与陪伴", en: "Elderly Support & Companionship" },
+  "elderly-support": {
+    zh: "长者关怀与陪伴",
+    en: "Elderly Support & Companionship",
+  },
   "migrant-support": { zh: "新移民服务", en: "Migrant Support" },
   administration: { zh: "行政协助", en: "Administration" },
   "photo-video": { zh: "摄影 / 视频", en: "Photography / Video" },
@@ -78,7 +81,9 @@ export function AdminVolunteers() {
   const { language, t } = useLanguage();
   const l = (zh: string, en: string) => (language === "zh" ? zh : en);
 
-  const [volunteers, setVolunteers] = useState<VolunteerApplicationRecord[]>([]);
+  const [volunteers, setVolunteers] = useState<VolunteerApplicationRecord[]>(
+    []
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<VolunteerFilter>("all");
   const [selectedVolunteer, setSelectedVolunteer] =
@@ -277,8 +282,10 @@ export function AdminVolunteers() {
     };
   };
 
-  const openConfirmDialog = (type: ConfirmType, volunteer: VolunteerApplicationRecord) =>
-    setConfirmDialog({ type, volunteer });
+  const openConfirmDialog = (
+    type: ConfirmType,
+    volunteer: VolunteerApplicationRecord
+  ) => setConfirmDialog({ type, volunteer });
 
   const handleConfirm = async () => {
     if (!confirmDialog) return;
@@ -290,7 +297,9 @@ export function AdminVolunteers() {
       await runWithFeedback(messages, async () => {
         if (type === "delete") {
           await deleteVolunteerApplication(volunteer.id);
-          setVolunteers((prev) => prev.filter((item) => item.id !== volunteer.id));
+          setVolunteers((prev) =>
+            prev.filter((item) => item.id !== volunteer.id)
+          );
           if (selectedVolunteer?.id === volunteer.id) {
             setSelectedVolunteer(null);
           }
@@ -568,11 +577,17 @@ export function AdminVolunteers() {
                     <td className="px-4 py-3">
                       <div>
                         <div>{volunteer.name}</div>
-                        <div className="text-sm text-gray-500">{volunteer.suburb}</div>
+                        <div className="text-sm text-gray-500">
+                          {volunteer.suburb}
+                        </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 hidden sm:table-cell">{volunteer.phone}</td>
-                    <td className="px-4 py-3 hidden md:table-cell">{volunteer.email}</td>
+                    <td className="px-4 py-3 hidden sm:table-cell">
+                      {volunteer.phone}
+                    </td>
+                    <td className="px-4 py-3 hidden md:table-cell">
+                      {volunteer.email}
+                    </td>
                     <td className="px-4 py-3 hidden lg:table-cell">
                       {volunteer.apply_date ?? "-"}
                     </td>
@@ -595,14 +610,18 @@ export function AdminVolunteers() {
                         {volunteer.status === "pending" && (
                           <>
                             <button
-                              onClick={() => openConfirmDialog("approve", volunteer)}
+                              onClick={() =>
+                                openConfirmDialog("approve", volunteer)
+                              }
                               className="p-2 text-[#6BA868] hover:bg-[#6BA868] hover:text-white rounded-lg transition-colors"
                               title={l("通过", "Approve")}
                             >
                               <Check className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => openConfirmDialog("reject", volunteer)}
+                              onClick={() =>
+                                openConfirmDialog("reject", volunteer)
+                              }
                               className="p-2 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors"
                               title={l("拒绝", "Reject")}
                             >
@@ -612,7 +631,9 @@ export function AdminVolunteers() {
                         )}
                         {volunteer.status === "approved" && (
                           <button
-                            onClick={() => openConfirmDialog("revoke", volunteer)}
+                            onClick={() =>
+                              openConfirmDialog("revoke", volunteer)
+                            }
                             className="p-2 text-orange-500 hover:bg-orange-500 hover:text-white rounded-lg transition-colors"
                             title={l("撤销通过", "Revoke approval")}
                           >
@@ -622,14 +643,18 @@ export function AdminVolunteers() {
                         {volunteer.status === "rejected" && (
                           <>
                             <button
-                              onClick={() => openConfirmDialog("reopen", volunteer)}
+                              onClick={() =>
+                                openConfirmDialog("reopen", volunteer)
+                              }
                               className="p-2 text-[#2B5F9E] hover:bg-[#2B5F9E] hover:text-white rounded-lg transition-colors"
                               title={l("重新审核", "Reopen")}
                             >
                               <RotateCcw className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => openConfirmDialog("delete", volunteer)}
+                              onClick={() =>
+                                openConfirmDialog("delete", volunteer)
+                              }
                               className="p-2 text-gray-500 hover:bg-gray-500 hover:text-white rounded-lg transition-colors"
                               title={l("删除记录", "Delete record")}
                             >
@@ -646,7 +671,10 @@ export function AdminVolunteers() {
 
             {filteredVolunteers.length === 0 && !loading && (
               <div className="text-center py-12 text-gray-500">
-                {l("没有找到符合条件的志愿者申请", "No volunteer applications found")}
+                {l(
+                  "没有找到符合条件的志愿者申请",
+                  "No volunteer applications found"
+                )}
               </div>
             )}
           </div>
@@ -689,7 +717,8 @@ export function AdminVolunteers() {
                     reject: "Reject this volunteer application?",
                     revoke: "Move this application status to rejected?",
                     reopen: "Move this application status back to pending?",
-                    delete: "Delete this volunteer application record? This action cannot be undone.",
+                    delete:
+                      "Delete this volunteer application record? This action cannot be undone.",
                   }[confirmDialog.type]
                 )
               : ""

@@ -48,7 +48,11 @@ export default async function handler(
   return res.status(405).json({ error: "Method not allowed" });
 }
 
-async function updateAccount(id: string, req: NextApiRequest, res: NextApiResponse) {
+async function updateAccount(
+  id: string,
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   setCors(res);
   const admin = requireAdmin(req, res);
   if (!admin) {
@@ -101,7 +105,11 @@ async function updateAccount(id: string, req: NextApiRequest, res: NextApiRespon
   }
 }
 
-async function deleteAccount(id: string, req: NextApiRequest, res: NextApiResponse) {
+async function deleteAccount(
+  id: string,
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   setCors(res);
   const admin = requireOwner(req, res);
   if (!admin) {

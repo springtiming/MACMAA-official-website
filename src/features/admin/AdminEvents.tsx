@@ -734,7 +734,9 @@ export function AdminEvents() {
     setLightboxImage(null);
   };
 
-  const openPaymentReviewLogs = async (registration: EventRegistrationRecord) => {
+  const openPaymentReviewLogs = async (
+    registration: EventRegistrationRecord
+  ) => {
     setReviewLogRegistration(registration);
     setReviewLogs([]);
     setReviewLogsError(null);
@@ -1983,7 +1985,9 @@ export function AdminEvents() {
                                         </button>
                                         <button
                                           type="button"
-                                          onClick={() => openPaymentReviewLogs(reg)}
+                                          onClick={() =>
+                                            openPaymentReviewLogs(reg)
+                                          }
                                           className="flex-1 flex items-center justify-center gap-2 px-4 py-2 border border-[#2B5F9E] text-[#2B5F9E] rounded-lg hover:bg-[#2B5F9E] hover:text-white transition-colors"
                                         >
                                           <History className="w-4 h-4" />
@@ -2414,7 +2418,9 @@ export function AdminEvents() {
                                       </button>
                                       <button
                                         type="button"
-                                        onClick={() => openPaymentReviewLogs(reg)}
+                                        onClick={() =>
+                                          openPaymentReviewLogs(reg)
+                                        }
                                         className="flex-1 flex items-center justify-center gap-2 px-4 py-2 border border-[#2B5F9E] text-[#2B5F9E] rounded-lg hover:bg-[#2B5F9E] hover:text-white transition-colors"
                                       >
                                         <History className="w-4 h-4" />

@@ -179,7 +179,7 @@ export function AdminAccounts() {
             ? language === "zh"
               ? "密码必须至少8位，且包含大小写字母、数字和特殊字符"
               : "Password must be at least 8 characters and include uppercase, lowercase, number, and special character"
-          : t("common.error");
+            : t("common.error");
       setError(msg);
     } finally {
       setTimeout(() => setSuccess(null), 2500);

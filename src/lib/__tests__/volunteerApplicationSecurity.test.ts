@@ -1,17 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createVolunteerApplication } from "../supabaseApi";
 
-const {
-  fromMock,
-  insertMock,
-  getSupabaseClientMock,
-  logSupabaseErrorMock,
-} = vi.hoisted(() => ({
-  fromMock: vi.fn(),
-  insertMock: vi.fn(),
-  getSupabaseClientMock: vi.fn(),
-  logSupabaseErrorMock: vi.fn(),
-}));
+const { fromMock, insertMock, getSupabaseClientMock, logSupabaseErrorMock } =
+  vi.hoisted(() => ({
+    fromMock: vi.fn(),
+    insertMock: vi.fn(),
+    getSupabaseClientMock: vi.fn(),
+    logSupabaseErrorMock: vi.fn(),
+  }));
 
 vi.mock("../supabaseClient", () => ({
   getSupabaseClient: getSupabaseClientMock,

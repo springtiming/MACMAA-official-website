@@ -15,7 +15,10 @@ type CreateCheckoutPayload = {
   totalAmount?: number; // 包含手续费的总价（可选，用于向后兼容）
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method === "OPTIONS") {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -64,9 +67,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const memberEmail = payload.memberEmail?.trim();
 
     // 如果提供了包含手续费的总价，直接使用
-    if (payload.totalAmount && Number.isFinite(payload.totalAmount) && payload.totalAmount > 0) {
+    if (
+      payload.totalAmount &&
+      Number.isFinite(payload.totalAmount) &&
+      payload.totalAmount > 0
+    ) {
       unitAmount = Math.round(payload.totalAmount * 100);
-      
+
       // 仍然需要验证会员折扣（用于 metadata）
       if (
         memberEmail &&
@@ -123,7 +130,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       payload.successUrl ??
       `${origin}/events/${event.id}/register?status=success`;
     const cancelUrl =
-      payload.cancelUrl ?? `${origin}/events/${event.id}/register?status=cancel`;
+      payload.cancelUrl ??
+      `${origin}/events/${event.id}/register?status=cancel`;
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
@@ -137,7 +145,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         tickets: String(tickets),
         name,
         email: customerEmail ?? "",
-        member_email: memberDiscountApplied ? memberEmail ?? "" : "",
+        member_email: memberDiscountApplied ? (memberEmail ?? "") : "",
         member_discount: memberDiscountApplied ? "true" : "false",
         phone,
         notes,

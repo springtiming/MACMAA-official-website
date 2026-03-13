@@ -340,10 +340,13 @@ export function EventRegistration() {
         );
         alert(message);
       } else {
-        const error = (await response.json().catch(() => null)) as
-          | { error?: string; message?: string }
-          | null;
-        alert(error?.error || error?.message || t("register.member.sendFailed"));
+        const error = (await response.json().catch(() => null)) as {
+          error?: string;
+          message?: string;
+        } | null;
+        alert(
+          error?.error || error?.message || t("register.member.sendFailed")
+        );
       }
     } catch (err) {
       console.error("[member] send code failed", err);
@@ -936,12 +939,12 @@ export function EventRegistration() {
                                         isVerifying ||
                                         resendCooldown > 0
                                       }
-	                                      className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap transition-colors ${
-	                                        isVerifying || resendCooldown > 0
-	                                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-	                                          : "bg-[#6BA868] text-white hover:bg-[#5a9157]"
-	                                      }`}
-	                                    >
+                                      className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap transition-colors ${
+                                        isVerifying || resendCooldown > 0
+                                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                          : "bg-[#6BA868] text-white hover:bg-[#5a9157]"
+                                      }`}
+                                    >
                                       {isVerifying
                                         ? t("register.member.sending")
                                         : codeSent
@@ -988,13 +991,13 @@ export function EventRegistration() {
                                           verificationCode.length !== 6 ||
                                           isVerifying
                                         }
-	                                        className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap transition-colors ${
-	                                          verificationCode.length !== 6 ||
-	                                          isVerifying
-	                                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-	                                            : "bg-[#6BA868] text-white hover:bg-[#5a9157]"
-	                                        }`}
-	                                      >
+                                        className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap transition-colors ${
+                                          verificationCode.length !== 6 ||
+                                          isVerifying
+                                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                            : "bg-[#6BA868] text-white hover:bg-[#5a9157]"
+                                        }`}
+                                      >
                                         {isVerifying
                                           ? t("register.member.verifying")
                                           : t("register.member.verify")}
@@ -1280,182 +1283,173 @@ export function EventRegistration() {
                           initial={{ opacity: 0, y: -10 }}
                           animate={{ opacity: 1, y: 0 }}
                         >
-                            {/* 费用明细 - 与在线支付对齐 */}
-                            <div className="bg-white rounded-lg p-5 mb-4 border border-orange-200">
-                              <div className="space-y-3">
+                          {/* 费用明细 - 与在线支付对齐 */}
+                          <div className="bg-white rounded-lg p-5 mb-4 border border-orange-200">
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-gray-600">
+                                  {language === "zh" ? "活动费用" : "Event Fee"}
+                                  {tickets > 1 &&
+                                    ` (${tickets} ${language === "zh" ? "张票" : "tickets"})`}
+                                </span>
+                                <span className="text-sm font-medium text-gray-800">
+                                  ${totalFee.toFixed(2)} AUD
+                                </span>
+                              </div>
+                              {memberDiscountApplied && (
+                                <div className="pt-1">
+                                  <p className="text-xs text-green-600">
+                                    {tickets > 1
+                                      ? language === "zh"
+                                        ? `会员优惠已应用（1张票享受会员价，节省 $${savings}）`
+                                        : `Member discount applied (1 ticket at member price, save $${savings})`
+                                      : t("register.member.discountApplied")}
+                                  </p>
+                                </div>
+                              )}
+                              <div className="pt-2 border-t border-gray-300">
                                 <div className="flex items-center justify-between">
-                                  <span className="text-sm text-gray-600">
-                                    {language === "zh"
-                                      ? "活动费用"
-                                      : "Event Fee"}
-                                    {tickets > 1 &&
-                                      ` (${tickets} ${language === "zh" ? "张票" : "tickets"})`}
+                                  <span className="text-base font-semibold text-gray-800">
+                                    {language === "zh" ? "总计" : "Total"}
                                   </span>
-                                  <span className="text-sm font-medium text-gray-800">
+                                  <span className="text-xl font-bold text-[#EB8C3A]">
                                     ${totalFee.toFixed(2)} AUD
                                   </span>
                                 </div>
-                                {memberDiscountApplied && (
-                                  <div className="pt-1">
-                                    <p className="text-xs text-green-600">
-                                      {tickets > 1
-                                        ? language === "zh"
-                                          ? `会员优惠已应用（1张票享受会员价，节省 $${savings}）`
-                                          : `Member discount applied (1 ticket at member price, save $${savings})`
-                                        : t("register.member.discountApplied")}
-                                    </p>
-                                  </div>
-                                )}
-                                <div className="pt-2 border-t border-gray-300">
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-base font-semibold text-gray-800">
-                                      {language === "zh" ? "总计" : "Total"}
-                                    </span>
-                                    <span className="text-xl font-bold text-[#EB8C3A]">
-                                      ${totalFee.toFixed(2)} AUD
-                                    </span>
-                                  </div>
-                                </div>
                               </div>
                             </div>
+                          </div>
 
-                            <h4 className="text-sm text-gray-600 mb-3">
-                              {t("register.payment.uploadProof")}
-                            </h4>
-                            {!paymentProofPreview ? (
-                              <label
-                                className={`block ${
-                                  isUploadingProof
-                                    ? "cursor-not-allowed opacity-70"
-                                    : "cursor-pointer"
-                                }`}
-                              >
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  onChange={handleFileUpload}
-                                  disabled={isUploadingProof}
-                                  className="hidden"
-                                />
-                                <div className="border-2 border-dashed border-orange-300 rounded-lg p-8 text-center hover:border-[#EB8C3A] hover:bg-orange-50/50 transition-all">
-                                  <Upload className="w-12 h-12 mx-auto mb-3 text-[#EB8C3A]" />
-                                  <p className="text-sm text-gray-700 mb-1">
-                                    {t("register.payment.uploadClick")}
-                                  </p>
-                                  <p className="text-xs text-gray-500">
-                                    {t("register.payment.uploadFormat")}
-                                  </p>
-                                </div>
-                              </label>
-                            ) : (
-                              <div className="relative">
-                                <ImageWithFallback
-                                  src={paymentProofPreview || undefined}
-                                  alt={t("register.payment.uploadProof")}
-                                  className="w-full h-48 object-cover rounded-lg"
-                                  onError={() => {
-                                    // 如果 blob URL 失效，清除预览
-                                    if (
-                                      paymentProofPreview?.startsWith("blob:")
-                                    ) {
-                                      setPaymentProofPreview((prev) => {
-                                        if (
-                                          prev &&
-                                          typeof URL !== "undefined"
-                                        ) {
-                                          URL.revokeObjectURL(prev);
-                                        }
-                                        return null;
-                                      });
-                                    }
-                                  }}
-                                />
-                                <div className="mt-2 flex items-center justify-between">
-                                  {isUploadingProof ? (
-                                    <div className="flex items-center gap-2 text-gray-500">
-                                      <Upload className="w-4 h-4 animate-pulse" />
-                                      <span className="text-sm">
-                                        {t("register.payment.uploading")}
-                                      </span>
-                                    </div>
-                                  ) : paymentProofUrl ? (
-                                    <div className="flex items-center gap-2 text-green-600">
-                                      <CheckCircle className="w-4 h-4" />
-                                      <span className="text-sm">
-                                        {t("register.payment.uploadSuccess")}
-                                      </span>
-                                    </div>
-                                  ) : (
-                                    <div />
-                                  )}
-                                  <button
-                                    type="button"
-                                    onClick={clearPaymentProof}
-                                    disabled={isUploadingProof}
-                                    className={`p-2 bg-red-500 text-white rounded-full transition-colors shadow-sm ${
-                                      isUploadingProof
-                                        ? "cursor-not-allowed opacity-60"
-                                        : "hover:bg-red-600"
-                                    }`}
-                                  >
-                                    <X className="w-4 h-4" />
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-                            {uploadError && (
-                              <p className="text-xs text-red-600 mt-2">
-                                {uploadError}
-                              </p>
-                            )}
-                            <p className="text-xs text-gray-500 mt-3">
-                              {t("register.payment.uploadWarning")}
-                            </p>
-
-                            {/* 确认报名按钮 */}
-                            <motion.button
-                              onClick={handlePaymentConfirm}
-                              disabled={
-                                submitting ||
-                                isUploadingProof ||
-                                !paymentProofUrl
-                              }
-                              className={`w-full mt-6 px-6 py-3 rounded-lg transition-colors ${
-                                submitting ||
-                                isUploadingProof ||
-                                !paymentProofUrl
-                                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                                  : "bg-[#EB8C3A] text-white hover:bg-[#d67b2e]"
+                          <h4 className="text-sm text-gray-600 mb-3">
+                            {t("register.payment.uploadProof")}
+                          </h4>
+                          {!paymentProofPreview ? (
+                            <label
+                              className={`block ${
+                                isUploadingProof
+                                  ? "cursor-not-allowed opacity-70"
+                                  : "cursor-pointer"
                               }`}
-                              whileHover={
-                                !submitting &&
-                                !isUploadingProof &&
-                                paymentProofUrl
-                                  ? { scale: 1.02 }
-                                  : {}
-                              }
-                              whileTap={
-                                !submitting &&
-                                !isUploadingProof &&
-                                paymentProofUrl
-                                  ? { scale: 0.98 }
-                                  : {}
-                              }
                             >
-                              {submitting
-                                ? t("common.loading")
-                                : paymentProofUrl
-                                  ? t("register.payment.confirm")
-                                  : language === "zh"
-                                    ? "请先上传转账凭证"
-                                    : "Please upload proof first"}
-                            </motion.button>
-                            {submitError && (
-                              <p className="text-red-600 text-sm mt-3 text-center">
-                                {submitError}
-                              </p>
-                            )}
-                          </motion.div>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleFileUpload}
+                                disabled={isUploadingProof}
+                                className="hidden"
+                              />
+                              <div className="border-2 border-dashed border-orange-300 rounded-lg p-8 text-center hover:border-[#EB8C3A] hover:bg-orange-50/50 transition-all">
+                                <Upload className="w-12 h-12 mx-auto mb-3 text-[#EB8C3A]" />
+                                <p className="text-sm text-gray-700 mb-1">
+                                  {t("register.payment.uploadClick")}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {t("register.payment.uploadFormat")}
+                                </p>
+                              </div>
+                            </label>
+                          ) : (
+                            <div className="relative">
+                              <ImageWithFallback
+                                src={paymentProofPreview || undefined}
+                                alt={t("register.payment.uploadProof")}
+                                className="w-full h-48 object-cover rounded-lg"
+                                onError={() => {
+                                  // 如果 blob URL 失效，清除预览
+                                  if (
+                                    paymentProofPreview?.startsWith("blob:")
+                                  ) {
+                                    setPaymentProofPreview((prev) => {
+                                      if (prev && typeof URL !== "undefined") {
+                                        URL.revokeObjectURL(prev);
+                                      }
+                                      return null;
+                                    });
+                                  }
+                                }}
+                              />
+                              <div className="mt-2 flex items-center justify-between">
+                                {isUploadingProof ? (
+                                  <div className="flex items-center gap-2 text-gray-500">
+                                    <Upload className="w-4 h-4 animate-pulse" />
+                                    <span className="text-sm">
+                                      {t("register.payment.uploading")}
+                                    </span>
+                                  </div>
+                                ) : paymentProofUrl ? (
+                                  <div className="flex items-center gap-2 text-green-600">
+                                    <CheckCircle className="w-4 h-4" />
+                                    <span className="text-sm">
+                                      {t("register.payment.uploadSuccess")}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <div />
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={clearPaymentProof}
+                                  disabled={isUploadingProof}
+                                  className={`p-2 bg-red-500 text-white rounded-full transition-colors shadow-sm ${
+                                    isUploadingProof
+                                      ? "cursor-not-allowed opacity-60"
+                                      : "hover:bg-red-600"
+                                  }`}
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                          {uploadError && (
+                            <p className="text-xs text-red-600 mt-2">
+                              {uploadError}
+                            </p>
+                          )}
+                          <p className="text-xs text-gray-500 mt-3">
+                            {t("register.payment.uploadWarning")}
+                          </p>
+
+                          {/* 确认报名按钮 */}
+                          <motion.button
+                            onClick={handlePaymentConfirm}
+                            disabled={
+                              submitting || isUploadingProof || !paymentProofUrl
+                            }
+                            className={`w-full mt-6 px-6 py-3 rounded-lg transition-colors ${
+                              submitting || isUploadingProof || !paymentProofUrl
+                                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                : "bg-[#EB8C3A] text-white hover:bg-[#d67b2e]"
+                            }`}
+                            whileHover={
+                              !submitting &&
+                              !isUploadingProof &&
+                              paymentProofUrl
+                                ? { scale: 1.02 }
+                                : {}
+                            }
+                            whileTap={
+                              !submitting &&
+                              !isUploadingProof &&
+                              paymentProofUrl
+                                ? { scale: 0.98 }
+                                : {}
+                            }
+                          >
+                            {submitting
+                              ? t("common.loading")
+                              : paymentProofUrl
+                                ? t("register.payment.confirm")
+                                : language === "zh"
+                                  ? "请先上传转账凭证"
+                                  : "Please upload proof first"}
+                          </motion.button>
+                          {submitError && (
+                            <p className="text-red-600 text-sm mt-3 text-center">
+                              {submitError}
+                            </p>
+                          )}
+                        </motion.div>
                       </div>
                     </motion.div>
                   )}

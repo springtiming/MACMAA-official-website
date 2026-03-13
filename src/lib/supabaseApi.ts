@@ -355,9 +355,9 @@ export async function adminAuthLogin(payload: {
     throw new Error("invalid-credentials");
   }
   if (res.status === 423) {
-    const body = (await res.json().catch(() => null)) as
-      | { locked_until?: string }
-      | null;
+    const body = (await res.json().catch(() => null)) as {
+      locked_until?: string;
+    } | null;
     if (body?.locked_until) {
       throw new Error(`account-locked:${body.locked_until}`);
     }
@@ -658,9 +658,9 @@ export async function createAdminAccount(payload: {
       throw new Error("duplicate");
     }
     if (res.status === 400) {
-      const body = (await res.json().catch(() => null)) as
-        | { code?: string }
-        | null;
+      const body = (await res.json().catch(() => null)) as {
+        code?: string;
+      } | null;
       if (body?.code === "WEAK_PASSWORD") {
         throw new Error("weak-password");
       }
@@ -727,9 +727,9 @@ export async function updateAdminAccount(
 
     if (!res.ok) {
       if (res.status === 400) {
-        const body = (await res.json().catch(() => null)) as
-          | { code?: string }
-          | null;
+        const body = (await res.json().catch(() => null)) as {
+          code?: string;
+        } | null;
         if (body?.code === "WEAK_PASSWORD") {
           throw new Error("weak-password");
         }
@@ -909,12 +909,14 @@ export async function deleteArticle(id: string) {
     const detail = await res
       .json()
       .then((body) =>
-        typeof body === "object" && body
-          ? JSON.stringify(body)
-          : String(body)
+        typeof body === "object" && body ? JSON.stringify(body) : String(body)
       )
       .catch(() => "");
-    throw new Error(detail ? `Failed to delete article: ${detail}` : "Failed to delete article");
+    throw new Error(
+      detail
+        ? `Failed to delete article: ${detail}`
+        : "Failed to delete article"
+    );
   }
 }
 

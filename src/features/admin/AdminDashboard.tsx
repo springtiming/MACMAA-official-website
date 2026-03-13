@@ -53,7 +53,7 @@ export function AdminDashboard() {
       fetchMembers(),
       fetchVolunteerApplications(),
       fetchAdminEventRegistrations(),
-      ])
+    ])
       .then(([events, news, members, volunteers, registrations]) => {
         if (!active) return;
         setEventsCount(events.length);
@@ -326,22 +326,22 @@ export function AdminDashboard() {
                 })
                 .map((section, index) => (
                   <motion.div
-                     key={index}
-                     initial={{ opacity: 0, y: 20 }}
-                     animate={{ opacity: 1, y: 0 }}
-                     transition={{ delay: 0.4 + index * 0.1 }}
-                     whileHover={{ scale: 1.02 }}
-                     onClick={() => section.path && router.push(section.path)}
-                     className="bg-white rounded-xl p-6 shadow-lg cursor-pointer hover:shadow-xl transition-shadow relative"
-                   >
-                     <NotificationBadge
-                       count={section.badgeCount}
-                       placement="outside"
-                     />
-                     <div
-                       className="w-12 h-12 rounded-full flex items-center justify-center mb-4"
-                       style={{ backgroundColor: `${section.color}20` }}
-                     >
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 + index * 0.1 }}
+                    whileHover={{ scale: 1.02 }}
+                    onClick={() => section.path && router.push(section.path)}
+                    className="bg-white rounded-xl p-6 shadow-lg cursor-pointer hover:shadow-xl transition-shadow relative"
+                  >
+                    <NotificationBadge
+                      count={section.badgeCount}
+                      placement="outside"
+                    />
+                    <div
+                      className="w-12 h-12 rounded-full flex items-center justify-center mb-4"
+                      style={{ backgroundColor: `${section.color}20` }}
+                    >
                       <section.icon
                         className="w-6 h-6"
                         style={{ color: section.color }}

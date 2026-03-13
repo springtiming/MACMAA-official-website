@@ -8,7 +8,10 @@ import { requireAdmin } from "@/server/api/_auth";
 
 type MemberStatus = "pending" | "approved" | "rejected";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   try {
     const { id } = req.query;
     if (typeof id !== "string") {
@@ -34,11 +37,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: "Method not allowed" });
   } catch (err) {
     logSupabaseError("api.members.unhandled", err as Error);
-    return res.status(500).json({ error: "Internal error", detail: (err as Error).message });
+    return res
+      .status(500)
+      .json({ error: "Internal error", detail: (err as Error).message });
   }
 }
 
-async function handleUpdateStatus(id: string, req: NextApiRequest, res: NextApiResponse) {
+async function handleUpdateStatus(
+  id: string,
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   const admin = requireAdmin(req, res);
   if (!admin) {
@@ -56,10 +65,7 @@ async function handleUpdateStatus(id: string, req: NextApiRequest, res: NextApiR
   }
 
   const supabase = getSupabaseServiceClient();
-  let query = supabase
-    .from("members")
-    .update({ status })
-    .eq("id", id);
+  let query = supabase.from("members").update({ status }).eq("id", id);
 
   if (expectedStatus) {
     query = query.eq("status", expectedStatus);
@@ -90,7 +96,11 @@ async function handleUpdateStatus(id: string, req: NextApiRequest, res: NextApiR
   return res.status(200).json({ member: data });
 }
 
-async function handleDelete(id: string, req: NextApiRequest, res: NextApiResponse) {
+async function handleDelete(
+  id: string,
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   const admin = requireAdmin(req, res);
   if (!admin) {
