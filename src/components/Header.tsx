@@ -28,24 +28,26 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm">
       <nav className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-8">
-        <div className="relative flex h-16 sm:h-20 items-center justify-between">
+        <div className="flex h-16 sm:h-20 items-center">
           {/* Logo */}
-          <Link
-            href="/"
-            className="flex items-center gap-2 sm:gap-3 shrink-0"
-          >
-            <img
-              src={logoUrl}
-              alt="MACMAA Logo"
-              className="h-12 w-12 sm:h-14 sm:w-14"
-            />
-            <span className="hidden sm:block text-[#2B5F9E]">
-              {language === "zh" ? "MACMAA" : "MACMAA"}
-            </span>
-          </Link>
+          <div className="w-36 sm:w-44 shrink-0">
+            <Link
+              href="/"
+              className="flex items-center gap-2 sm:gap-3"
+            >
+              <img
+                src={logoUrl}
+                alt="MACMAA Logo"
+                className="h-12 w-12 sm:h-14 sm:w-14"
+              />
+              <span className="hidden sm:block text-[#2B5F9E]">
+                {language === "zh" ? "MACMAA" : "MACMAA"}
+              </span>
+            </Link>
+          </div>
 
-          {/* Desktop Navigation — absolute center */}
-          <div className="hidden md:flex items-center absolute left-1/2 -translate-x-1/2 gap-4 lg:gap-6 xl:gap-8">
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex flex-1 items-center justify-center gap-4 lg:gap-6 xl:gap-8">
             {navItems.map((item) => (
               <Link key={item.path} href={item.path} className="relative">
                 <motion.span
@@ -72,7 +74,7 @@ export function Header() {
           </div>
 
           {/* Language Switcher & Mobile Menu */}
-          <div className="flex items-center shrink-0 gap-2 sm:gap-4">
+          <div className="w-36 sm:w-44 shrink-0 flex items-center justify-end gap-2 sm:gap-4">
             {/* Language Switcher */}
             <motion.button
               onClick={() => setLanguage(language === "zh" ? "en" : "zh")}

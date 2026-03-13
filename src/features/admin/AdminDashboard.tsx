@@ -8,6 +8,7 @@ import {
   Newspaper,
   Users,
   UserCheck,
+  HandHeart,
   Settings,
   LogOut,
   Clock,
@@ -18,6 +19,7 @@ import {
   fetchNewsPosts,
   fetchActivities,
   fetchMembers,
+  fetchVolunteerApplications,
   fetchAdminEventRegistrations,
   type ActivityRecord,
 } from "@/lib/supabaseApi";
@@ -29,6 +31,7 @@ export function AdminDashboard() {
   const [newsCount, setNewsCount] = useState(0);
   const [eventsCount, setEventsCount] = useState(0);
   const [pendingMembersCount, setPendingMembersCount] = useState(0);
+  const [pendingVolunteersCount, setPendingVolunteersCount] = useState(0);
   const [pendingPaymentsCount, setPendingPaymentsCount] = useState(0);
   const [recentRegistrationsCount, setRecentRegistrationsCount] = useState(0);
   const [statsError, setStatsError] = useState<string | null>(null);
@@ -48,9 +51,10 @@ export function AdminDashboard() {
       fetchEvents(),
       fetchNewsPosts({ publishedOnly: false }),
       fetchMembers(),
+      fetchVolunteerApplications(),
       fetchAdminEventRegistrations(),
       ])
-      .then(([events, news, members, registrations]) => {
+      .then(([events, news, members, volunteers, registrations]) => {
         if (!active) return;
         setEventsCount(events.length);
         setNewsCount(news.length);
@@ -58,6 +62,10 @@ export function AdminDashboard() {
           (member) => member.status === "pending"
         ).length;
         setPendingMembersCount(pendingMembers);
+        const pendingVolunteers = volunteers.filter(
+          (volunteer) => volunteer.status === "pending"
+        ).length;
+        setPendingVolunteersCount(pendingVolunteers);
         const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
         const recentRegistrations = registrations.filter((registration) => {
           const ts = new Date(registration.registration_date).getTime();
@@ -177,6 +185,17 @@ export function AdminDashboard() {
       color: "#EB8C3A",
       path: "/admin/members",
       badgeCount: pendingMembersCount,
+    },
+    {
+      icon: HandHeart,
+      title: language === "zh" ? "志愿者审核" : "Volunteer Review",
+      description:
+        language === "zh"
+          ? "审核志愿者申请、更新申请状态"
+          : "Review volunteer applications and update statuses",
+      color: "#0E7490",
+      path: "/admin/volunteers",
+      badgeCount: pendingVolunteersCount,
     },
     {
       icon: Shield,

@@ -1,0 +1,169 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.86.0";
+import { verifyAdminToken } from "../_shared/auth.ts";
+
+const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
+if (!supabaseUrl || !supabaseServiceRoleKey) {
+  throw new Error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+}
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, PATCH, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+};
+
+const VOLUNTEER_COLUMNS =
+  "id, name, birth_year, gender, phone, email, suburb, language_skills, language_other, volunteer_interests, interest_other, weekday_availability, weekend_availability, monthly_hours, emergency_name, emergency_relation, emergency_phone, agree_truth, agree_unpaid, agree_guidelines, agree_contact, agree_privacy, apply_date, status, notes, handled_by, created_at, updated_at";
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
+  if (req.method !== "GET" && req.method !== "PATCH" && req.method !== "DELETE") {
+    return new Response("Method not allowed", {
+      status: 405,
+      headers: corsHeaders,
+    });
+  }
+
+  const admin = await verifyAdminToken(req);
+  if (!admin) {
+    return new Response(
+      JSON.stringify({ error: "Unauthorized", code: "INVALID_TOKEN" }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+  const url = new URL(req.url);
+
+  try {
+    if (req.method === "DELETE") {
+      const id = url.searchParams.get("id");
+      if (!id) {
+        return new Response(JSON.stringify({ error: "Invalid id" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { error } = await supabase
+        .from("volunteer_applications")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        console.error("[volunteers] delete", error);
+        return new Response(
+          JSON.stringify({ error: "Failed to delete volunteer application" }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
+
+      return new Response(null, { status: 204, headers: corsHeaders });
+    }
+
+    if (req.method === "PATCH") {
+      let body: {
+        id?: string;
+        status?: "pending" | "approved" | "rejected";
+        expectedStatus?: "pending" | "approved" | "rejected";
+        expectedUpdatedAt?: string | null;
+      };
+
+      try {
+        body = await req.json();
+      } catch {
+        body = {};
+      }
+
+      const id = url.searchParams.get("id") ?? body?.id ?? null;
+      if (!id) {
+        return new Response(JSON.stringify({ error: "Invalid id" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const nextStatus = body?.status;
+      if (!nextStatus || !["pending", "approved", "rejected"].includes(nextStatus)) {
+        return new Response(JSON.stringify({ error: "Invalid status" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      let query = supabase
+        .from("volunteer_applications")
+        .update({
+          status: nextStatus,
+          handled_by: admin.id,
+        })
+        .eq("id", id);
+
+      if (body?.expectedStatus) {
+        query = query.eq("status", body.expectedStatus);
+      }
+      if (body?.expectedUpdatedAt) {
+        query = query.eq("updated_at", body.expectedUpdatedAt);
+      }
+
+      const { data, error } = await query
+        .select(VOLUNTEER_COLUMNS)
+        .single();
+
+      if (error) {
+        if (error.code === "PGRST116" || error.message?.includes("0 rows")) {
+          return new Response(JSON.stringify({ error: "Conflict" }), {
+            status: 409,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        console.error("[volunteers] update", error);
+        return new Response(
+          JSON.stringify({ error: "Failed to update volunteer application" }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
+
+      return new Response(JSON.stringify({ volunteer: data }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { data, error } = await supabase
+      .from("volunteer_applications")
+      .select(VOLUNTEER_COLUMNS)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("[volunteers] list", error);
+      return new Response(
+        JSON.stringify({ error: "Failed to fetch volunteer applications" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    return new Response(JSON.stringify({ volunteers: data ?? [] }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  } catch (err) {
+    console.error("[volunteers] unhandled", err);
+    return new Response(
+      JSON.stringify({ error: "Internal error", detail: String(err) }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
+  }
+});

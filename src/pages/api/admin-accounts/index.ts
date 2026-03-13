@@ -180,6 +180,18 @@ async function seedDefaultAccounts(supabase: ReturnType<typeof getSupabaseServic
     .select(ACCOUNT_COLUMNS);
 
   if (error) {
+    if (error.code === "23505") {
+      const { data: existing, error: existingError } = await supabase
+        .from("admin_accounts")
+        .select(ACCOUNT_COLUMNS)
+        .order("created_at", { ascending: true });
+      if (existingError) {
+        logSupabaseError("api.admin-accounts.seed.fetchAfterConflict", existingError);
+        return [];
+      }
+      return existing ?? [];
+    }
+
     logSupabaseError("api.admin-accounts.seed", error);
     return [];
   }

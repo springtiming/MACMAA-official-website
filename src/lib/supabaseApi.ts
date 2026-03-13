@@ -949,6 +949,37 @@ export interface MemberRecord {
   updated_at: string | null;
 }
 
+export interface VolunteerApplicationRecord {
+  id: string;
+  name: string;
+  birth_year: number | null;
+  gender: "male" | "female" | "prefer-not-to-say" | null;
+  phone: string;
+  email: string;
+  suburb: string;
+  language_skills: string[];
+  language_other: string | null;
+  volunteer_interests: string[];
+  interest_other: string | null;
+  weekday_availability: string[];
+  weekend_availability: string[];
+  monthly_hours: string;
+  emergency_name: string;
+  emergency_relation: string;
+  emergency_phone: string;
+  agree_truth: boolean;
+  agree_unpaid: boolean;
+  agree_guidelines: boolean;
+  agree_contact: boolean;
+  agree_privacy: boolean;
+  apply_date: string | null;
+  status: "pending" | "approved" | "rejected";
+  notes: string | null;
+  handled_by: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
 export interface AdminAccountRecord {
   id: string;
   username: string;
@@ -990,6 +1021,23 @@ export async function fetchMembers() {
   return body.members ?? [];
 }
 
+export async function fetchVolunteerApplications() {
+  const res = await callEdgeFunction("volunteers", {
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch volunteer applications");
+  }
+
+  const body = (await res.json()) as {
+    volunteers: VolunteerApplicationRecord[];
+  };
+  return body.volunteers ?? [];
+}
+
 export async function updateMemberStatus(
   id: string,
   status: "pending" | "approved" | "rejected",
@@ -1025,6 +1073,43 @@ export async function updateMemberStatus(
   return body.member;
 }
 
+export async function updateVolunteerApplicationStatus(
+  id: string,
+  status: "pending" | "approved" | "rejected",
+  options?: {
+    expectedStatus?: VolunteerApplicationRecord["status"];
+    expectedUpdatedAt?: string | null;
+  }
+) {
+  const params = new URLSearchParams({ id });
+  const res = await callEdgeFunction(`volunteers?${params.toString()}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({
+      id,
+      status,
+      expectedStatus: options?.expectedStatus,
+      expectedUpdatedAt: options?.expectedUpdatedAt,
+    }),
+  });
+
+  if (res.status === 409) {
+    throw new ConcurrencyError();
+  }
+
+  if (!res.ok) {
+    throw new Error("Failed to update volunteer application");
+  }
+
+  const body = (await res.json()) as {
+    volunteer: VolunteerApplicationRecord;
+  };
+  return body.volunteer;
+}
+
 export async function deleteMember(id: string) {
   const params = new URLSearchParams({ id });
   const res = await callEdgeFunction(`members?${params.toString()}`, {
@@ -1033,6 +1118,17 @@ export async function deleteMember(id: string) {
 
   if (!res.ok && res.status !== 204) {
     throw new Error("Failed to delete member");
+  }
+}
+
+export async function deleteVolunteerApplication(id: string) {
+  const params = new URLSearchParams({ id });
+  const res = await callEdgeFunction(`volunteers?${params.toString()}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok && res.status !== 204) {
+    throw new Error("Failed to delete volunteer application");
   }
 }
 
@@ -1047,6 +1143,30 @@ export type MemberApplicationInput = {
   emergency_name?: string | null;
   emergency_phone?: string | null;
   emergency_relation?: string | null;
+};
+
+export type VolunteerApplicationInput = {
+  name: string;
+  birth_year?: number | null;
+  gender?: "male" | "female" | "prefer-not-to-say" | null;
+  phone: string;
+  email: string;
+  suburb: string;
+  language_skills: string[];
+  language_other?: string | null;
+  volunteer_interests: string[];
+  interest_other?: string | null;
+  weekday_availability: string[];
+  weekend_availability: string[];
+  monthly_hours: string;
+  emergency_name: string;
+  emergency_relation: string;
+  emergency_phone: string;
+  agree_truth: boolean;
+  agree_unpaid: boolean;
+  agree_guidelines: boolean;
+  agree_contact: boolean;
+  agree_privacy: boolean;
 };
 
 export async function createMemberApplication(payload: MemberApplicationInput) {
@@ -1067,6 +1187,41 @@ export async function createMemberApplication(payload: MemberApplicationInput) {
 
   if (error) {
     logSupabaseError("createMemberApplication", error);
+    throw error;
+  }
+  return null;
+}
+
+export async function createVolunteerApplication(
+  payload: VolunteerApplicationInput
+) {
+  const agreementsAccepted =
+    payload.agree_truth &&
+    payload.agree_unpaid &&
+    payload.agree_guidelines &&
+    payload.agree_contact &&
+    payload.agree_privacy;
+
+  if (!agreementsAccepted) {
+    throw new Error("volunteer-agreement-required");
+  }
+
+  const supabase = getSupabaseClient();
+  const { error } = await supabase.from("volunteer_applications").insert(
+    {
+      ...payload,
+      birth_year: payload.birth_year ?? null,
+      gender: payload.gender ?? null,
+      language_other: payload.language_other ?? null,
+      interest_other: payload.interest_other ?? null,
+      apply_date: new Date().toISOString().slice(0, 10),
+      status: "pending",
+    },
+    { returning: "minimal" } as never
+  );
+
+  if (error) {
+    logSupabaseError("createVolunteerApplication", error);
     throw error;
   }
   return null;
