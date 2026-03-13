@@ -1,7 +1,14 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion, AnimatePresence } from "motion/react";
 import { Users, Check, AlertCircle } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { MEMBER_CODE_OF_CONDUCT } from "@/content/memberCodeOfConduct";
 import {
   createMemberApplication,
   notifyMemberApplication,
@@ -134,6 +141,7 @@ export function Membership() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [memberCodeOpen, setMemberCodeOpen] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
   const [formData, setFormData] = useState({
@@ -151,6 +159,11 @@ export function Membership() {
     agree2: false,
     agree3: false,
   });
+
+  const agree2Prefix =
+    language === "zh" ? "我同意遵守" : "I agree to follow the";
+  const memberCodeLabel =
+    language === "zh" ? "《会员守则》" : "Member Code of Conduct";
 
   // Get error message in current language
   const getErrorMessage = (errorType: ErrorType): string => {
@@ -720,6 +733,7 @@ export function Membership() {
                     <div>
                       <label className="flex items-start gap-3 cursor-pointer">
                         <input
+                          id="agree1"
                           type="checkbox"
                           checked={formData.agree1}
                           onChange={(e) => {
@@ -761,6 +775,7 @@ export function Membership() {
                     <div>
                       <label className="flex items-start gap-3 cursor-pointer">
                         <input
+                          id="agree2"
                           type="checkbox"
                           checked={formData.agree2}
                           onChange={(e) => {
@@ -784,7 +799,20 @@ export function Membership() {
                               : "text-gray-700"
                           }`}
                         >
-                          {t("membership.form.agree2")} *
+                          {agree2Prefix}{" "}
+                          <button
+                            type="button"
+                            data-member-code-trigger="true"
+                            className="text-[#2B5F9E] underline decoration-[#2B5F9E] underline-offset-4 hover:text-[#234a7e] focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]/40 rounded-sm px-0.5"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setMemberCodeOpen(true);
+                            }}
+                          >
+                            {memberCodeLabel}
+                          </button>{" "}
+                          *
                         </span>
                       </label>
                       {touched.agree2 && errors.agree2 && (
@@ -802,6 +830,7 @@ export function Membership() {
                     <div>
                       <label className="flex items-start gap-3 cursor-pointer">
                         <input
+                          id="agree3"
                           type="checkbox"
                           checked={formData.agree3}
                           onChange={(e) => {
@@ -875,6 +904,50 @@ export function Membership() {
                     {t("membership.privacy.desc")}
                   </p>
                 </div>
+
+                <Dialog open={memberCodeOpen} onOpenChange={setMemberCodeOpen}>
+                  <DialogContent className="max-h-[85vh] overflow-hidden p-0 sm:max-w-3xl">
+                    <DialogHeader className="border-b bg-[#F5EFE6] px-6 py-4 text-left">
+                      <DialogTitle className="text-[#2B5F9E] text-xl sm:text-2xl">
+                        {MEMBER_CODE_OF_CONDUCT.titleZh} /{" "}
+                        {MEMBER_CODE_OF_CONDUCT.titleEn}
+                      </DialogTitle>
+                      <p className="text-sm text-gray-600">
+                        {MEMBER_CODE_OF_CONDUCT.associationZh} /{" "}
+                        {MEMBER_CODE_OF_CONDUCT.associationEn}
+                      </p>
+                    </DialogHeader>
+
+                    <div className="max-h-[65vh] space-y-6 overflow-y-auto px-6 py-5 text-sm sm:text-base">
+                      {MEMBER_CODE_OF_CONDUCT.sections.map((section) => (
+                        <section key={section.titleEn} className="space-y-3">
+                          <h4 className="font-semibold text-[#2B5F9E]">
+                            {section.titleZh}
+                          </h4>
+                          <p className="text-sm text-gray-500">
+                            {section.titleEn}
+                          </p>
+                          <div className="space-y-3">
+                            {section.items.map((item, idx) => (
+                              <div key={`${section.titleEn}-${idx}`}>
+                                <p className="leading-relaxed text-gray-800">
+                                  {idx + 1}. {item.zh}
+                                </p>
+                                <p className="mt-1 text-sm leading-relaxed text-gray-600">
+                                  {idx + 1}. {item.en}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </section>
+                      ))}
+                      <p className="border-t pt-4 text-sm text-gray-500">
+                        最后更新：{MEMBER_CODE_OF_CONDUCT.lastUpdatedZh} / Last
+                        updated: {MEMBER_CODE_OF_CONDUCT.lastUpdatedEn}
+                      </p>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </motion.div>
             </motion.div>
           ) : (

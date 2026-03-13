@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -28,9 +28,12 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm">
       <nav className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-8">
-        <div className="flex h-16 sm:h-20 items-center justify-between">
+        <div className="grid h-16 sm:h-20 grid-cols-[auto_1fr_auto] items-center md:grid-cols-[1fr_auto_1fr]">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 sm:gap-3">
+          <Link
+            href="/"
+            className="flex items-center gap-2 sm:gap-3 md:justify-self-start"
+          >
             <img
               src={logoUrl}
               alt="MACMAA Logo"
@@ -42,7 +45,7 @@ export function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-6 lg:gap-8">
+          <div className="hidden md:flex items-center justify-self-center gap-4 lg:gap-6 xl:gap-8">
             {navItems.map((item) => (
               <Link key={item.path} href={item.path} className="relative">
                 <motion.span
@@ -69,7 +72,7 @@ export function Header() {
           </div>
 
           {/* Language Switcher & Mobile Menu */}
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center justify-self-end gap-2 sm:gap-4">
             {/* Language Switcher */}
             <motion.button
               onClick={() => setLanguage(language === "zh" ? "en" : "zh")}
