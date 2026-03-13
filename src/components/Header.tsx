@@ -28,11 +28,11 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm">
       <nav className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-8">
-        <div className="grid h-16 sm:h-20 grid-cols-[auto_1fr_auto] items-center md:grid-cols-[1fr_auto_1fr]">
+        <div className="relative flex h-16 sm:h-20 items-center justify-between">
           {/* Logo */}
           <Link
             href="/"
-            className="flex items-center gap-2 sm:gap-3 md:justify-self-start"
+            className="flex items-center gap-2 sm:gap-3 shrink-0"
           >
             <img
               src={logoUrl}
@@ -44,12 +44,12 @@ export function Header() {
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center justify-self-center gap-4 lg:gap-6 xl:gap-8">
+          {/* Desktop Navigation — absolute center */}
+          <div className="hidden md:flex items-center absolute left-1/2 -translate-x-1/2 gap-4 lg:gap-6 xl:gap-8">
             {navItems.map((item) => (
               <Link key={item.path} href={item.path} className="relative">
                 <motion.span
-                  className={`text-sm lg:text-base transition-colors ${
+                  className={`text-sm lg:text-base whitespace-nowrap transition-colors ${
                     isActive(item.path)
                       ? "text-[#2B5F9E]"
                       : "text-gray-700 hover:text-[#2B5F9E]"
@@ -72,7 +72,7 @@ export function Header() {
           </div>
 
           {/* Language Switcher & Mobile Menu */}
-          <div className="flex items-center justify-self-end gap-2 sm:gap-4">
+          <div className="flex items-center shrink-0 gap-2 sm:gap-4">
             {/* Language Switcher */}
             <motion.button
               onClick={() => setLanguage(language === "zh" ? "en" : "zh")}
