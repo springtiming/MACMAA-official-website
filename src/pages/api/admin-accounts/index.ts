@@ -11,26 +11,13 @@ import { isStrongAdminPassword } from "@/lib/passwordPolicy";
 const ACCOUNT_COLUMNS =
   "id, username, email, role, status, created_at, last_login_at";
 
-const DEFAULT_ACCOUNTS: Required<CreateAccountPayload>[] = [
-  {
-    username: "owner_admin",
-    email: "owner@macmaa.org",
-    password: "Owner@123",
-    role: "owner",
-  },
-  {
-    username: "zhang_admin",
-    email: "zhang_admin@macmaa.org",
-    password: "Admin@123",
-    role: "admin",
-  },
-  {
-    username: "admin",
-    email: "admin@macmaa.org",
-    password: "Demo@123",
-    role: "admin",
-  },
-];
+function getInitialOwnerAccount(): Required<CreateAccountPayload> | null {
+  const username = process.env.INITIAL_ADMIN_USERNAME;
+  const email = process.env.INITIAL_ADMIN_EMAIL;
+  const password = process.env.INITIAL_ADMIN_PASSWORD;
+  if (!username || !email || !password) return null;
+  return { username, email, password, role: "owner" as const };
+}
 
 function setCors(res: NextApiResponse) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -172,20 +159,24 @@ function parseJsonBody(body: unknown) {
 }
 
 async function seedDefaultAccounts(supabase: ReturnType<typeof getSupabaseServiceClient>) {
-  const inserts = await Promise.all(
-    DEFAULT_ACCOUNTS.map(async (acc) => ({
-      id: randomUUID(),
-      username: acc.username,
-      email: acc.email,
-      password_hash: await hashPassword(acc.password),
-      role: acc.role,
-      status: "active",
-    }))
-  );
+  const owner = getInitialOwnerAccount();
+  if (!owner) {
+    console.warn(
+      "[admin-accounts] No initial admin configured. Set INITIAL_ADMIN_USERNAME, INITIAL_ADMIN_EMAIL, INITIAL_ADMIN_PASSWORD env vars."
+    );
+    return [];
+  }
 
   const { data, error } = await supabase
     .from("admin_accounts")
-    .insert(inserts)
+    .insert({
+      id: randomUUID(),
+      username: owner.username,
+      email: owner.email,
+      password_hash: await hashPassword(owner.password),
+      role: owner.role,
+      status: "active",
+    })
     .select(ACCOUNT_COLUMNS);
 
   if (error) {
