@@ -56,7 +56,9 @@ export function requireAdmin(
     return admin;
   }
 
-  res.status(403).json({ error: "Forbidden", code: "INSUFFICIENT_PERMISSIONS" });
+  res
+    .status(403)
+    .json({ error: "Forbidden", code: "INSUFFICIENT_PERMISSIONS" });
   return null;
 }
 
@@ -82,10 +84,3 @@ export function requireOwner(
 
   return admin;
 }
-
-
-
-
-
-
-

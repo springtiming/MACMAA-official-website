@@ -5,7 +5,10 @@ import {
   normalizeEmail,
 } from "@/server/api/_memberVerificationStore";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method === "OPTIONS") {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -20,10 +23,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   res.setHeader("Access-Control-Allow-Origin", "*");
 
-  const body =
-    (typeof req.body === "string"
-      ? JSON.parse(req.body)
-      : (req.body ?? {})) as { email?: string; code?: string };
+  const body = (
+    typeof req.body === "string" ? JSON.parse(req.body) : (req.body ?? {})
+  ) as { email?: string; code?: string };
   const email = normalizeEmail(body.email ?? "");
   const code = String(body.code ?? "").trim();
 
@@ -52,8 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .json({ error: "Invalid or expired verification code" });
     }
 
-    const isExpired =
-      new Date(verification.expires_at).getTime() <= Date.now();
+    const isExpired = new Date(verification.expires_at).getTime() <= Date.now();
     if (isExpired) {
       await supabase
         .from("member_verification_codes")

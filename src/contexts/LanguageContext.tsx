@@ -148,8 +148,6 @@ const translations: Record<Language, Record<string, string>> = {
     // Membership
     "membership.title": "会员申请",
     "membership.subtitle": "成为MACMAA会员，享受更多社区服务和活动优惠",
-    "membership.fee": "会员费：$20/年",
-    "membership.feeNote": "（会员年度为1月1日至12月31日）",
     "membership.form.title": "申请表单",
     "membership.form.chineseName": "中文姓名",
     "membership.form.englishName": "英文姓名",
@@ -165,7 +163,7 @@ const translations: Record<Language, Record<string, string>> = {
     "membership.form.emergencyPhone": "紧急联络人电话",
     "membership.form.emergencyRelation": "与本人关系",
     "membership.form.memberType": "会员类型",
-    "membership.form.regular": "普通会员（$20/年）",
+    "membership.form.regular": "普通会员",
     "membership.form.agree1": "我确认所填信息真实无误",
     "membership.form.agree2": "我同意遵守会员守则",
     "membership.form.agree3": "我同意在审核通过后缴纳年度会员费",
@@ -569,8 +567,7 @@ const translations: Record<Language, Record<string, string>> = {
     "volunteer.requirements.1": "英文书写与沟通能力良好，也懂些中文",
     "volunteer.requirements.2": "留学生或希望积累社区服务经验者优先",
     "volunteer.requirements.3": "做事细心，具责任感，乐于学习",
-    "volunteer.requirements.4":
-      "每周能安排一定自由时间（时间灵活、任务制）",
+    "volunteer.requirements.4": "每周能安排一定自由时间（时间灵活、任务制）",
     "volunteer.benefits.title": "我们提供",
     "volunteer.benefits.1":
       "官方荣誉志愿者证书（适用于简历、奖学金、学术加分）",
@@ -733,8 +730,6 @@ const translations: Record<Language, Record<string, string>> = {
     "membership.title": "Membership Application",
     "membership.subtitle":
       "Become a MACMAA member and enjoy more community services and event benefits",
-    "membership.fee": "Membership Fee: $20/year",
-    "membership.feeNote": "(Membership period: January 1 - December 31)",
     "membership.form.title": "Application Form",
     "membership.form.chineseName": "Chinese Name",
     "membership.form.englishName": "English Name",
@@ -750,7 +745,7 @@ const translations: Record<Language, Record<string, string>> = {
     "membership.form.emergencyPhone": "Emergency Contact Phone",
     "membership.form.emergencyRelation": "Relationship",
     "membership.form.memberType": "Membership Type",
-    "membership.form.regular": "Regular Member ($20/year)",
+    "membership.form.regular": "Regular Member",
     "membership.form.agree1":
       "I confirm that the information provided is true and accurate",
     "membership.form.agree2": "I agree to abide by the membership guidelines",

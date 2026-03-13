@@ -95,13 +95,7 @@ async function createAccount(req: NextApiRequest, res: NextApiResponse) {
   }
 
   const body = parseJsonBody(req.body) as CreateAccountPayload | null;
-  if (
-    !body ||
-    !body.username ||
-    !body.email ||
-    !body.password ||
-    !body.role
-  ) {
+  if (!body || !body.username || !body.email || !body.password || !body.role) {
     return res.status(400).json({ error: "Missing required fields" });
   }
   if (!isStrongAdminPassword(body.password)) {
@@ -130,7 +124,9 @@ async function createAccount(req: NextApiRequest, res: NextApiResponse) {
 
     if (error) {
       if (error.code === "23505") {
-        return res.status(409).json({ error: "Username or email already used" });
+        return res
+          .status(409)
+          .json({ error: "Username or email already used" });
       }
       logSupabaseError("api.admin-accounts.create", error);
       return res.status(500).json({ error: "Failed to create account" });
@@ -158,7 +154,9 @@ function parseJsonBody(body: unknown) {
   return body;
 }
 
-async function seedDefaultAccounts(supabase: ReturnType<typeof getSupabaseServiceClient>) {
+async function seedDefaultAccounts(
+  supabase: ReturnType<typeof getSupabaseServiceClient>
+) {
   const owner = getInitialOwnerAccount();
   if (!owner) {
     console.warn(
@@ -186,7 +184,10 @@ async function seedDefaultAccounts(supabase: ReturnType<typeof getSupabaseServic
         .select(ACCOUNT_COLUMNS)
         .order("created_at", { ascending: true });
       if (existingError) {
-        logSupabaseError("api.admin-accounts.seed.fetchAfterConflict", existingError);
+        logSupabaseError(
+          "api.admin-accounts.seed.fetchAfterConflict",
+          existingError
+        );
         return [];
       }
       return existing ?? [];

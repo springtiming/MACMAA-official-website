@@ -404,14 +404,6 @@ export function Membership() {
                 <p className="text-gray-700 max-w-2xl mx-auto mb-2 text-sm sm:text-base px-4">
                   {t("membership.subtitle")}
                 </p>
-                <div className="text-[#2B5F9E] px-4">
-                  <p className="mb-1 text-base sm:text-lg">
-                    {t("membership.fee")}
-                  </p>
-                  <p className="text-xs sm:text-sm text-gray-600">
-                    {t("membership.feeNote")}
-                  </p>
-                </div>
               </div>
 
               <div data-membership-guide="true" className="space-y-6 mb-8">
@@ -461,262 +453,236 @@ export function Membership() {
                     onSubmit={handleSubmit}
                     className="space-y-5 sm:space-y-6"
                   >
-                  {/* Personal Information */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                    <div>
-                      <label className="block text-gray-700 mb-2 text-sm sm:text-base">
-                        {t("membership.form.chineseName")} *
-                      </label>
-                      <input
-                        id="chineseName"
-                        type="text"
-                        value={formData.chineseName}
-                        onChange={(e) =>
-                          handleChange("chineseName", e.target.value)
-                        }
-                        onBlur={() => handleBlur("chineseName")}
-                        className={getInputClassName("chineseName")}
-                        placeholder={
-                          language === "zh" ? "例如：张三" : "e.g., 张三"
-                        }
-                      />
-                      {touched.chineseName && errors.chineseName && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -5 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="flex items-center gap-1 mt-1 text-red-600 text-sm"
-                        >
-                          <AlertCircle className="w-4 h-4" />
-                          <span>{getErrorMessage(errors.chineseName)}</span>
-                        </motion.div>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-gray-700 mb-2 text-sm sm:text-base">
-                        {t("membership.form.englishName")} *
-                      </label>
-                      <input
-                        id="englishName"
-                        type="text"
-                        value={formData.englishName}
-                        onChange={(e) =>
-                          handleChange("englishName", e.target.value)
-                        }
-                        onBlur={() => handleBlur("englishName")}
-                        className={getInputClassName("englishName")}
-                        placeholder="e.g., John Smith"
-                      />
-                      {touched.englishName && errors.englishName && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -5 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="flex items-center gap-1 mt-1 text-red-600 text-sm"
-                        >
-                          <AlertCircle className="w-4 h-4" />
-                          <span>{getErrorMessage(errors.englishName)}</span>
-                        </motion.div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                    <div>
-                      <label className="block text-gray-700 mb-2 text-sm sm:text-base">
-                        {t("membership.form.gender")} *
-                      </label>
-                      <div className="flex gap-6">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="radio"
-                            name="gender"
-                            value="male"
-                            checked={formData.gender === "male"}
-                            onChange={(e) =>
-                              handleChange("gender", e.target.value)
-                            }
-                            className="w-4 h-4 text-[#2B5F9E]"
-                          />
-                          <span>{t("membership.form.male")}</span>
-                        </label>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="radio"
-                            name="gender"
-                            value="female"
-                            checked={formData.gender === "female"}
-                            onChange={(e) =>
-                              handleChange("gender", e.target.value)
-                            }
-                            className="w-4 h-4 text-[#2B5F9E]"
-                          />
-                          <span>{t("membership.form.female")}</span>
-                        </label>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-gray-700 mb-2 text-sm sm:text-base">
-                        {t("membership.form.birthday")} *
-                      </label>
-                      <input
-                        id="birthday"
-                        type="date"
-                        value={formData.birthday}
-                        onChange={(e) =>
-                          handleChange("birthday", e.target.value)
-                        }
-                        onBlur={() => handleBlur("birthday")}
-                        className={getInputClassName("birthday")}
-                        max={new Date().toISOString().split("T")[0]}
-                      />
-                      {touched.birthday && errors.birthday && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -5 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="flex items-center gap-1 mt-1 text-red-600 text-sm"
-                        >
-                          <AlertCircle className="w-4 h-4" />
-                          <span>{getErrorMessage(errors.birthday)}</span>
-                        </motion.div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-700 mb-2 text-sm sm:text-base">
-                      {t("membership.form.phone")} *
-                    </label>
-                    <input
-                      id="phone"
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) => handleChange("phone", e.target.value)}
-                      onBlur={() => handleBlur("phone")}
-                      className={getInputClassName("phone")}
-                      placeholder="0412345678"
-                    />
-                    {touched.phone && errors.phone && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="flex items-center gap-1 mt-1 text-red-600 text-sm"
-                      >
-                        <AlertCircle className="w-4 h-4" />
-                        <span>{getErrorMessage(errors.phone)}</span>
-                      </motion.div>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-700 mb-2 text-sm sm:text-base">
-                      {t("membership.form.email")} *
-                    </label>
-                    <input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => handleChange("email", e.target.value)}
-                      onBlur={() => handleBlur("email")}
-                      className={getInputClassName("email")}
-                      placeholder="example@email.com"
-                    />
-                    {touched.email && errors.email && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="flex items-center gap-1 mt-1 text-red-600 text-sm"
-                      >
-                        <AlertCircle className="w-4 h-4" />
-                        <span>{getErrorMessage(errors.email)}</span>
-                      </motion.div>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-700 mb-2 text-sm sm:text-base">
-                      {t("membership.form.address")} *
-                    </label>
-                    <input
-                      id="address"
-                      type="text"
-                      value={formData.address}
-                      onChange={(e) => handleChange("address", e.target.value)}
-                      onBlur={() => handleBlur("address")}
-                      className={getInputClassName("address")}
-                      placeholder={
-                        language === "zh"
-                          ? "例如：123 Main St, Melbourne VIC 3000"
-                          : "e.g., 123 Main St, Melbourne VIC 3000"
-                      }
-                    />
-                    {touched.address && errors.address && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="flex items-center gap-1 mt-1 text-red-600 text-sm"
-                      >
-                        <AlertCircle className="w-4 h-4" />
-                        <span>{getErrorMessage(errors.address)}</span>
-                      </motion.div>
-                    )}
-                  </div>
-
-                  {/* Emergency Contact */}
-                  <div className="border-t pt-6">
-                    <h3 className="text-[#2B5F9E] mb-4">
-                      {t("membership.form.emergency")}
-                    </h3>
-
-                    <div className="space-y-4">
+                    {/* Personal Information */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                       <div>
                         <label className="block text-gray-700 mb-2 text-sm sm:text-base">
-                          {t("membership.form.emergencyName")} *
+                          {t("membership.form.chineseName")} *
                         </label>
                         <input
-                          id="emergencyName"
+                          id="chineseName"
                           type="text"
-                          value={formData.emergencyName}
+                          value={formData.chineseName}
                           onChange={(e) =>
-                            handleChange("emergencyName", e.target.value)
+                            handleChange("chineseName", e.target.value)
                           }
-                          onBlur={() => handleBlur("emergencyName")}
-                          className={getInputClassName("emergencyName")}
+                          onBlur={() => handleBlur("chineseName")}
+                          className={getInputClassName("chineseName")}
                           placeholder={
-                            language === "zh"
-                              ? "例如：张三"
-                              : "e.g., John Smith"
+                            language === "zh" ? "例如：张三" : "e.g., 张三"
                           }
                         />
-                        {touched.emergencyName && errors.emergencyName && (
+                        {touched.chineseName && errors.chineseName && (
                           <motion.div
                             initial={{ opacity: 0, y: -5 }}
                             animate={{ opacity: 1, y: 0 }}
                             className="flex items-center gap-1 mt-1 text-red-600 text-sm"
                           >
                             <AlertCircle className="w-4 h-4" />
-                            <span>{getErrorMessage(errors.emergencyName)}</span>
+                            <span>{getErrorMessage(errors.chineseName)}</span>
                           </motion.div>
                         )}
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                      <div>
+                        <label className="block text-gray-700 mb-2 text-sm sm:text-base">
+                          {t("membership.form.englishName")} *
+                        </label>
+                        <input
+                          id="englishName"
+                          type="text"
+                          value={formData.englishName}
+                          onChange={(e) =>
+                            handleChange("englishName", e.target.value)
+                          }
+                          onBlur={() => handleBlur("englishName")}
+                          className={getInputClassName("englishName")}
+                          placeholder="e.g., John Smith"
+                        />
+                        {touched.englishName && errors.englishName && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="flex items-center gap-1 mt-1 text-red-600 text-sm"
+                          >
+                            <AlertCircle className="w-4 h-4" />
+                            <span>{getErrorMessage(errors.englishName)}</span>
+                          </motion.div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                      <div>
+                        <label className="block text-gray-700 mb-2 text-sm sm:text-base">
+                          {t("membership.form.gender")} *
+                        </label>
+                        <div className="flex gap-6">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              name="gender"
+                              value="male"
+                              checked={formData.gender === "male"}
+                              onChange={(e) =>
+                                handleChange("gender", e.target.value)
+                              }
+                              className="w-4 h-4 text-[#2B5F9E]"
+                            />
+                            <span>{t("membership.form.male")}</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              name="gender"
+                              value="female"
+                              checked={formData.gender === "female"}
+                              onChange={(e) =>
+                                handleChange("gender", e.target.value)
+                              }
+                              className="w-4 h-4 text-[#2B5F9E]"
+                            />
+                            <span>{t("membership.form.female")}</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-gray-700 mb-2 text-sm sm:text-base">
+                          {t("membership.form.birthday")} *
+                        </label>
+                        <input
+                          id="birthday"
+                          type="date"
+                          value={formData.birthday}
+                          onChange={(e) =>
+                            handleChange("birthday", e.target.value)
+                          }
+                          onBlur={() => handleBlur("birthday")}
+                          className={getInputClassName("birthday")}
+                          max={new Date().toISOString().split("T")[0]}
+                        />
+                        {touched.birthday && errors.birthday && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="flex items-center gap-1 mt-1 text-red-600 text-sm"
+                          >
+                            <AlertCircle className="w-4 h-4" />
+                            <span>{getErrorMessage(errors.birthday)}</span>
+                          </motion.div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-gray-700 mb-2 text-sm sm:text-base">
+                        {t("membership.form.phone")} *
+                      </label>
+                      <input
+                        id="phone"
+                        type="tel"
+                        value={formData.phone}
+                        onChange={(e) => handleChange("phone", e.target.value)}
+                        onBlur={() => handleBlur("phone")}
+                        className={getInputClassName("phone")}
+                        placeholder="0412345678"
+                      />
+                      {touched.phone && errors.phone && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="flex items-center gap-1 mt-1 text-red-600 text-sm"
+                        >
+                          <AlertCircle className="w-4 h-4" />
+                          <span>{getErrorMessage(errors.phone)}</span>
+                        </motion.div>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-gray-700 mb-2 text-sm sm:text-base">
+                        {t("membership.form.email")} *
+                      </label>
+                      <input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => handleChange("email", e.target.value)}
+                        onBlur={() => handleBlur("email")}
+                        className={getInputClassName("email")}
+                        placeholder="example@email.com"
+                      />
+                      {touched.email && errors.email && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="flex items-center gap-1 mt-1 text-red-600 text-sm"
+                        >
+                          <AlertCircle className="w-4 h-4" />
+                          <span>{getErrorMessage(errors.email)}</span>
+                        </motion.div>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-gray-700 mb-2 text-sm sm:text-base">
+                        {t("membership.form.address")} *
+                      </label>
+                      <input
+                        id="address"
+                        type="text"
+                        value={formData.address}
+                        onChange={(e) =>
+                          handleChange("address", e.target.value)
+                        }
+                        onBlur={() => handleBlur("address")}
+                        className={getInputClassName("address")}
+                        placeholder={
+                          language === "zh"
+                            ? "例如：123 Main St, Melbourne VIC 3000"
+                            : "e.g., 123 Main St, Melbourne VIC 3000"
+                        }
+                      />
+                      {touched.address && errors.address && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="flex items-center gap-1 mt-1 text-red-600 text-sm"
+                        >
+                          <AlertCircle className="w-4 h-4" />
+                          <span>{getErrorMessage(errors.address)}</span>
+                        </motion.div>
+                      )}
+                    </div>
+
+                    {/* Emergency Contact */}
+                    <div className="border-t pt-6">
+                      <h3 className="text-[#2B5F9E] mb-4">
+                        {t("membership.form.emergency")}
+                      </h3>
+
+                      <div className="space-y-4">
                         <div>
                           <label className="block text-gray-700 mb-2 text-sm sm:text-base">
-                            {t("membership.form.emergencyPhone")} *
+                            {t("membership.form.emergencyName")} *
                           </label>
                           <input
-                            id="emergencyPhone"
-                            type="tel"
-                            value={formData.emergencyPhone}
+                            id="emergencyName"
+                            type="text"
+                            value={formData.emergencyName}
                             onChange={(e) =>
-                              handleChange("emergencyPhone", e.target.value)
+                              handleChange("emergencyName", e.target.value)
                             }
-                            onBlur={() => handleBlur("emergencyPhone")}
-                            className={getInputClassName("emergencyPhone")}
-                            placeholder="0412345678"
+                            onBlur={() => handleBlur("emergencyName")}
+                            className={getInputClassName("emergencyName")}
+                            placeholder={
+                              language === "zh"
+                                ? "例如：张三"
+                                : "e.g., John Smith"
+                            }
                           />
-                          {touched.emergencyPhone && errors.emergencyPhone && (
+                          {touched.emergencyName && errors.emergencyName && (
                             <motion.div
                               initial={{ opacity: 0, y: -5 }}
                               animate={{ opacity: 1, y: 0 }}
@@ -724,224 +690,258 @@ export function Membership() {
                             >
                               <AlertCircle className="w-4 h-4" />
                               <span>
-                                {getErrorMessage(errors.emergencyPhone)}
+                                {getErrorMessage(errors.emergencyName)}
                               </span>
                             </motion.div>
                           )}
                         </div>
 
-                        <div>
-                          <label className="block text-gray-700 mb-2 text-sm sm:text-base">
-                            {t("membership.form.emergencyRelation")} *
-                          </label>
-                          <input
-                            id="emergencyRelation"
-                            type="text"
-                            value={formData.emergencyRelation}
-                            onChange={(e) =>
-                              handleChange("emergencyRelation", e.target.value)
-                            }
-                            onBlur={() => handleBlur("emergencyRelation")}
-                            className={getInputClassName("emergencyRelation")}
-                            placeholder={
-                              language === "zh"
-                                ? "例如：配偶、子女"
-                                : "e.g., Spouse, Child"
-                            }
-                          />
-                          {touched.emergencyRelation &&
-                            errors.emergencyRelation && (
-                              <motion.div
-                                initial={{ opacity: 0, y: -5 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="flex items-center gap-1 mt-1 text-red-600 text-sm"
-                              >
-                                <AlertCircle className="w-4 h-4" />
-                                <span>
-                                  {getErrorMessage(errors.emergencyRelation)}
-                                </span>
-                              </motion.div>
-                            )}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                          <div>
+                            <label className="block text-gray-700 mb-2 text-sm sm:text-base">
+                              {t("membership.form.emergencyPhone")} *
+                            </label>
+                            <input
+                              id="emergencyPhone"
+                              type="tel"
+                              value={formData.emergencyPhone}
+                              onChange={(e) =>
+                                handleChange("emergencyPhone", e.target.value)
+                              }
+                              onBlur={() => handleBlur("emergencyPhone")}
+                              className={getInputClassName("emergencyPhone")}
+                              placeholder="0412345678"
+                            />
+                            {touched.emergencyPhone &&
+                              errors.emergencyPhone && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: -5 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  className="flex items-center gap-1 mt-1 text-red-600 text-sm"
+                                >
+                                  <AlertCircle className="w-4 h-4" />
+                                  <span>
+                                    {getErrorMessage(errors.emergencyPhone)}
+                                  </span>
+                                </motion.div>
+                              )}
+                          </div>
+
+                          <div>
+                            <label className="block text-gray-700 mb-2 text-sm sm:text-base">
+                              {t("membership.form.emergencyRelation")} *
+                            </label>
+                            <input
+                              id="emergencyRelation"
+                              type="text"
+                              value={formData.emergencyRelation}
+                              onChange={(e) =>
+                                handleChange(
+                                  "emergencyRelation",
+                                  e.target.value
+                                )
+                              }
+                              onBlur={() => handleBlur("emergencyRelation")}
+                              className={getInputClassName("emergencyRelation")}
+                              placeholder={
+                                language === "zh"
+                                  ? "例如：配偶、子女"
+                                  : "e.g., Spouse, Child"
+                              }
+                            />
+                            {touched.emergencyRelation &&
+                              errors.emergencyRelation && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: -5 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  className="flex items-center gap-1 mt-1 text-red-600 text-sm"
+                                >
+                                  <AlertCircle className="w-4 h-4" />
+                                  <span>
+                                    {getErrorMessage(errors.emergencyRelation)}
+                                  </span>
+                                </motion.div>
+                              )}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Membership Type */}
-                  <div className="bg-[#F5EFE6] rounded-lg p-4">
-                    <label className="block text-gray-700 mb-2 text-sm sm:text-base">
-                      {t("membership.form.memberType")}
-                    </label>
-                    <p className="text-[#2B5F9E]">
-                      {t("membership.form.regular")}
-                    </p>
-                  </div>
-
-                  {/* Agreement Checkboxes */}
-                  <div className="space-y-4">
-                    <div>
-                      <label className="flex items-start gap-3 cursor-pointer">
-                        <input
-                          id="agree1"
-                          type="checkbox"
-                          checked={formData.agree1}
-                          onChange={(e) => {
-                            handleChange("agree1", e.target.checked);
-                            if (e.target.checked && errors.agree1) {
-                              const newErrors = { ...errors };
-                              delete newErrors.agree1;
-                              setErrors(newErrors);
-                            }
-                          }}
-                          className={`mt-1 w-4 h-4 ${
-                            touched.agree1 && errors.agree1
-                              ? "accent-red-500"
-                              : "text-[#2B5F9E]"
-                          }`}
-                        />
-                        <span
-                          className={`${
-                            touched.agree1 && errors.agree1
-                              ? "text-red-700"
-                              : "text-gray-700"
-                          }`}
-                        >
-                          {t("membership.form.agree1")} *
-                        </span>
+                    {/* Membership Type */}
+                    <div className="bg-[#F5EFE6] rounded-lg p-4">
+                      <label className="block text-gray-700 mb-2 text-sm sm:text-base">
+                        {t("membership.form.memberType")}
                       </label>
-                      {touched.agree1 && errors.agree1 && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -5 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="flex items-center gap-1 mt-1 ml-7 text-red-600 text-sm"
-                        >
-                          <AlertCircle className="w-4 h-4" />
-                          <span>{getErrorMessage(errors.agree1)}</span>
-                        </motion.div>
-                      )}
+                      <p className="text-[#2B5F9E]">
+                        {t("membership.form.regular")}
+                      </p>
                     </div>
 
-                    <div>
-                      <label className="flex items-start gap-3 cursor-pointer">
-                        <input
-                          id="agree2"
-                          type="checkbox"
-                          checked={formData.agree2}
-                          onChange={(e) => {
-                            handleChange("agree2", e.target.checked);
-                            if (e.target.checked && errors.agree2) {
-                              const newErrors = { ...errors };
-                              delete newErrors.agree2;
-                              setErrors(newErrors);
-                            }
-                          }}
-                          className={`mt-1 w-4 h-4 ${
-                            touched.agree2 && errors.agree2
-                              ? "accent-red-500"
-                              : "text-[#2B5F9E]"
-                          }`}
-                        />
-                        <span
-                          className={`${
-                            touched.agree2 && errors.agree2
-                              ? "text-red-700"
-                              : "text-gray-700"
-                          }`}
-                        >
-                          {agree2Prefix}{" "}
-                          <button
-                            type="button"
-                            data-member-code-trigger="true"
-                            className="text-[#2B5F9E] underline decoration-[#2B5F9E] underline-offset-4 hover:text-[#234a7e] focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]/40 rounded-sm px-0.5"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setMemberCodeOpen(true);
+                    {/* Agreement Checkboxes */}
+                    <div className="space-y-4">
+                      <div>
+                        <label className="flex items-start gap-3 cursor-pointer">
+                          <input
+                            id="agree1"
+                            type="checkbox"
+                            checked={formData.agree1}
+                            onChange={(e) => {
+                              handleChange("agree1", e.target.checked);
+                              if (e.target.checked && errors.agree1) {
+                                const newErrors = { ...errors };
+                                delete newErrors.agree1;
+                                setErrors(newErrors);
+                              }
                             }}
+                            className={`mt-1 w-4 h-4 ${
+                              touched.agree1 && errors.agree1
+                                ? "accent-red-500"
+                                : "text-[#2B5F9E]"
+                            }`}
+                          />
+                          <span
+                            className={`${
+                              touched.agree1 && errors.agree1
+                                ? "text-red-700"
+                                : "text-gray-700"
+                            }`}
                           >
-                            {memberCodeLabel}
-                          </button>{" "}
-                          *
-                        </span>
-                      </label>
-                      {touched.agree2 && errors.agree2 && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -5 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="flex items-center gap-1 mt-1 ml-7 text-red-600 text-sm"
-                        >
-                          <AlertCircle className="w-4 h-4" />
-                          <span>{getErrorMessage(errors.agree2)}</span>
-                        </motion.div>
-                      )}
+                            {t("membership.form.agree1")} *
+                          </span>
+                        </label>
+                        {touched.agree1 && errors.agree1 && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="flex items-center gap-1 mt-1 ml-7 text-red-600 text-sm"
+                          >
+                            <AlertCircle className="w-4 h-4" />
+                            <span>{getErrorMessage(errors.agree1)}</span>
+                          </motion.div>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="flex items-start gap-3 cursor-pointer">
+                          <input
+                            id="agree2"
+                            type="checkbox"
+                            checked={formData.agree2}
+                            onChange={(e) => {
+                              handleChange("agree2", e.target.checked);
+                              if (e.target.checked && errors.agree2) {
+                                const newErrors = { ...errors };
+                                delete newErrors.agree2;
+                                setErrors(newErrors);
+                              }
+                            }}
+                            className={`mt-1 w-4 h-4 ${
+                              touched.agree2 && errors.agree2
+                                ? "accent-red-500"
+                                : "text-[#2B5F9E]"
+                            }`}
+                          />
+                          <span
+                            className={`${
+                              touched.agree2 && errors.agree2
+                                ? "text-red-700"
+                                : "text-gray-700"
+                            }`}
+                          >
+                            {agree2Prefix}{" "}
+                            <button
+                              type="button"
+                              data-member-code-trigger="true"
+                              className="text-[#2B5F9E] underline decoration-[#2B5F9E] underline-offset-4 hover:text-[#234a7e] focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]/40 rounded-sm px-0.5"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setMemberCodeOpen(true);
+                              }}
+                            >
+                              {memberCodeLabel}
+                            </button>{" "}
+                            *
+                          </span>
+                        </label>
+                        {touched.agree2 && errors.agree2 && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="flex items-center gap-1 mt-1 ml-7 text-red-600 text-sm"
+                          >
+                            <AlertCircle className="w-4 h-4" />
+                            <span>{getErrorMessage(errors.agree2)}</span>
+                          </motion.div>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="flex items-start gap-3 cursor-pointer">
+                          <input
+                            id="agree3"
+                            type="checkbox"
+                            checked={formData.agree3}
+                            onChange={(e) => {
+                              handleChange("agree3", e.target.checked);
+                              if (e.target.checked && errors.agree3) {
+                                const newErrors = { ...errors };
+                                delete newErrors.agree3;
+                                setErrors(newErrors);
+                              }
+                            }}
+                            className={`mt-1 w-4 h-4 ${
+                              touched.agree3 && errors.agree3
+                                ? "accent-red-500"
+                                : "text-[#2B5F9E]"
+                            }`}
+                          />
+                          <span
+                            className={`${
+                              touched.agree3 && errors.agree3
+                                ? "text-red-700"
+                                : "text-gray-700"
+                            }`}
+                          >
+                            {t("membership.form.agree3")} *
+                          </span>
+                        </label>
+                        {touched.agree3 && errors.agree3 && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="flex items-center gap-1 mt-1 ml-7 text-red-600 text-sm"
+                          >
+                            <AlertCircle className="w-4 h-4" />
+                            <span>{getErrorMessage(errors.agree3)}</span>
+                          </motion.div>
+                        )}
+                      </div>
                     </div>
 
-                    <div>
-                      <label className="flex items-start gap-3 cursor-pointer">
-                        <input
-                          id="agree3"
-                          type="checkbox"
-                          checked={formData.agree3}
-                          onChange={(e) => {
-                            handleChange("agree3", e.target.checked);
-                            if (e.target.checked && errors.agree3) {
-                              const newErrors = { ...errors };
-                              delete newErrors.agree3;
-                              setErrors(newErrors);
-                            }
-                          }}
-                          className={`mt-1 w-4 h-4 ${
-                            touched.agree3 && errors.agree3
-                              ? "accent-red-500"
-                              : "text-[#2B5F9E]"
-                          }`}
-                        />
-                        <span
-                          className={`${
-                            touched.agree3 && errors.agree3
-                              ? "text-red-700"
-                              : "text-gray-700"
-                          }`}
-                        >
-                          {t("membership.form.agree3")} *
-                        </span>
-                      </label>
-                      {touched.agree3 && errors.agree3 && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -5 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="flex items-center gap-1 mt-1 ml-7 text-red-600 text-sm"
-                        >
-                          <AlertCircle className="w-4 h-4" />
-                          <span>{getErrorMessage(errors.agree3)}</span>
-                        </motion.div>
-                      )}
-                    </div>
-                  </div>
-
-                  <motion.button
-                    type="submit"
-                    className="w-full px-6 py-3 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={submitting}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    {submitting
-                      ? language === "zh"
-                        ? "提交中..."
-                        : "Submitting..."
-                      : t("membership.form.submit")}
-                  </motion.button>
-
-                  {submitError && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="text-red-600 text-center text-sm"
+                    <motion.button
+                      type="submit"
+                      className="w-full px-6 py-3 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={submitting}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                     >
-                      {submitError}
-                    </motion.div>
-                  )}
+                      {submitting
+                        ? language === "zh"
+                          ? "提交中..."
+                          : "Submitting..."
+                        : t("membership.form.submit")}
+                    </motion.button>
+
+                    {submitError && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="text-red-600 text-center text-sm"
+                      >
+                        {submitError}
+                      </motion.div>
+                    )}
                   </form>
 
                   {/* Privacy Statement */}
@@ -954,9 +954,12 @@ export function Membership() {
                     </p>
                   </div>
 
-                  <Dialog open={memberCodeOpen} onOpenChange={setMemberCodeOpen}>
-                    <DialogContent className="max-h-[85vh] overflow-hidden p-0 sm:max-w-3xl">
-                      <DialogHeader className="border-b bg-[#F5EFE6] px-6 py-4 text-left">
+                  <Dialog
+                    open={memberCodeOpen}
+                    onOpenChange={setMemberCodeOpen}
+                  >
+                    <DialogContent className="flex max-h-[85vh] flex-col overflow-hidden p-0 sm:max-w-3xl">
+                      <DialogHeader className="flex-shrink-0 border-b bg-[#F5EFE6] px-6 py-4 text-left">
                         <DialogTitle className="text-[#2B5F9E] text-xl sm:text-2xl">
                           {MEMBER_CODE_OF_CONDUCT.titleZh} /{" "}
                           {MEMBER_CODE_OF_CONDUCT.titleEn}
@@ -967,7 +970,7 @@ export function Membership() {
                         </p>
                       </DialogHeader>
 
-                      <div className="max-h-[65vh] space-y-6 overflow-y-auto px-6 py-5 text-sm sm:text-base">
+                      <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-5 text-sm sm:text-base">
                         {MEMBER_CODE_OF_CONDUCT.sections.map((section) => (
                           <section key={section.titleEn} className="space-y-3">
                             <h4 className="font-semibold text-[#2B5F9E]">
@@ -991,8 +994,8 @@ export function Membership() {
                           </section>
                         ))}
                         <p className="border-t pt-4 text-sm text-gray-500">
-                          最后更新：{MEMBER_CODE_OF_CONDUCT.lastUpdatedZh} / Last
-                          updated: {MEMBER_CODE_OF_CONDUCT.lastUpdatedEn}
+                          最后更新：{MEMBER_CODE_OF_CONDUCT.lastUpdatedZh} /
+                          Last updated: {MEMBER_CODE_OF_CONDUCT.lastUpdatedEn}
                         </p>
                       </div>
                     </DialogContent>
