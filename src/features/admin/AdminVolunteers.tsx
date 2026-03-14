@@ -74,8 +74,6 @@ const GENDER_LABELS: Record<string, { zh: string; en: string }> = {
   "prefer-not-to-say": { zh: "不愿透露", en: "Prefer not to say" },
 };
 
-const DETAIL_VALUE_TRUNCATE_LENGTH = 80;
-
 type ConfirmType = "approve" | "reject" | "revoke" | "reopen" | "delete";
 
 export function AdminVolunteers() {
@@ -97,9 +95,6 @@ export function AdminVolunteers() {
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [expandedDetailRows, setExpandedDetailRows] = useState<Set<string>>(
-    new Set()
-  );
   const {
     state: processingState,
     title: processingTitle,
@@ -770,10 +765,7 @@ export function AdminVolunteers() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
-              onClick={() => {
-                setExpandedDetailRows(new Set());
-                setSelectedVolunteer(null);
-              }}
+              onClick={() => setSelectedVolunteer(null)}
             >
               <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
@@ -788,10 +780,7 @@ export function AdminVolunteers() {
                       {l("志愿者申请详情", "Volunteer Application Details")}
                     </h2>
                     <button
-                      onClick={() => {
-                        setExpandedDetailRows(new Set());
-                        setSelectedVolunteer(null);
-                      }}
+                      onClick={() => setSelectedVolunteer(null)}
                       className="p-2 hover:bg-white/20 rounded-lg transition-colors"
                     >
                       <X className="w-6 h-6" />
@@ -800,49 +789,17 @@ export function AdminVolunteers() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                  {detailRows(selectedVolunteer).map((row) => {
-                    const value = row.value || "-";
-                    const isLong =
-                      value.length > DETAIL_VALUE_TRUNCATE_LENGTH;
-                    const isExpanded = expandedDetailRows.has(row.label);
-                    const displayValue = isLong && !isExpanded
-                      ? `${value.slice(0, DETAIL_VALUE_TRUNCATE_LENGTH)}…`
-                      : value;
-                    return (
-                      <div
-                        key={row.label}
-                        className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 border-b border-gray-100 pb-3"
-                      >
-                        <span className="text-gray-500 flex-shrink-0">
-                          {row.label}
-                        </span>
-                        <div className="text-gray-900 text-left sm:text-right break-words min-w-0 flex-1">
-                          <span>{displayValue}</span>
-                          {isLong && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setExpandedDetailRows((prev) => {
-                                  const next = new Set(prev);
-                                  if (next.has(row.label)) {
-                                    next.delete(row.label);
-                                  } else {
-                                    next.add(row.label);
-                                  }
-                                  return next;
-                                })
-                              }
-                              className="ml-2 text-[#2B5F9E] hover:underline text-sm whitespace-nowrap"
-                            >
-                              {isExpanded
-                                ? l("收起", "Collapse")
-                                : l("展开", "Expand")}
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
+                  {detailRows(selectedVolunteer).map((row) => (
+                    <div
+                      key={row.label}
+                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-gray-100 pb-3"
+                    >
+                      <span className="text-gray-500">{row.label}</span>
+                      <span className="text-gray-900 text-left sm:text-right break-words">
+                        {row.value || "-"}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </motion.div>
             </motion.div>
