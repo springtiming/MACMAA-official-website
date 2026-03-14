@@ -4,11 +4,23 @@ import { motion, AnimatePresence } from "motion/react";
 import { Users, Check, AlertCircle } from "lucide-react";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { MEMBER_CODE_OF_CONDUCT } from "@/content/memberCodeOfConduct";
+import {
+  MEMBER_CODE_DIALOG_CLOSE_BUTTON_CLASS,
+  MEMBER_CODE_DIALOG_CONTENT_CLASS,
+  MEMBER_CODE_DIALOG_FOOTER_CLASS,
+  MEMBER_CODE_DIALOG_HEADER_CLASS,
+  MEMBER_CODE_DIALOG_MAX_HEIGHT,
+  MEMBER_CODE_DIALOG_SCROLL_AREA_CLASS,
+  type MemberCodeDialogLanguage,
+  getMemberCodeDialogCopy,
+} from "./memberCodeDialogConfig";
 import {
   createMemberApplication,
   notifyMemberApplication,
@@ -135,6 +147,91 @@ const errorMessages: Record<ErrorType, { zh: string; en: string }> = {
 type FormErrors = {
   [key: string]: ErrorType;
 };
+
+type MemberCodeDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  language: MemberCodeDialogLanguage;
+};
+
+function MemberCodeDialog({
+  open,
+  onOpenChange,
+  language,
+}: MemberCodeDialogProps) {
+  const copy = getMemberCodeDialogCopy(language);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        aria-describedby="member-code-dialog-description"
+        className={MEMBER_CODE_DIALOG_CONTENT_CLASS}
+        data-member-code-dialog="true"
+        style={{ maxHeight: MEMBER_CODE_DIALOG_MAX_HEIGHT }}
+      >
+        <DialogHeader
+          className={MEMBER_CODE_DIALOG_HEADER_CLASS}
+          style={{ paddingRight: "4rem" }}
+        >
+          <DialogTitle className="text-[#2B5F9E] text-xl sm:text-2xl">
+            {MEMBER_CODE_OF_CONDUCT.titleZh} / {MEMBER_CODE_OF_CONDUCT.titleEn}
+          </DialogTitle>
+          <p className="text-sm text-gray-600">
+            {MEMBER_CODE_OF_CONDUCT.associationZh} /{" "}
+            {MEMBER_CODE_OF_CONDUCT.associationEn}
+          </p>
+          <DialogDescription
+            className="sr-only"
+            id="member-code-dialog-description"
+          >
+            {copy.description}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div
+          className={MEMBER_CODE_DIALOG_SCROLL_AREA_CLASS}
+          data-member-code-scroll-area="true"
+        >
+          {MEMBER_CODE_OF_CONDUCT.sections.map((section) => (
+            <section key={section.titleEn} className="space-y-3">
+              <h4 className="font-semibold text-[#2B5F9E]">
+                {section.titleZh}
+              </h4>
+              <p className="text-sm text-gray-500">{section.titleEn}</p>
+              <div className="space-y-3">
+                {section.items.map((item, idx) => (
+                  <div key={`${section.titleEn}-${idx}`}>
+                    <p className="leading-relaxed text-gray-800">
+                      {idx + 1}. {item.zh}
+                    </p>
+                    <p className="mt-1 text-sm leading-relaxed text-gray-600">
+                      {idx + 1}. {item.en}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ))}
+          <p className="border-t pt-4 text-sm text-gray-500">
+            最后更新：{MEMBER_CODE_OF_CONDUCT.lastUpdatedZh} / Last updated:{" "}
+            {MEMBER_CODE_OF_CONDUCT.lastUpdatedEn}
+          </p>
+        </div>
+
+        <div className={MEMBER_CODE_DIALOG_FOOTER_CLASS}>
+          <DialogClose asChild>
+            <button
+              className={MEMBER_CODE_DIALOG_CLOSE_BUTTON_CLASS}
+              type="button"
+            >
+              {copy.closeButtonLabel}
+            </button>
+          </DialogClose>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export function Membership() {
   const { language, t } = useLanguage();
@@ -959,52 +1056,11 @@ export function Membership() {
                     </p>
                   </div>
 
-                  <Dialog
-                    open={memberCodeOpen}
+                  <MemberCodeDialog
+                    language={language}
                     onOpenChange={setMemberCodeOpen}
-                  >
-                    <DialogContent className="flex max-h-[85vh] flex-col overflow-hidden p-0 sm:max-w-3xl">
-                      <DialogHeader className="flex-shrink-0 border-b bg-[#F5EFE6] px-6 py-4 text-left">
-                        <DialogTitle className="text-[#2B5F9E] text-xl sm:text-2xl">
-                          {MEMBER_CODE_OF_CONDUCT.titleZh} /{" "}
-                          {MEMBER_CODE_OF_CONDUCT.titleEn}
-                        </DialogTitle>
-                        <p className="text-sm text-gray-600">
-                          {MEMBER_CODE_OF_CONDUCT.associationZh} /{" "}
-                          {MEMBER_CODE_OF_CONDUCT.associationEn}
-                        </p>
-                      </DialogHeader>
-
-                      <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-5 text-sm sm:text-base">
-                        {MEMBER_CODE_OF_CONDUCT.sections.map((section) => (
-                          <section key={section.titleEn} className="space-y-3">
-                            <h4 className="font-semibold text-[#2B5F9E]">
-                              {section.titleZh}
-                            </h4>
-                            <p className="text-sm text-gray-500">
-                              {section.titleEn}
-                            </p>
-                            <div className="space-y-3">
-                              {section.items.map((item, idx) => (
-                                <div key={`${section.titleEn}-${idx}`}>
-                                  <p className="leading-relaxed text-gray-800">
-                                    {idx + 1}. {item.zh}
-                                  </p>
-                                  <p className="mt-1 text-sm leading-relaxed text-gray-600">
-                                    {idx + 1}. {item.en}
-                                  </p>
-                                </div>
-                              ))}
-                            </div>
-                          </section>
-                        ))}
-                        <p className="border-t pt-4 text-sm text-gray-500">
-                          最后更新：{MEMBER_CODE_OF_CONDUCT.lastUpdatedZh} /
-                          Last updated: {MEMBER_CODE_OF_CONDUCT.lastUpdatedEn}
-                        </p>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                    open={memberCodeOpen}
+                  />
                 </motion.div>
               )}
             </motion.div>

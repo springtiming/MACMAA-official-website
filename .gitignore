@@ -15,6 +15,7 @@ dist/
 .DS_Store
 *.pem
 .tmp_*
+.tmp*
 
 # Debug
 npm-debug.log*
