@@ -176,6 +176,21 @@ export function AdminVolunteers() {
     return values.map((value) => mapLabel(value, labels)).join(", ");
   };
 
+  const formatMultiValuesWithOther = (
+    values: string[] | null | undefined,
+    labels: Record<string, { zh: string; en: string }>,
+    otherText: string | null | undefined
+  ) => {
+    const base = formatMultiValues(values, labels);
+    if (base === "-") return "-";
+    if (otherText?.trim()) {
+      const suffix =
+        language === "zh" ? `；其他：${otherText.trim()}` : `; other: ${otherText.trim()}`;
+      return base + suffix;
+    }
+    return base;
+  };
+
   const getProcessingMessages = (
     type: ConfirmType,
     volunteer: VolunteerApplicationRecord
@@ -359,19 +374,27 @@ export function AdminVolunteers() {
     { label: l("居住区域", "Residential Suburb"), value: volunteer.suburb },
     {
       label: l("语言能力", "Language Skills"),
-      value: formatMultiValues(volunteer.language_skills, LANGUAGE_LABELS),
+      value: formatMultiValuesWithOther(
+        volunteer.language_skills,
+        LANGUAGE_LABELS,
+        volunteer.language_other
+      ),
     },
     {
       label: l("其他语言", "Other Language"),
-      value: volunteer.language_other || "-",
+      value: volunteer.language_other?.trim() || "-",
     },
     {
       label: l("服务意向", "Volunteer Interests"),
-      value: formatMultiValues(volunteer.volunteer_interests, INTEREST_LABELS),
+      value: formatMultiValuesWithOther(
+        volunteer.volunteer_interests,
+        INTEREST_LABELS,
+        volunteer.interest_other
+      ),
     },
     {
       label: l("其他服务意向", "Other Interests"),
-      value: volunteer.interest_other || "-",
+      value: volunteer.interest_other?.trim() || "-",
     },
     {
       label: l("平日可参与时间", "Weekday Availability"),

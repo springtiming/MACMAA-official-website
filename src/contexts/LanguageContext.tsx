@@ -147,7 +147,7 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Membership
     "membership.title": "会员申请",
-    "membership.subtitle": "成为MACMAA会员，享受更多社区服务和活动优惠",
+    "membership.subtitle": "加入 MACMAA，参与社区活动。",
     "membership.form.title": "申请表单",
     "membership.form.chineseName": "中文姓名",
     "membership.form.englishName": "英文姓名",
@@ -728,8 +728,7 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Membership
     "membership.title": "Membership Application",
-    "membership.subtitle":
-      "Become a MACMAA member and enjoy more community services and event benefits",
+    "membership.subtitle": "Join MACMAA and take part in community activities.",
     "membership.form.title": "Application Form",
     "membership.form.chineseName": "Chinese Name",
     "membership.form.englishName": "English Name",
