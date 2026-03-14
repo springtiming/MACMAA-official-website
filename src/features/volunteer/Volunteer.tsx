@@ -16,6 +16,7 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { createVolunteerApplication } from "@/lib/supabaseApi";
+import { isValidVolunteerPhoneNumber } from "./validation";
 
 type FormErrors = Record<string, string>;
 type Option = { value: string; zh: string; en: string };
@@ -73,7 +74,6 @@ const GENDER_OPTIONS: Option[] = [
   },
 ];
 
-const PHONE_PATTERN = /^(04\d{8}|0[2-8]\d{8}|\+61\s?4\d{8})$/;
 const EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 export function Volunteer() {
@@ -148,7 +148,7 @@ export function Volunteer() {
         next.birthYear = l("出生年份无效", "Invalid year of birth");
       }
     }
-    if (!PHONE_PATTERN.test(formData.phone.trim())) {
+    if (!isValidVolunteerPhoneNumber(formData.phone)) {
       next.phone = l("请填写有效电话", "Please enter a valid phone number");
     }
     if (!EMAIL_PATTERN.test(formData.email.trim())) {
@@ -208,7 +208,7 @@ export function Volunteer() {
     if (!formData.emergencyRelation.trim()) {
       next.emergencyRelation = l("请填写关系", "Please enter relationship");
     }
-    if (!PHONE_PATTERN.test(formData.emergencyPhone.trim())) {
+    if (!isValidVolunteerPhoneNumber(formData.emergencyPhone)) {
       next.emergencyPhone = l(
         "请填写有效紧急联系电话",
         "Please enter a valid emergency phone"
