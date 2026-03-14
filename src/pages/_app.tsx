@@ -15,6 +15,7 @@ import {
   isSplashPreloadCacheValid,
   parseSplashPreloadCacheRecord,
 } from "@/lib/splashPreload";
+import { getPageTransitionKey } from "@/lib/pageTransitionKey";
 
 import "../index.css";
 import "../styles/glass-buttons.css";
@@ -156,8 +157,10 @@ function AppContent({ Component, pageProps }: AppProps) {
         <Header />
         <main className="flex-1">
           <AnimatePresence mode="wait" initial={false}>
-            <PageTransition key={router.asPath}>
-              <Component {...pageProps} />
+            <PageTransition
+              key={getPageTransitionKey(router.asPath, splashComplete)}
+            >
+              <Component {...{ ...pageProps, splashComplete }} />
             </PageTransition>
           </AnimatePresence>
         </main>
