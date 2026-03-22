@@ -28,9 +28,9 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm">
       <nav className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-8">
-        <div className="flex h-16 sm:h-20 items-center">
+        <div className="grid h-16 grid-cols-[auto_1fr] items-center gap-3 sm:h-20 sm:gap-4 md:grid-cols-[1fr_auto_1fr] md:gap-6">
           {/* Logo */}
-          <div className="w-36 sm:w-44 shrink-0">
+          <div className="w-36 sm:w-44 shrink-0 md:justify-self-start">
             <Link href="/" className="flex items-center gap-2 sm:gap-3">
               <img
                 src={logoUrl}
@@ -44,7 +44,7 @@ export function Header() {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex flex-1 items-center justify-center gap-4 lg:gap-6 xl:gap-8">
+          <div className="hidden md:flex items-center justify-center gap-4 lg:gap-6 xl:gap-8">
             {navItems.map((item) => (
               <Link key={item.path} href={item.path} className="relative">
                 <motion.span
@@ -71,7 +71,7 @@ export function Header() {
           </div>
 
           {/* Language Switcher & Mobile Menu */}
-          <div className="w-36 sm:w-44 shrink-0 flex items-center justify-end gap-2 sm:gap-4">
+          <div className="flex items-center justify-end gap-2 sm:gap-4 md:w-36 md:justify-self-end md:shrink-0 lg:w-44">
             {/* Language Switcher */}
             <motion.button
               onClick={() => setLanguage(language === "zh" ? "en" : "zh")}

@@ -181,7 +181,7 @@ export function NewsDetail({ initialNews }: NewsDetailProps) {
         {/* Article Content */}
         <div className="prose prose-lg max-w-none prose-img:rounded-xl prose-img:w-full prose-p:my-3">
           <div
-            className="text-gray-700"
+            className="news-content text-gray-700"
             dangerouslySetInnerHTML={{
               __html:
                 pickLocalized(news.content_zh, news.content_en, language) || "",
