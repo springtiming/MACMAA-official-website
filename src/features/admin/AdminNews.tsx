@@ -1178,7 +1178,15 @@ function NewsFormModal({
     updateEditorContent(lang, nextValue);
   };
 
-  const handleVideoSelected = async (lang: "zh" | "en", file: File) => {
+  const resolveVideoUploadErrorMessage = (err: unknown) => {
+    if (err instanceof Error && err.message) return err.message;
+    return language === "zh" ? "视频上传失败" : "Failed to upload video";
+  };
+
+  const uploadVideoForLanguage = async (
+    lang: "zh" | "en",
+    file: File
+  ): Promise<string | null> => {
     if (!isSupportedNewsVideoType(file.type)) {
       setVideoError((prev) => ({
         ...prev,
@@ -1187,32 +1195,33 @@ function NewsFormModal({
             ? "仅支持 MP4、WebM、OGG 视频"
             : "Only MP4, WebM, and OGG videos are supported",
       }));
-      return;
+      return null;
     }
 
     setVideoError((prev) => ({ ...prev, [lang]: null }));
     setVideoUploading((prev) => ({ ...prev, [lang]: true }));
 
     try {
-      const publicUrl = await uploadNewsVideo({
+      return await uploadNewsVideo({
         file,
         articleId: formData.id || undefined,
       });
-      insertVideoIntoEditor(lang, publicUrl);
     } catch (err) {
       console.error("[admin-news] upload video failed", err);
       setVideoError((prev) => ({
         ...prev,
-        [lang]:
-          err instanceof Error && err.message
-            ? err.message
-            : language === "zh"
-              ? "视频上传失败"
-              : "Failed to upload video",
+        [lang]: resolveVideoUploadErrorMessage(err),
       }));
+      return null;
     } finally {
       setVideoUploading((prev) => ({ ...prev, [lang]: false }));
     }
+  };
+
+  const handleVideoSelected = async (lang: "zh" | "en", file: File) => {
+    const publicUrl = await uploadVideoForLanguage(lang, file);
+    if (!publicUrl) return;
+    insertVideoIntoEditor(lang, publicUrl);
   };
 
   // Quill editor modules configuration
@@ -1851,6 +1860,11 @@ function NewsFormModal({
               onClose={() => setFullscreenEditor(null)}
               modules={modules}
               formats={formats}
+              uploading={videoUploading[fullscreenEditor]}
+              uploadError={videoError[fullscreenEditor]}
+              onSelectVideo={(file) =>
+                uploadVideoForLanguage(fullscreenEditor, file)
+              }
             />
           )}
         </AnimatePresence>
@@ -1873,6 +1887,9 @@ function FullscreenEditorModal({
   onClose,
   modules,
   formats,
+  uploading,
+  uploadError,
+  onSelectVideo,
 }: {
   lang: "zh" | "en";
   content: string;
@@ -1880,12 +1897,42 @@ function FullscreenEditorModal({
   onClose: () => void;
   modules: NonNullable<ReactQuillProps["modules"]>;
   formats: string[];
+  uploading: boolean;
+  uploadError: string | null;
+  onSelectVideo: (file: File) => Promise<string | null>;
 }) {
   const { language, t } = useLanguage();
+  const fullscreenEditorRef = useRef<ReactQuill | null>(null);
   const [editContent, setEditContent] = useState(content);
 
+  useEffect(() => {
+    setEditContent(content);
+  }, [content]);
+
+  const handleClose = () => {
+    if (uploading) return;
+    onClose();
+  };
+
   const handleSave = () => {
+    if (uploading) return;
     onSave(editContent);
+  };
+
+  const insertVideoIntoFullscreenEditor = (videoUrl: string) => {
+    const quill = fullscreenEditorRef.current?.getEditor();
+    if (quill) {
+      setEditContent(insertNewsVideoIntoEditor(quill, videoUrl));
+      return;
+    }
+
+    setEditContent((prev) => `${prev}${buildNewsVideoEmbedHtml(videoUrl)}`);
+  };
+
+  const handleVideoSelected = async (file: File) => {
+    const publicUrl = await onSelectVideo(file);
+    if (!publicUrl) return;
+    insertVideoIntoFullscreenEditor(publicUrl);
   };
 
   const langLabel =
@@ -1897,14 +1944,16 @@ function FullscreenEditorModal({
         ? "英文"
         : "English";
 
-  return (
+  const modal = (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/90 flex flex-col z-[60]"
+      className="fixed inset-0 z-[60] bg-black/90 p-4"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
+        if (event.target === event.currentTarget && !uploading) {
+          handleClose();
+        }
       }}
     >
       <motion.div
@@ -1913,7 +1962,7 @@ function FullscreenEditorModal({
         exit={{ scale: 0.95, opacity: 0 }}
         onMouseDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
-        className="flex-1 flex flex-col m-4"
+        className="mx-auto flex h-full w-full max-w-6xl flex-col"
       >
         {/* Header */}
         <div className="bg-gradient-to-r from-[#2B5F9E] to-[#6BA868] text-white p-4 sm:p-6 rounded-t-2xl flex-shrink-0">
@@ -1928,7 +1977,8 @@ function FullscreenEditorModal({
             <div className="flex items-center gap-2">
               <button
                 onClick={handleSave}
-                className="flex items-center gap-2 px-4 py-2 bg-[#6BA868] hover:bg-[#5a9157] rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-[#6BA868] hover:bg-[#5a9157] rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                disabled={uploading}
               >
                 <Save className="w-5 h-5" />
                 <span className="hidden sm:inline">
@@ -1936,8 +1986,9 @@ function FullscreenEditorModal({
                 </span>
               </button>
               <button
-                onClick={onClose}
-                className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                onClick={handleClose}
+                className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                disabled={uploading}
               >
                 <Minimize2 className="w-5 h-5" />
                 <span className="hidden sm:inline">
@@ -1949,20 +2000,44 @@ function FullscreenEditorModal({
         </div>
 
         {/* Editor Content */}
-        <div className="flex-1 bg-white rounded-b-2xl overflow-hidden flex flex-col">
-          <div className="flex-1 p-4 overflow-auto">
+        <div className="flex-1 min-h-0 bg-white rounded-b-2xl p-4 flex flex-col">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 pb-3">
+            <p className="text-xs text-gray-500">
+              {language === "zh"
+                ? "全屏模式下也可上传并插入 MP4/WebM/OGG 视频"
+                : "You can upload and insert MP4/WebM/OGG videos in fullscreen mode."}
+            </p>
+            <NewsVideoUploadControl
+              language={language}
+              uploading={uploading}
+              disabled={uploading}
+              onSelectFile={handleVideoSelected}
+            />
+          </div>
+          {uploadError && (
+            <p className="mb-3 text-xs text-red-600" role="alert">
+              {uploadError}
+            </p>
+          )}
+          <div className="flex-1 min-h-0">
             <ReactQuill
+              ref={fullscreenEditorRef}
               theme="snow"
               value={editContent}
               onChange={setEditContent}
               modules={modules}
               formats={formats}
-              className="bg-white h-full"
-              style={{ height: "calc(100% - 42px)" }}
+              className="bg-white h-full news-fullscreen-editor"
             />
           </div>
         </div>
       </motion.div>
     </motion.div>
   );
+
+  if (typeof document === "undefined") {
+    return modal;
+  }
+
+  return createPortal(modal, document.body);
 }
