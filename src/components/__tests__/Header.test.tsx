@@ -45,13 +45,13 @@ vi.mock("motion/react", () => {
 });
 
 describe("Header", () => {
-  it("uses a balanced desktop grid layout to keep navigation centered", () => {
+  it("uses the desktop flex layout with centered navigation in the header row", () => {
     const html = renderToStaticMarkup(
       <LanguageProvider>
         <Header />
       </LanguageProvider>
     );
 
-    expect(html).toContain("md:grid-cols-[1fr_auto_1fr]");
+    expect(html).toContain("hidden md:flex flex-1 items-center justify-center");
   });
 });

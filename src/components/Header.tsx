@@ -30,7 +30,7 @@ export function Header() {
       <nav className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-8">
         <div className="grid h-16 grid-cols-[auto_1fr] items-center gap-3 sm:h-20 sm:gap-4 md:grid-cols-[1fr_auto_1fr] md:gap-6">
           {/* Logo */}
-          <div className="w-36 sm:w-44 shrink-0 md:justify-self-start">
+          <div className="w-36 sm:w-44 shrink-0">
             <Link href="/" className="flex items-center gap-2 sm:gap-3">
               <img
                 src={logoUrl}
