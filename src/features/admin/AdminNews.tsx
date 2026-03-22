@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "motion/react";
@@ -20,6 +20,7 @@ import { createPortal } from "react-dom";
 import ReactQuill from "react-quill";
 import type { ReactQuillProps } from "react-quill";
 import { ImageUploadModal } from "@/components/ImageUploadModal";
+import { NewsVideoUploadControl } from "@/components/admin/NewsVideoUploadControl";
 import { ProcessingOverlay } from "@/components/ProcessingOverlay";
 import { useProcessingFeedback } from "@/hooks/useProcessingFeedback";
 import { AdminConfirmDialog } from "@/components/AdminConfirmDialog";
@@ -31,10 +32,18 @@ import {
   saveNewsDraft,
   deleteArticle,
   deleteDraft,
+  uploadNewsVideo,
   type NewsPostRecord,
   type ArticleVersionRecord,
 } from "@/lib/supabaseApi";
 import { pickLocalized } from "@/lib/supabaseHelpers";
+import {
+  buildNewsVideoEmbedHtml,
+  ensureNewsVideoBlotRegistered,
+  hasPendingNewsMediaUploads,
+  insertNewsVideoIntoEditor,
+  isSupportedNewsVideoType,
+} from "@/lib/newsMedia";
 import {
   type ErrorMessages,
   type FormErrors,
@@ -45,6 +54,8 @@ import {
   validateField as validateFieldUtil,
   validateForm as validateFormUtil,
 } from "@/lib/formValidation";
+
+ensureNewsVideoBlotRegistered(ReactQuill.Quill);
 
 export function AdminNews() {
   const { language, t } = useLanguage();
@@ -841,6 +852,8 @@ function NewsFormModal({
   isImageUploadModalOpen?: boolean;
 }) {
   const { language, t } = useLanguage();
+  const zhEditorRef = useRef<ReactQuill | null>(null);
+  const enEditorRef = useRef<ReactQuill | null>(null);
   const initialCoverUrl =
     draft?.cover_url ||
     news?.cover_url ||
@@ -898,6 +911,15 @@ function NewsFormModal({
   const [fullscreenEditor, setFullscreenEditor] = useState<"zh" | "en" | null>(
     null
   );
+  const [videoUploading, setVideoUploading] = useState<{
+    zh: boolean;
+    en: boolean;
+  }>({ zh: false, en: false });
+  const [videoError, setVideoError] = useState<{
+    zh: string | null;
+    en: string | null;
+  }>({ zh: null, en: null });
+  const hasPendingVideoUpload = hasPendingNewsMediaUploads(videoUploading);
   const [formData, setFormData] = useState<NewsFormState>(() => {
     const coverSource = draft?.cover_source || news?.cover_source || "";
     const coverUrl = draft?.cover_url || news?.cover_url || uploadedImageUrl;
@@ -1124,12 +1146,73 @@ function NewsFormModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (hasPendingVideoUpload) return;
     onSave(formData);
   };
 
   const handlePublishAttempt = () => {
+    if (hasPendingVideoUpload) return;
     if (!validateBeforePublish()) return;
     onPublish(formData);
+  };
+
+  const updateEditorContent = (lang: "zh" | "en", value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      content: { ...prev.content, [lang]: value },
+    }));
+    handleFieldChange(lang === "zh" ? "contentZh" : "contentEn", value);
+  };
+
+  const insertVideoIntoEditor = (lang: "zh" | "en", videoUrl: string) => {
+    const editorRef = lang === "zh" ? zhEditorRef : enEditorRef;
+    const quill = editorRef.current?.getEditor();
+    if (quill) {
+      updateEditorContent(lang, insertNewsVideoIntoEditor(quill, videoUrl));
+      return;
+    }
+
+    const nextValue = `${formData.content[lang] ?? ""}${buildNewsVideoEmbedHtml(
+      videoUrl
+    )}`;
+    updateEditorContent(lang, nextValue);
+  };
+
+  const handleVideoSelected = async (lang: "zh" | "en", file: File) => {
+    if (!isSupportedNewsVideoType(file.type)) {
+      setVideoError((prev) => ({
+        ...prev,
+        [lang]:
+          language === "zh"
+            ? "仅支持 MP4、WebM、OGG 视频"
+            : "Only MP4, WebM, and OGG videos are supported",
+      }));
+      return;
+    }
+
+    setVideoError((prev) => ({ ...prev, [lang]: null }));
+    setVideoUploading((prev) => ({ ...prev, [lang]: true }));
+
+    try {
+      const publicUrl = await uploadNewsVideo({
+        file,
+        articleId: formData.id || undefined,
+      });
+      insertVideoIntoEditor(lang, publicUrl);
+    } catch (err) {
+      console.error("[admin-news] upload video failed", err);
+      setVideoError((prev) => ({
+        ...prev,
+        [lang]:
+          err instanceof Error && err.message
+            ? err.message
+            : language === "zh"
+              ? "视频上传失败"
+              : "Failed to upload video",
+      }));
+    } finally {
+      setVideoUploading((prev) => ({ ...prev, [lang]: false }));
+    }
   };
 
   // Quill editor modules configuration
@@ -1140,7 +1223,7 @@ function NewsFormModal({
       [{ color: [] }, { background: [] }],
       [{ list: "ordered" }, { list: "bullet" }],
       [{ align: [] }],
-      ["link", "image"],
+      ["link", "image", "video"],
       ["clean"],
     ],
   };
@@ -1158,6 +1241,7 @@ function NewsFormModal({
     "align",
     "link",
     "image",
+    "video",
   ];
 
   const modal = (
@@ -1169,7 +1253,9 @@ function NewsFormModal({
         isImageUploadModalOpen ? "z-[48]" : "z-50"
       }`}
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
+        if (event.target === event.currentTarget && !hasPendingVideoUpload) {
+          onClose();
+        }
       }}
     >
       <motion.div
@@ -1188,6 +1274,7 @@ function NewsFormModal({
             </h2>
             <button
               onClick={onClose}
+              disabled={formLoading || hasPendingVideoUpload}
               className="p-2 hover:bg-white/20 rounded-lg transition-colors"
             >
               <X className="w-6 h-6" />
@@ -1577,18 +1664,27 @@ function NewsFormModal({
                   <label className="block text-gray-700">
                     {t("admin.news.form.contentZh")} *
                   </label>
-                  <button
-                    type="button"
-                    onClick={() => setFullscreenEditor("zh")}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-[#2B5F9E] hover:bg-blue-50 rounded-lg transition-colors"
-                    title={t("admin.news.form.fullscreenEdit")}
-                  >
-                    <Maximize2 className="w-4 h-4" />
-                    <span>{t("admin.news.form.fullscreenEdit")}</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <NewsVideoUploadControl
+                      language={language}
+                      uploading={videoUploading.zh}
+                      disabled={formLoading}
+                      onSelectFile={(file) => handleVideoSelected("zh", file)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setFullscreenEditor("zh")}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-[#2B5F9E] hover:bg-blue-50 rounded-lg transition-colors"
+                      title={t("admin.news.form.fullscreenEdit")}
+                    >
+                      <Maximize2 className="w-4 h-4" />
+                      <span>{t("admin.news.form.fullscreenEdit")}</span>
+                    </button>
+                  </div>
                 </div>
                 <div className="border border-gray-300 rounded-lg overflow-hidden">
                   <ReactQuill
+                    ref={zhEditorRef}
                     theme="snow"
                     value={formData.content.zh}
                     onChange={(value: string) => {
@@ -1614,10 +1710,15 @@ function NewsFormModal({
                     )}
                   </p>
                 )}
+                {videoError.zh && (
+                  <p className="mt-2 text-xs text-red-600" role="alert">
+                    {videoError.zh}
+                  </p>
+                )}
                 <p className="text-xs text-gray-500 mt-2">
                   {language === "zh"
-                    ? "支持富文本格式、插入图片等"
-                    : "Supports rich text formatting and image insertion"}
+                    ? "支持富文本格式、插入图片和 MP4/WebM/OGG 视频"
+                    : "Supports rich text formatting, image insertion, and MP4/WebM/OGG video uploads"}
                 </p>
               </div>
               <div id="contentEn">
@@ -1625,18 +1726,27 @@ function NewsFormModal({
                   <label className="block text-gray-700">
                     {t("admin.news.form.contentEn")} *
                   </label>
-                  <button
-                    type="button"
-                    onClick={() => setFullscreenEditor("en")}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-[#2B5F9E] hover:bg-blue-50 rounded-lg transition-colors"
-                    title={t("admin.news.form.fullscreenEdit")}
-                  >
-                    <Maximize2 className="w-4 h-4" />
-                    <span>{t("admin.news.form.fullscreenEdit")}</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <NewsVideoUploadControl
+                      language={language}
+                      uploading={videoUploading.en}
+                      disabled={formLoading}
+                      onSelectFile={(file) => handleVideoSelected("en", file)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setFullscreenEditor("en")}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-[#2B5F9E] hover:bg-blue-50 rounded-lg transition-colors"
+                      title={t("admin.news.form.fullscreenEdit")}
+                    >
+                      <Maximize2 className="w-4 h-4" />
+                      <span>{t("admin.news.form.fullscreenEdit")}</span>
+                    </button>
+                  </div>
                 </div>
                 <div className="border border-gray-300 rounded-lg overflow-hidden">
                   <ReactQuill
+                    ref={enEditorRef}
                     theme="snow"
                     value={formData.content.en}
                     onChange={(value: string) => {
@@ -1662,10 +1772,15 @@ function NewsFormModal({
                     )}
                   </p>
                 )}
+                {videoError.en && (
+                  <p className="mt-2 text-xs text-red-600" role="alert">
+                    {videoError.en}
+                  </p>
+                )}
                 <p className="text-xs text-gray-500 mt-2">
                   {language === "zh"
-                    ? "支持富文本格式、插入图片等"
-                    : "Supports rich text formatting and image insertion"}
+                    ? "支持富文本格式、插入图片和 MP4/WebM/OGG 视频"
+                    : "Supports rich text formatting, image insertion, and MP4/WebM/OGG video uploads"}
                 </p>
               </div>
             </div>
@@ -1677,14 +1792,14 @@ function NewsFormModal({
               type="button"
               onClick={onClose}
               className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-center disabled:opacity-60 disabled:cursor-not-allowed"
-              disabled={formLoading}
+              disabled={formLoading || hasPendingVideoUpload}
             >
               {language === "zh" ? "取消" : "Cancel"}
             </button>
             <button
               type="submit"
               className="flex-1 px-6 py-3 bg-[#6BA868] text-white rounded-lg hover:bg-[#5a9157] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-              disabled={formLoading}
+              disabled={formLoading || hasPendingVideoUpload}
             >
               <Save className="w-5 h-5" />
               {formLoading
@@ -1699,7 +1814,7 @@ function NewsFormModal({
               type="button"
               onClick={handlePublishAttempt}
               className="flex-1 px-6 py-3 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-              disabled={formLoading}
+              disabled={formLoading || hasPendingVideoUpload}
             >
               <Save className="w-5 h-5" />
               {formLoading
@@ -1711,6 +1826,13 @@ function NewsFormModal({
                   : "Publish"}
             </button>
           </div>
+          {hasPendingVideoUpload && (
+            <p className="mt-3 text-sm text-amber-700">
+              {language === "zh"
+                ? "视频仍在上传，上传完成后才能关闭、保存或发布。"
+                : "A video upload is still in progress. Wait for it to finish before closing, saving, or publishing."}
+            </p>
+          )}
         </form>
 
         {/* Fullscreen Editor Modal */}

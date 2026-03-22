@@ -364,6 +364,9 @@ verify_jwt = false
 [functions.news-publish]
 verify_jwt = false
 
+[functions.news-media]
+verify_jwt = false
+
 [functions.payment-proofs]
 verify_jwt = false
 

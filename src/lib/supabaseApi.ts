@@ -468,6 +468,36 @@ export async function uploadPaymentProof(payload: {
   return body.path;
 }
 
+export async function uploadNewsVideo(payload: {
+  file: File;
+  articleId?: string;
+}) {
+  const formData = new FormData();
+  formData.append("file", payload.file);
+  if (payload.articleId) {
+    formData.append("articleId", payload.articleId);
+  }
+
+  const res = await callEdgeFunction("news-media", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+    },
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(detail || "Failed to upload news video");
+  }
+
+  const body = (await res.json()) as { publicUrl?: string };
+  if (!body?.publicUrl) {
+    throw new Error("Missing uploaded news video URL");
+  }
+  return body.publicUrl;
+}
+
 export async function getPaymentProofSignedUrl(path: string, expiresIn = 3600) {
   const params = new URLSearchParams({
     path,

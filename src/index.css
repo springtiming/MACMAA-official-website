@@ -4052,6 +4052,16 @@ html {
   margin: 1rem 0;
 }
 
+.news-content video,
+.ql-editor video,
+.news-inline-video {
+  width: 100%;
+  max-width: 100%;
+  border-radius: 0.75rem;
+  margin: 1rem 0;
+  background: #000;
+}
+
 .news-content ul,
 .news-content ol {
   margin-bottom: 0.75rem;
