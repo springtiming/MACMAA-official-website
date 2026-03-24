@@ -4069,8 +4069,24 @@ html {
 }
 
 .news-content video,
+.news-content .news-inline-video {
+  width: 85%;
+  max-width: 85%;
+  border-radius: 0.75rem;
+  margin: 1rem auto;
+  background: #000;
+}
+
+@media (min-width: 1024px) {
+  .news-content video,
+  .news-content .news-inline-video {
+    width: 80%;
+    max-width: 80%;
+  }
+}
+
 .ql-editor video,
-.news-inline-video {
+.ql-editor .news-inline-video {
   width: 100%;
   max-width: 100%;
   border-radius: 0.75rem;

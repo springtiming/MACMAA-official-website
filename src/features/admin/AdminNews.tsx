@@ -711,14 +711,12 @@ type NewsFormState = {
   title: { zh: string; en: string };
   summary: { zh: string; en: string };
   content: { zh: string; en: string };
-  date: string;
   image: string;
   imageKeyword: string;
   imageType: "unsplash" | "upload";
 };
 
 type NewsValidationFields = {
-  date: string;
   titleZh: string;
   titleEn: string;
   summaryZh: string;
@@ -738,11 +736,6 @@ const hasRichTextContent = (value: string): boolean => {
 };
 
 const newsValidationRules: ValidationRules<NewsValidationFields> = {
-  date: {
-    pattern: /^\d{4}-\d{2}-\d{2}$/,
-    errorType: "invalidDate",
-    required: true,
-  },
   titleZh: {
     pattern: /^.{2,120}$/,
     errorType: "invalidTitleZh",
@@ -780,10 +773,6 @@ const newsErrorMessages: ErrorMessages = {
     zh: "此字段为必填项",
     en: "This field is required",
   },
-  invalidDate: {
-    zh: "请选择发布日期",
-    en: "Please select a publish date",
-  },
   invalidTitleZh: {
     zh: "请输入至少2个字符的中文标题",
     en: "Enter a Chinese title with at least 2 characters",
@@ -813,7 +802,6 @@ const newsErrorMessages: ErrorMessages = {
 const mapNewsFormToValidation = (
   data: NewsFormState
 ): NewsValidationFields => ({
-  date: data.date,
   titleZh: data.title.zh.trim(),
   titleEn: data.title.en.trim(),
   summaryZh: data.summary.zh.trim(),
@@ -934,7 +922,6 @@ function NewsFormModal({
         title: { zh: draft.title_zh ?? "", en: draft.title_en ?? "" },
         summary: { zh: draft.summary_zh ?? "", en: draft.summary_en ?? "" },
         content: { zh: draft.content_zh ?? "", en: draft.content_en ?? "" },
-        date: new Date().toISOString().split("T")[0],
         image:
           isCoverImageUrl && imageSource === "unsplash" && !isCoverUnsplash
             ? ""
@@ -949,9 +936,6 @@ function NewsFormModal({
         title: { zh: news.title_zh ?? "", en: news.title_en ?? "" },
         summary: { zh: news.summary_zh ?? "", en: news.summary_en ?? "" },
         content: { zh: news.content_zh ?? "", en: news.content_en ?? "" },
-        date: news.published_at
-          ? news.published_at.slice(0, 10)
-          : new Date().toISOString().split("T")[0],
         image:
           isCoverImageUrl && imageSource === "unsplash" && !isCoverUnsplash
             ? ""
@@ -965,7 +949,6 @@ function NewsFormModal({
       title: { zh: "", en: "" },
       summary: { zh: "", en: "" },
       content: { zh: "", en: "" },
-      date: new Date().toISOString().split("T")[0],
       image: coverUrl || coverSource || "",
       imageKeyword: coverKeyword || "",
       imageType: imageSource,
@@ -1294,33 +1277,6 @@ function NewsFormModal({
         {/* Scrollable Form Content */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6">
           <div className="space-y-6">
-            {/* Date */}
-            <div>
-              <label className="block text-gray-700 mb-2">
-                {t("admin.news.form.date")} *
-              </label>
-              <input
-                id="date"
-                type="date"
-                value={formData.date}
-                onChange={(e) => {
-                  setFormData({ ...formData, date: e.target.value });
-                  handleFieldChange("date", e.target.value);
-                }}
-                onBlur={() => handleFieldBlur("date")}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
-              />
-              {touched.date && errors.date && (
-                <p className="mt-1 text-xs text-red-600" role="alert">
-                  {getErrorMessage(
-                    errors.date,
-                    validationConfig.errorMessages,
-                    language
-                  )}
-                </p>
-              )}
-            </div>
-
             {/* Image Section - Unsplash or Upload */}
             <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
               <h3 className="text-gray-700 mb-4">
@@ -1724,11 +1680,6 @@ function NewsFormModal({
                     {videoError.zh}
                   </p>
                 )}
-                <p className="text-xs text-gray-500 mt-2">
-                  {language === "zh"
-                    ? "支持富文本格式、插入图片和 MP4/WebM/OGG 视频"
-                    : "Supports rich text formatting, image insertion, and MP4/WebM/OGG video uploads"}
-                </p>
               </div>
               <div id="contentEn">
                 <div className="flex items-center justify-between mb-2">
@@ -1786,11 +1737,6 @@ function NewsFormModal({
                     {videoError.en}
                   </p>
                 )}
-                <p className="text-xs text-gray-500 mt-2">
-                  {language === "zh"
-                    ? "支持富文本格式、插入图片和 MP4/WebM/OGG 视频"
-                    : "Supports rich text formatting, image insertion, and MP4/WebM/OGG video uploads"}
-                </p>
               </div>
             </div>
           </div>
@@ -2001,12 +1947,7 @@ function FullscreenEditorModal({
 
         {/* Editor Content */}
         <div className="flex-1 min-h-0 bg-white rounded-b-2xl p-4 flex flex-col">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 pb-3">
-            <p className="text-xs text-gray-500">
-              {language === "zh"
-                ? "全屏模式下也可上传并插入 MP4/WebM/OGG 视频"
-                : "You can upload and insert MP4/WebM/OGG videos in fullscreen mode."}
-            </p>
+          <div className="mb-3 flex items-center justify-end border-b border-gray-200 pb-3">
             <NewsVideoUploadControl
               language={language}
               uploading={uploading}
