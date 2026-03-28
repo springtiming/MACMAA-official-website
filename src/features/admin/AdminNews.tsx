@@ -54,6 +54,7 @@ import {
   validateField as validateFieldUtil,
   validateForm as validateFormUtil,
 } from "@/lib/formValidation";
+import { isWithinCharacterLimit } from "@/lib/textLength";
 
 ensureNewsVideoBlotRegistered(ReactQuill.Quill);
 
@@ -735,6 +736,9 @@ const hasRichTextContent = (value: string): boolean => {
   return text.length > 0;
 };
 
+const isWithinSummaryLimit = (value: string): boolean =>
+  isWithinCharacterLimit(value, 200);
+
 const newsValidationRules: ValidationRules<NewsValidationFields> = {
   titleZh: {
     pattern: /^.{2,120}$/,
@@ -747,12 +751,12 @@ const newsValidationRules: ValidationRules<NewsValidationFields> = {
     required: true,
   },
   summaryZh: {
-    pattern: /^.{0,200}$/,
+    validate: isWithinSummaryLimit,
     errorType: "invalidSummaryZh",
     required: true,
   },
   summaryEn: {
-    pattern: /^.{0,200}$/,
+    validate: isWithinSummaryLimit,
     errorType: "invalidSummaryEn",
     required: true,
   },
@@ -1571,6 +1575,7 @@ function NewsFormModal({
                 <textarea
                   id="summaryZh"
                   value={formData.summary.zh}
+                  maxLength={200}
                   onChange={(e) => {
                     setFormData({
                       ...formData,
@@ -1599,6 +1604,7 @@ function NewsFormModal({
                 <textarea
                   id="summaryEn"
                   value={formData.summary.en}
+                  maxLength={200}
                   onChange={(e) => {
                     setFormData({
                       ...formData,

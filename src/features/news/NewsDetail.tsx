@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "motion/react";
-import { Calendar, ArrowLeft, Share2 } from "lucide-react";
+import { Calendar, ArrowLeft, Share2, Quote } from "lucide-react";
 import { fetchNewsPostById, type NewsPostRecord } from "@/lib/supabaseApi";
 import { pickLocalized, resolveNewsCover } from "@/lib/supabaseHelpers";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
@@ -109,6 +109,9 @@ export function NewsDetail({ initialNews }: NewsDetailProps) {
     );
   }
 
+  const summary =
+    pickLocalized(news.summary_zh, news.summary_en, language)?.trim() ?? "";
+
   return (
     <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-12">
       <motion.div
@@ -177,6 +180,27 @@ export function NewsDetail({ initialNews }: NewsDetailProps) {
             </motion.button>
           </div>
         </div>
+
+        {summary ? (
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="mb-10 relative"
+          >
+            <div className="absolute -left-4 top-0 bottom-0 w-1.5 bg-[#2B5F9E] rounded-full hidden sm:block" />
+            <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl p-6 sm:p-8 shadow-sm">
+              <div className="flex items-center gap-2 mb-4 text-[#2B5F9E]">
+                <Quote className="w-5 h-5 fill-current opacity-20" />
+                <span className="text-sm font-bold uppercase tracking-widest">
+                  {language === "zh" ? "内容提要" : "Summary"}
+                </span>
+              </div>
+              <p className="text-[#475569] text-lg sm:text-xl leading-relaxed italic font-medium">
+                {summary}
+              </p>
+            </div>
+          </motion.div>
+        ) : null}
 
         {/* Article Content */}
         <div className="prose prose-lg max-w-none prose-img:rounded-xl prose-img:w-full prose-p:my-3">
