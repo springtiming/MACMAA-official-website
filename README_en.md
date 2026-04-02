@@ -1,56 +1,120 @@
 # MACMAA Official Website
 
-[中文](README.md)
+[中文](./README.md)
 
-## Project Overview
+## Overview
 
-This is the official website project for Manningham Australian Chinese Mutual Aid Association (MACMAA). Built with modern React + TypeScript technology stack, the website provides comprehensive community services including news publishing, event management, membership application system, and other core features.
+The MACMAA Official Website repository powers the public-facing website for the Manningham Australian Chinese Mutual Aid Association. It is built with Next.js and TypeScript and supports community-facing journeys such as news publishing, event registration, membership applications, volunteer workflows, and administrative operations, while also supporting bilingual presentation and SEO-oriented rendering.
 
-### Key Features
+## Key Capabilities
 
-- Full bilingual support (Chinese/English)
-- News publishing and management
-- Event center with online registration
-- Membership application and management
-- Modern responsive design
-- Next.js routing + pre-rendering (better for SEO)
+- Bilingual Chinese and English user experience
+- News listing, article detail pages, and admin-side news management
+- Event discovery, event detail pages, online registration, and payment review workflows
+- Membership applications, member-code verification, and membership-related pricing logic
+- Volunteer application flows with administrative review support
+- Admin modules for accounts, news, events, members, volunteers, and site settings
+- SEO configuration, sitemap generation, and production-ready pre-rendering
 
-### Tech Stack
+## Tech Stack
 
-- **Frontend Framework**: Next.js (React 18) + TypeScript
-- **Styling**: Tailwind CSS
+- **Application Framework**: Next.js 14, React 18, TypeScript
+- **UI Layer**: Tailwind CSS, Radix UI, custom component library
 - **Animation**: Framer Motion
-- **Backend**: Supabase
-- **Deployment**: Vercel
+- **Backend Integration**: Supabase
+- **Payments and Notifications**: Stripe, Resend
+- **Deployment Target**: Vercel
 
-### Quick Start
+## Repository Structure
 
-```bash
-# Install dependencies
-npm install
-
-# Start frontend dev server (Next.js)
-npm run dev
-
-# If you also need local Vercel Functions (root `api/*`), run:
-npm run dev:api
-
-# Build for production
-npm run build
+```text
+.
+|-- public/              Static assets and public site files
+|-- src/
+|   |-- components/      Shared components and UI primitives
+|   |-- config/          Site-level configuration
+|   |-- contexts/        Language and global context providers
+|   |-- features/        Feature-oriented business modules
+|   |-- lib/             Shared client-side utilities
+|   |-- pages/           Next.js pages and API routes
+|   `-- server/          Server-side helpers
+|-- supabase/            Supabase configuration and database migrations
+|-- vercel.json          Deployment and local function settings
+`-- README.md            Chinese documentation
 ```
 
-## License
+## Local Development
 
-This project is licensed under the MIT License.
+### Prerequisites
 
-See the [LICENSE](LICENSE) file for details.
+- Node.js
+- npm
+- Project environment variables configured in `.env.local`
 
-## Client Assets
+### Install and Run
 
-All text, images, logos, and design materials belong to Manningham Australian Chinese Mutual Aid Association.
+```bash
+npm install
+npm run dev
+```
 
-These assets are included for portfolio demonstration only and are not licensed for reuse.
+The standard development workflow runs on the Next.js development server. If you need to emulate the local Vercel runtime, use:
 
-## Authorization
+```bash
+npm run dev:api
+```
 
-This repository is published with the permission of Manningham Australian Chinese Mutual Aid Association for portfolio purposes only.
+## Available Scripts
+
+```bash
+# Start the Next.js development server
+npm run dev
+
+# Emulate the Vercel local environment
+npm run dev:api
+
+# Create a production build
+npm run build
+
+# Serve the production build
+npm run start
+
+# Run quality checks
+npm run lint
+npm run type-check
+npm run test
+npm run check
+```
+
+## Quality Checks
+
+The repository includes automated tests for frontend logic and server-side helpers, alongside static validation steps:
+
+- `npm run test`: runs the Vitest suite
+- `npm run lint`: runs ESLint
+- `npm run type-check`: runs TypeScript type checking
+- `npm run check`: aggregates formatting, linting, and type validation
+
+## Deployment Notes
+
+- Production deployment targets Vercel
+- The repository includes `vercel.json` and a dedicated `supabase/` directory for environment configuration and database migrations
+- Full application flows require valid `.env.local` secrets for services such as Supabase, Stripe, email delivery, and related integrations
+
+## Licensing and Asset Use
+
+### Source Code License
+
+The source code is distributed under the [MIT License](./LICENSE).
+
+### Client Asset Notice
+
+All text, imagery, logos, and design assets in this repository belong to the Manningham Australian Chinese Mutual Aid Association. They are not licensed for reuse, redistribution, or adaptation without explicit permission.
+
+### Authorization
+
+This repository is published with the association's permission for official website work and portfolio presentation.
+
+## Project Status
+
+This repository is actively maintained as a production-oriented community website codebase, covering both public site experiences and internal administrative workflows.
