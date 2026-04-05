@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "motion/react";
@@ -1802,13 +1802,10 @@ function NewsFormModal({
             <FullscreenEditorModal
               lang={fullscreenEditor}
               content={formData.content[fullscreenEditor]}
-              onSave={(content) => {
-                setFormData({
-                  ...formData,
-                  content: { ...formData.content, [fullscreenEditor]: content },
-                });
-                setFullscreenEditor(null);
-              }}
+              onChange={(content) =>
+                updateEditorContent(fullscreenEditor, content)
+              }
+              onSave={() => setFullscreenEditor(null)}
               onClose={() => setFullscreenEditor(null)}
               modules={modules}
               formats={formats}
@@ -1832,9 +1829,10 @@ function NewsFormModal({
 }
 
 // Fullscreen Editor Modal Component
-function FullscreenEditorModal({
+export function FullscreenEditorModal({
   lang,
   content,
+  onChange,
   onSave,
   onClose,
   modules,
@@ -1845,7 +1843,8 @@ function FullscreenEditorModal({
 }: {
   lang: "zh" | "en";
   content: string;
-  onSave: (content: string) => void;
+  onChange: (content: string) => void;
+  onSave: () => void;
   onClose: () => void;
   modules: NonNullable<ReactQuillProps["modules"]>;
   formats: string[];
@@ -1855,11 +1854,6 @@ function FullscreenEditorModal({
 }) {
   const { language, t } = useLanguage();
   const fullscreenEditorRef = useRef<ReactQuill | null>(null);
-  const [editContent, setEditContent] = useState(content);
-
-  useEffect(() => {
-    setEditContent(content);
-  }, [content]);
 
   const handleClose = () => {
     if (uploading) return;
@@ -1868,17 +1862,17 @@ function FullscreenEditorModal({
 
   const handleSave = () => {
     if (uploading) return;
-    onSave(editContent);
+    onSave();
   };
 
   const insertVideoIntoFullscreenEditor = (videoUrl: string) => {
     const quill = fullscreenEditorRef.current?.getEditor();
     if (quill) {
-      setEditContent(insertNewsVideoIntoEditor(quill, videoUrl));
+      onChange(insertNewsVideoIntoEditor(quill, videoUrl));
       return;
     }
 
-    setEditContent((prev) => `${prev}${buildNewsVideoEmbedHtml(videoUrl)}`);
+    onChange(`${content}${buildNewsVideoEmbedHtml(videoUrl)}`);
   };
 
   const handleVideoSelected = async (file: File) => {
@@ -1970,8 +1964,8 @@ function FullscreenEditorModal({
             <ReactQuill
               ref={fullscreenEditorRef}
               theme="snow"
-              value={editContent}
-              onChange={setEditContent}
+              value={content}
+              onChange={onChange}
               modules={modules}
               formats={formats}
               className="bg-white h-full news-fullscreen-editor"

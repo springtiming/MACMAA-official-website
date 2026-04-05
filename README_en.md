@@ -50,6 +50,7 @@ The MACMAA Official Website repository powers the public-facing website for the 
 - Node.js
 - npm
 - Project environment variables configured in `.env.local`
+- See [`docs/环境变量配置说明.md`](./docs/环境变量配置说明.md) for the full Vercel / Supabase env setup guide
 
 ### Install and Run
 
@@ -99,7 +100,9 @@ The repository includes automated tests for frontend logic and server-side helpe
 
 - Production deployment targets Vercel
 - The repository includes `vercel.json` and a dedicated `supabase/` directory for environment configuration and database migrations
-- Full application flows require valid `.env.local` secrets for services such as Supabase, Stripe, email delivery, and related integrations
+- Full application flows require valid Vercel env vars and Supabase Edge Function Secrets
+- Start local setup from `env.template`
+- Detailed setup notes live in [`docs/环境变量配置说明.md`](./docs/环境变量配置说明.md)
 
 ## Licensing and Asset Use
 
