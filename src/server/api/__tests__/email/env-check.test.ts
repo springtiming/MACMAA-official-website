@@ -16,7 +16,7 @@ describe("Environment Variables Check", () => {
         console.warn("⚠️  RESEND_API_KEY 未设置。请在 .env.local 文件中配置。");
       }
       // 这个测试不会失败，只是检查环境变量是否存在
-      expect(typeof apiKey).toBe("string");
+      expect(apiKey === undefined || typeof apiKey === "string").toBe(true);
     });
 
     it("should load TEST_EMAIL from .env.local", () => {
@@ -25,7 +25,9 @@ describe("Environment Variables Check", () => {
         console.warn("⚠️  TEST_EMAIL 未设置。请在 .env.local 文件中配置。");
       }
       // 这个测试不会失败，只是检查环境变量是否存在
-      expect(typeof testEmail).toBe("string");
+      expect(testEmail === undefined || typeof testEmail === "string").toBe(
+        true
+      );
     });
   }
 

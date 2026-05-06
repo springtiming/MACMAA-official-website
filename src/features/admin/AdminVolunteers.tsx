@@ -185,7 +185,9 @@ export function AdminVolunteers() {
     if (base === "-") return "-";
     if (otherText?.trim()) {
       const suffix =
-        language === "zh" ? `；其他：${otherText.trim()}` : `; other: ${otherText.trim()}`;
+        language === "zh"
+          ? `；其他：${otherText.trim()}`
+          : `; other: ${otherText.trim()}`;
       return base + suffix;
     }
     return base;

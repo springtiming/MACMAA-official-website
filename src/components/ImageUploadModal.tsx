@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "motion/react";
 import { X, Upload } from "lucide-react";
@@ -19,12 +19,19 @@ export function ImageUploadModal({
   const { language } = useLanguage();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const mountedRef = useRef(true);
+  const readerRef = useRef<FileReader | null>(null);
   const MAX_FILE_SIZE = 8 * 1024 * 1024; // 8MB
 
   // 当弹窗打开时，降低 Header 的 z-index
   useEffect(() => {
     document.body.classList.add("image-upload-modal-open");
     return () => {
+      mountedRef.current = false;
+      if (readerRef.current?.readyState === FileReader.LOADING) {
+        readerRef.current.abort();
+      }
+      readerRef.current = null;
       document.body.classList.remove("image-upload-modal-open");
     };
   }, []);
@@ -51,7 +58,9 @@ export function ImageUploadModal({
     }
 
     const reader = new FileReader();
+    readerRef.current = reader;
     reader.onload = (e) => {
+      if (!mountedRef.current) return;
       const result = e.target?.result;
       if (typeof result === "string") {
         setSelectedImage(result);
@@ -61,6 +70,11 @@ export function ImageUploadModal({
             ? "读取图片失败，请重试或更换图片"
             : "Failed to read image, please try again or choose another file"
         );
+      }
+    };
+    reader.onloadend = () => {
+      if (readerRef.current === reader) {
+        readerRef.current = null;
       }
     };
     reader.readAsDataURL(file);

@@ -21,7 +21,8 @@ export function getMemberCodeDialogCopy(language: MemberCodeDialogLanguage) {
   if (language === "zh") {
     return {
       closeButtonLabel: "关闭",
-      description: "请滚动阅读完整会员守则，阅读完毕后可通过顶部关闭按钮或底部关闭按钮退出。",
+      description:
+        "请滚动阅读完整会员守则，阅读完毕后可通过顶部关闭按钮或底部关闭按钮退出。",
     };
   }
 

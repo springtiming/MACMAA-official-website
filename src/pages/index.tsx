@@ -5,9 +5,7 @@ type HomePageProps = {
   splashComplete?: boolean;
 };
 
-export default function HomePage({
-  splashComplete = false,
-}: HomePageProps) {
+export default function HomePage({ splashComplete = false }: HomePageProps) {
   return (
     <>
       <PageSeo

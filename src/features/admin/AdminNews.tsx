@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "motion/react";
@@ -106,6 +106,13 @@ export function AdminNews() {
     showError: showProcessingError,
     reset: resetProcessing,
   } = useProcessingFeedback();
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const getFeedbackMessages = (
     action: "save" | "publish" | "delete" | "deleteDraft"
@@ -352,12 +359,14 @@ export function AdminNews() {
               content_en: news.content.en,
               ...coverFields,
             });
+            if (!isMountedRef.current) return;
             versionId = draft.id;
             setEditingDraft(draft);
             setEditingArticle(null);
           }
 
           const result = await publishNewsFromDraft(versionId!);
+          if (!isMountedRef.current) return;
           setNewsList((prev) => {
             const exists = prev.some((n) => n.id === result.article.id);
             if (exists) {
@@ -373,8 +382,10 @@ export function AdminNews() {
           setEditingDraft(null);
           setSuccess(language === "zh" ? "发布成功" : "Published");
           const drafts = await fetchMyDrafts();
+          if (!isMountedRef.current) return;
           setDraftList(drafts);
         } catch (err) {
+          if (!isMountedRef.current) return;
           setError(t("common.error"));
           const localArticle: NewsPostRecord = {
             id: normalizeArticleId(news.id, editingArticle?.id) ?? createUuid(),
@@ -416,7 +427,9 @@ export function AdminNews() {
     } catch (err) {
       console.error("[AdminNews] publish news", err);
     } finally {
-      setFormLoading(false);
+      if (isMountedRef.current) {
+        setFormLoading(false);
+      }
     }
   };
 
@@ -846,6 +859,14 @@ function NewsFormModal({
   const { language, t } = useLanguage();
   const zhEditorRef = useRef<ReactQuill | null>(null);
   const enEditorRef = useRef<ReactQuill | null>(null);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   const initialCoverUrl =
     draft?.cover_url ||
     news?.cover_url ||
@@ -1189,11 +1210,14 @@ function NewsFormModal({
     setVideoUploading((prev) => ({ ...prev, [lang]: true }));
 
     try {
-      return await uploadNewsVideo({
+      const publicUrl = await uploadNewsVideo({
         file,
         articleId: formData.id || undefined,
       });
+      if (!isMountedRef.current) return null;
+      return publicUrl;
     } catch (err) {
+      if (!isMountedRef.current) return null;
       console.error("[admin-news] upload video failed", err);
       setVideoError((prev) => ({
         ...prev,
@@ -1201,7 +1225,9 @@ function NewsFormModal({
       }));
       return null;
     } finally {
-      setVideoUploading((prev) => ({ ...prev, [lang]: false }));
+      if (isMountedRef.current) {
+        setVideoUploading((prev) => ({ ...prev, [lang]: false }));
+      }
     }
   };
 
@@ -1802,13 +1828,10 @@ function NewsFormModal({
             <FullscreenEditorModal
               lang={fullscreenEditor}
               content={formData.content[fullscreenEditor]}
-              onSave={(content) => {
-                setFormData({
-                  ...formData,
-                  content: { ...formData.content, [fullscreenEditor]: content },
-                });
-                setFullscreenEditor(null);
-              }}
+              onChange={(content) =>
+                updateEditorContent(fullscreenEditor, content)
+              }
+              onSave={() => setFullscreenEditor(null)}
               onClose={() => setFullscreenEditor(null)}
               modules={modules}
               formats={formats}
@@ -1832,9 +1855,10 @@ function NewsFormModal({
 }
 
 // Fullscreen Editor Modal Component
-function FullscreenEditorModal({
+export function FullscreenEditorModal({
   lang,
   content,
+  onChange,
   onSave,
   onClose,
   modules,
@@ -1845,7 +1869,8 @@ function FullscreenEditorModal({
 }: {
   lang: "zh" | "en";
   content: string;
-  onSave: (content: string) => void;
+  onChange: (content: string) => void;
+  onSave: () => void;
   onClose: () => void;
   modules: NonNullable<ReactQuillProps["modules"]>;
   formats: string[];
@@ -1855,11 +1880,6 @@ function FullscreenEditorModal({
 }) {
   const { language, t } = useLanguage();
   const fullscreenEditorRef = useRef<ReactQuill | null>(null);
-  const [editContent, setEditContent] = useState(content);
-
-  useEffect(() => {
-    setEditContent(content);
-  }, [content]);
 
   const handleClose = () => {
     if (uploading) return;
@@ -1868,17 +1888,17 @@ function FullscreenEditorModal({
 
   const handleSave = () => {
     if (uploading) return;
-    onSave(editContent);
+    onSave();
   };
 
   const insertVideoIntoFullscreenEditor = (videoUrl: string) => {
     const quill = fullscreenEditorRef.current?.getEditor();
     if (quill) {
-      setEditContent(insertNewsVideoIntoEditor(quill, videoUrl));
+      onChange(insertNewsVideoIntoEditor(quill, videoUrl));
       return;
     }
 
-    setEditContent((prev) => `${prev}${buildNewsVideoEmbedHtml(videoUrl)}`);
+    onChange(`${content}${buildNewsVideoEmbedHtml(videoUrl)}`);
   };
 
   const handleVideoSelected = async (file: File) => {
@@ -1970,8 +1990,8 @@ function FullscreenEditorModal({
             <ReactQuill
               ref={fullscreenEditorRef}
               theme="snow"
-              value={editContent}
-              onChange={setEditContent}
+              value={content}
+              onChange={onChange}
               modules={modules}
               formats={formats}
               className="bg-white h-full news-fullscreen-editor"

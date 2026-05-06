@@ -7,16 +7,32 @@ import {
   type NewsMediaUploadState,
 } from "../../shared/newsMedia";
 
+type QuillBlotConstructor = {
+  new (...args: unknown[]): object;
+  tagName: string;
+  blotName?: string;
+  className?: string;
+  create(value: string): HTMLElement;
+};
+
 type QuillNamespace = {
-  import: (path: string) => any;
-  register: (...args: any[]) => void;
+  import: (path: string) => QuillBlotConstructor;
+  register: (blot: QuillBlotConstructor, overwrite?: boolean) => void;
 };
 
 type QuillEditor = {
-  getSelection: (...args: any[]) => { index: number } | null;
+  getSelection: {
+    (focus: true): { index: number };
+    (focus?: false): { index: number } | null;
+  };
   getLength: () => number;
-  insertEmbed: (...args: any[]) => void;
-  insertText: (...args: any[]) => void;
+  insertEmbed: (
+    index: number,
+    type: "video",
+    value: string,
+    source: "user"
+  ) => void;
+  insertText: (index: number, text: string, source: "user") => void;
   root: { innerHTML: string };
 };
 
@@ -56,7 +72,10 @@ export function ensureNewsVideoBlotRegistered(quill: QuillNamespace) {
   blotRegistered = true;
 }
 
-export function insertNewsVideoIntoEditor(editor: QuillEditor, videoUrl: string) {
+export function insertNewsVideoIntoEditor(
+  editor: QuillEditor,
+  videoUrl: string
+) {
   const range = editor.getSelection(true);
   const insertAt = range ? range.index : editor.getLength();
   editor.insertEmbed(insertAt, "video", videoUrl, "user");
