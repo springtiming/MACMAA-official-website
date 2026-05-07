@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useRouter } from "next/router";
 import { AnimatePresence, motion } from "motion/react";
 import {
@@ -102,17 +108,29 @@ export function AdminVolunteers() {
     runWithFeedback,
     reset: resetProcessing,
   } = useProcessingFeedback();
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const loadVolunteers = useCallback(async () => {
     setLoading(true);
     try {
       const data = await fetchVolunteerApplications();
+      if (!isMountedRef.current) return;
       setVolunteers(data);
       setError(null);
     } catch {
-      setError(t("common.error"));
+      if (isMountedRef.current) {
+        setError(t("common.error"));
+      }
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
     }
   }, [t]);
 

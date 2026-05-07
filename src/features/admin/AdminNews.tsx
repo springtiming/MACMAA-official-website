@@ -215,12 +215,15 @@ export function AdminNews() {
         async () => {
           if (type === "delete") {
             await deleteArticle(targetId);
+            if (!isMountedRef.current) return;
             setNewsList((prev) => prev.filter((n) => n.id !== targetId));
             const drafts = await fetchMyDrafts();
+            if (!isMountedRef.current) return;
             setDraftList(drafts);
             setSuccess(language === "zh" ? "已删除" : "Deleted");
           } else {
             await deleteDraft(targetId);
+            if (!isMountedRef.current) return;
             setDraftList((prev) => prev.filter((d) => d.id !== targetId));
             setSuccess(language === "zh" ? "草稿已删除" : "Draft deleted");
           }
@@ -232,6 +235,7 @@ export function AdminNews() {
                 ? err.message
                 : t("common.error");
             console.error("[admin-news] delete failed", err);
+            if (!isMountedRef.current) return;
             setError(detail);
             showProcessingError({
               errorTitle: messages.errorTitle,
@@ -243,7 +247,9 @@ export function AdminNews() {
     } catch (err) {
       const detail =
         err instanceof Error && err.message ? err.message : t("common.error");
-      setError(detail);
+      if (isMountedRef.current) {
+        setError(detail);
+      }
     }
   };
 
@@ -286,14 +292,17 @@ export function AdminNews() {
             content_en: news.content.en,
             ...coverFields,
           });
+          if (!isMountedRef.current) return;
           // 记录当前正在编辑的草稿版本以及对应的新闻编号
           setDraftVersionId(draft.id);
           setEditingDraft(draft);
           setEditingArticle(null);
           setSuccess(language === "zh" ? "草稿已保存" : "Draft saved");
           const drafts = await fetchMyDrafts();
+          if (!isMountedRef.current) return;
           setDraftList(drafts);
         } catch (err) {
+          if (!isMountedRef.current) return;
           setError(t("common.error"));
           const localDraft: ArticleVersionRecord = {
             id: createUuid(),
@@ -331,7 +340,9 @@ export function AdminNews() {
     } catch (err) {
       console.error("[AdminNews] save draft", err);
     } finally {
-      setFormLoading(false);
+      if (isMountedRef.current) {
+        setFormLoading(false);
+      }
     }
   };
   const handlePublish = async (news: NewsFormState) => {

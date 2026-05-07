@@ -57,10 +57,14 @@ export function ImageUploadModal({
       return;
     }
 
+    if (readerRef.current?.readyState === FileReader.LOADING) {
+      readerRef.current.abort();
+    }
+
     const reader = new FileReader();
     readerRef.current = reader;
     reader.onload = (e) => {
-      if (!mountedRef.current) return;
+      if (!mountedRef.current || readerRef.current !== reader) return;
       const result = e.target?.result;
       if (typeof result === "string") {
         setSelectedImage(result);
