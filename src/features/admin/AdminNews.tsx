@@ -32,17 +32,24 @@ import {
   saveNewsDraft,
   deleteArticle,
   deleteDraft,
+  uploadNewsImage,
   uploadNewsVideo,
   type NewsPostRecord,
   type ArticleVersionRecord,
 } from "@/lib/supabaseApi";
 import { pickLocalized } from "@/lib/supabaseHelpers";
 import {
+  buildNewsImageEmbedHtml,
   buildNewsVideoEmbedHtml,
   ensureNewsVideoBlotRegistered,
+  hasInlineNewsDataMedia,
   hasPendingNewsMediaUploads,
+  insertNewsImageIntoEditor,
   insertNewsVideoIntoEditor,
+  isSupportedNewsImageType,
   isSupportedNewsVideoType,
+  NEWS_IMAGE_ACCEPT,
+  NEWS_IMAGE_MAX_BYTES,
 } from "@/lib/newsMedia";
 import {
   type ErrorMessages,
@@ -57,6 +64,71 @@ import {
 import { isWithinCharacterLimit } from "@/lib/textLength";
 
 ensureNewsVideoBlotRegistered(ReactQuill.Quill);
+
+const NEWS_EDITOR_TOOLBAR = [
+  [{ header: [1, 2, 3, false] }],
+  ["bold", "italic", "underline", "strike"],
+  [{ color: [] }, { background: [] }],
+  [{ list: "ordered" }, { list: "bullet" }],
+  [{ align: [] }],
+  ["link", "image", "video"],
+  ["clean"],
+];
+
+const NEWS_EDITOR_FORMATS = [
+  "header",
+  "bold",
+  "italic",
+  "underline",
+  "strike",
+  "color",
+  "background",
+  "list",
+  "bullet",
+  "align",
+  "link",
+  "image",
+  "video",
+];
+
+export function createNewsEditorModules(
+  onSelectImage: () => void
+): NonNullable<ReactQuillProps["modules"]> {
+  return {
+    toolbar: {
+      container: NEWS_EDITOR_TOOLBAR,
+      handlers: {
+        image: onSelectImage,
+      },
+    },
+  };
+}
+
+function selectNewsImageFile(): Promise<File | null> {
+  if (typeof document === "undefined") return Promise.resolve(null);
+
+  return new Promise((resolve) => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = NEWS_IMAGE_ACCEPT;
+    input.addEventListener(
+      "change",
+      () => {
+        resolve(input.files?.[0] ?? null);
+      },
+      { once: true }
+    );
+    input.click();
+  });
+}
+
+async function dataUrlToImageFile(dataUrl: string) {
+  const response = await fetch(dataUrl);
+  const blob = await response.blob();
+  return new File([blob], "news-cover.jpg", {
+    type: blob.type || "image/jpeg",
+  });
+}
 
 export function AdminNews() {
   const { language, t } = useLanguage();
@@ -79,6 +151,7 @@ export function AdminNews() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [formLoading, setFormLoading] = useState(false);
+  const [coverUploading, setCoverUploading] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{
     type: "delete" | "deleteDraft";
     targetId: string;
@@ -269,6 +342,9 @@ export function AdminNews() {
     };
   };
 
+  const isInlineNewsMediaPayloadError = (err: unknown) =>
+    err instanceof Error && err.message.includes("Inline base64 media");
+
   const handleSave = async (news: NewsFormState) => {
     setFormLoading(true);
     const messages = getFeedbackMessages("save");
@@ -303,6 +379,14 @@ export function AdminNews() {
           setDraftList(drafts);
         } catch (err) {
           if (!isMountedRef.current) return;
+          if (isInlineNewsMediaPayloadError(err)) {
+            setError(
+              language === "zh"
+                ? "正文或封面仍包含内联媒体，请重新上传图片后再保存"
+                : "The body or cover still contains inline media. Re-upload images before saving."
+            );
+            throw err;
+          }
           setError(t("common.error"));
           const localDraft: ArticleVersionRecord = {
             id: createUuid(),
@@ -397,6 +481,14 @@ export function AdminNews() {
           setDraftList(drafts);
         } catch (err) {
           if (!isMountedRef.current) return;
+          if (isInlineNewsMediaPayloadError(err)) {
+            setError(
+              language === "zh"
+                ? "正文或封面仍包含内联媒体，请重新上传图片后再发布"
+                : "The body or cover still contains inline media. Re-upload images before publishing."
+            );
+            throw err;
+          }
           setError(t("common.error"));
           const localArticle: NewsPostRecord = {
             id: normalizeArticleId(news.id, editingArticle?.id) ?? createUuid(),
@@ -452,10 +544,32 @@ export function AdminNews() {
     setShowImageUploadModal(false);
   };
 
-  const handleImageUploadSuccess = (imageUrl: string) => {
-    setUploadedImage(imageUrl);
-    setUploadedImageUrl(imageUrl);
-    setShowImageUploadModal(false);
+  const handleImageUploadSuccess = async (imageUrl: string) => {
+    setCoverUploading(true);
+    setError(null);
+    try {
+      const finalImageUrl = hasInlineNewsDataMedia(imageUrl)
+        ? await uploadNewsImage({
+            file: await dataUrlToImageFile(imageUrl),
+            articleId: normalizeArticleId(
+              editingArticle?.id,
+              editingDraft?.article_id
+            ),
+          })
+        : imageUrl;
+      setUploadedImage(finalImageUrl);
+      setUploadedImageUrl(finalImageUrl);
+      setShowImageUploadModal(false);
+    } catch (err) {
+      console.error("[AdminNews] upload cover image", err);
+      setError(
+        language === "zh"
+          ? "封面图片上传失败，请重试"
+          : "Failed to upload cover image, please try again"
+      );
+    } finally {
+      setCoverUploading(false);
+    }
   };
 
   const confirmCopy = confirmDialog
@@ -702,7 +816,7 @@ export function AdminNews() {
             uploadedImage={uploadedImage}
             uploadedImageUrl={uploadedImageUrl}
             setUploadedImageUrl={setUploadedImageUrl}
-            formLoading={formLoading}
+            formLoading={formLoading || coverUploading}
             isImageUploadModalOpen={showImageUploadModal}
           />
         )}
@@ -763,6 +877,9 @@ const hasRichTextContent = (value: string): boolean => {
 const isWithinSummaryLimit = (value: string): boolean =>
   isWithinCharacterLimit(value, 200);
 
+const hasSafeRichTextContent = (value: string): boolean =>
+  hasRichTextContent(value) && !hasInlineNewsDataMedia(value);
+
 const newsValidationRules: ValidationRules<NewsValidationFields> = {
   titleZh: {
     pattern: /^.{2,120}$/,
@@ -785,12 +902,12 @@ const newsValidationRules: ValidationRules<NewsValidationFields> = {
     required: true,
   },
   contentZh: {
-    validate: hasRichTextContent,
+    validate: hasSafeRichTextContent,
     errorType: "invalidContentZh",
     required: true,
   },
   contentEn: {
-    validate: hasRichTextContent,
+    validate: hasSafeRichTextContent,
     errorType: "invalidContentEn",
     required: true,
   },
@@ -818,12 +935,12 @@ const newsErrorMessages: ErrorMessages = {
     en: "Enter an English summary with at most 200 characters",
   },
   invalidContentZh: {
-    zh: "请输入中文正文内容",
-    en: "Enter the Chinese body content",
+    zh: "请输入中文正文内容，正文图片请通过上传插入，不能直接保存内联图片",
+    en: "Enter Chinese body content. Body images must be uploaded, not saved inline.",
   },
   invalidContentEn: {
-    zh: "请输入英文正文内容",
-    en: "Enter the English body content",
+    zh: "请输入英文正文内容，正文图片请通过上传插入，不能直接保存内联图片",
+    en: "Enter English body content. Body images must be uploaded, not saved inline.",
   },
 };
 
@@ -935,15 +1052,16 @@ function NewsFormModal({
   const [fullscreenEditor, setFullscreenEditor] = useState<"zh" | "en" | null>(
     null
   );
-  const [videoUploading, setVideoUploading] = useState<{
+  const [mediaUploading, setMediaUploading] = useState<{
     zh: boolean;
     en: boolean;
   }>({ zh: false, en: false });
-  const [videoError, setVideoError] = useState<{
+  const [mediaError, setMediaError] = useState<{
     zh: string | null;
     en: string | null;
   }>({ zh: null, en: null });
-  const hasPendingVideoUpload = hasPendingNewsMediaUploads(videoUploading);
+  const hasPendingMediaUpload = hasPendingNewsMediaUploads(mediaUploading);
+  const [coverError, setCoverError] = useState<string | null>(null);
   const [formData, setFormData] = useState<NewsFormState>(() => {
     const coverSource = draft?.cover_source || news?.cover_source || "";
     const coverUrl = draft?.cover_url || news?.cover_url || uploadedImageUrl;
@@ -1039,6 +1157,7 @@ function NewsFormModal({
     }));
     setImageSource("unsplash");
     setSelectedUnsplashId(photo.id);
+    setCoverError(null);
   };
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -1067,6 +1186,7 @@ function NewsFormModal({
     if (uploadedImage) {
       setImageSource("upload");
       setUploadedImageUrl(uploadedImage);
+      setCoverError(null);
       setFormData((prev) => ({
         ...prev,
         image: uploadedImage,
@@ -1149,7 +1269,57 @@ function NewsFormModal({
     setTouched((prev) => ({ ...prev, ...touchedMap }));
   };
 
+  const validateNoInlineDataMedia = (): boolean => {
+    const mediaErrors: FormErrors = {};
+    if (hasInlineNewsDataMedia(formData.content.zh)) {
+      mediaErrors.contentZh = "invalidContentZh";
+    }
+    if (hasInlineNewsDataMedia(formData.content.en)) {
+      mediaErrors.contentEn = "invalidContentEn";
+    }
+
+    const hasCoverDataMedia =
+      formData.imageType === "upload" &&
+      hasInlineNewsDataMedia(
+        formData.image || uploadedImageUrl || uploadedImage
+      );
+    setCoverError(
+      hasCoverDataMedia
+        ? language === "zh"
+          ? "封面图片仍是内联数据，请重新上传并等待上传完成"
+          : "The cover image is still inline data. Re-upload it and wait for upload to finish."
+        : null
+    );
+
+    if (Object.keys(mediaErrors).length > 0) {
+      setErrors((prev) => ({ ...prev, ...mediaErrors }));
+      setTouched((prev) => ({
+        ...prev,
+        ...Object.keys(mediaErrors).reduce<Record<string, boolean>>(
+          (acc, field) => {
+            acc[field] = true;
+            return acc;
+          },
+          {}
+        ),
+      }));
+      scrollToFirstError(mediaErrors);
+      return false;
+    }
+
+    if (hasCoverDataMedia) {
+      document
+        .getElementById("coverImageSettings")
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return false;
+    }
+
+    return true;
+  };
+
   const validateBeforePublish = (): boolean => {
+    if (!validateNoInlineDataMedia()) return false;
+
     const validationErrors = validateFormUtil(
       mapNewsFormToValidation(formData),
       validationConfig
@@ -1165,12 +1335,13 @@ function NewsFormModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (hasPendingVideoUpload) return;
+    if (hasPendingMediaUpload) return;
+    if (!validateNoInlineDataMedia()) return;
     onSave(formData);
   };
 
   const handlePublishAttempt = () => {
-    if (hasPendingVideoUpload) return;
+    if (hasPendingMediaUpload) return;
     if (!validateBeforePublish()) return;
     onPublish(formData);
   };
@@ -1197,9 +1368,79 @@ function NewsFormModal({
     updateEditorContent(lang, nextValue);
   };
 
+  const insertImageIntoEditor = (lang: "zh" | "en", imageUrl: string) => {
+    const editorRef = lang === "zh" ? zhEditorRef : enEditorRef;
+    const quill = editorRef.current?.getEditor();
+    if (quill) {
+      updateEditorContent(lang, insertNewsImageIntoEditor(quill, imageUrl));
+      return;
+    }
+
+    const nextValue = `${formData.content[lang] ?? ""}${buildNewsImageEmbedHtml(
+      imageUrl
+    )}`;
+    updateEditorContent(lang, nextValue);
+  };
+
+  const resolveImageUploadErrorMessage = (err: unknown) => {
+    if (err instanceof Error && err.message) return err.message;
+    return language === "zh" ? "图片上传失败" : "Failed to upload image";
+  };
+
   const resolveVideoUploadErrorMessage = (err: unknown) => {
     if (err instanceof Error && err.message) return err.message;
     return language === "zh" ? "视频上传失败" : "Failed to upload video";
+  };
+
+  const uploadImageForLanguage = async (
+    lang: "zh" | "en",
+    file: File
+  ): Promise<string | null> => {
+    if (!isSupportedNewsImageType(file.type)) {
+      setMediaError((prev) => ({
+        ...prev,
+        [lang]:
+          language === "zh"
+            ? "仅支持 JPG、PNG、GIF、WebP 图片"
+            : "Only JPG, PNG, GIF, and WebP images are supported",
+      }));
+      return null;
+    }
+
+    if (file.size > NEWS_IMAGE_MAX_BYTES) {
+      setMediaError((prev) => ({
+        ...prev,
+        [lang]:
+          language === "zh"
+            ? "图片文件过大，请选择 8MB 以下的图片"
+            : "Image is too large, please select a file smaller than 8MB",
+      }));
+      return null;
+    }
+
+    setMediaError((prev) => ({ ...prev, [lang]: null }));
+    setMediaUploading((prev) => ({ ...prev, [lang]: true }));
+
+    try {
+      const publicUrl = await uploadNewsImage({
+        file,
+        articleId: formData.id || undefined,
+      });
+      if (!isMountedRef.current) return null;
+      return publicUrl;
+    } catch (err) {
+      if (!isMountedRef.current) return null;
+      console.error("[admin-news] upload image failed", err);
+      setMediaError((prev) => ({
+        ...prev,
+        [lang]: resolveImageUploadErrorMessage(err),
+      }));
+      return null;
+    } finally {
+      if (isMountedRef.current) {
+        setMediaUploading((prev) => ({ ...prev, [lang]: false }));
+      }
+    }
   };
 
   const uploadVideoForLanguage = async (
@@ -1207,7 +1448,7 @@ function NewsFormModal({
     file: File
   ): Promise<string | null> => {
     if (!isSupportedNewsVideoType(file.type)) {
-      setVideoError((prev) => ({
+      setMediaError((prev) => ({
         ...prev,
         [lang]:
           language === "zh"
@@ -1217,8 +1458,8 @@ function NewsFormModal({
       return null;
     }
 
-    setVideoError((prev) => ({ ...prev, [lang]: null }));
-    setVideoUploading((prev) => ({ ...prev, [lang]: true }));
+    setMediaError((prev) => ({ ...prev, [lang]: null }));
+    setMediaUploading((prev) => ({ ...prev, [lang]: true }));
 
     try {
       const publicUrl = await uploadNewsVideo({
@@ -1230,14 +1471,14 @@ function NewsFormModal({
     } catch (err) {
       if (!isMountedRef.current) return null;
       console.error("[admin-news] upload video failed", err);
-      setVideoError((prev) => ({
+      setMediaError((prev) => ({
         ...prev,
         [lang]: resolveVideoUploadErrorMessage(err),
       }));
       return null;
     } finally {
       if (isMountedRef.current) {
-        setVideoUploading((prev) => ({ ...prev, [lang]: false }));
+        setMediaUploading((prev) => ({ ...prev, [lang]: false }));
       }
     }
   };
@@ -1248,34 +1489,38 @@ function NewsFormModal({
     insertVideoIntoEditor(lang, publicUrl);
   };
 
-  // Quill editor modules configuration
-  const modules: NonNullable<ReactQuillProps["modules"]> = {
-    toolbar: [
-      [{ header: [1, 2, 3, false] }],
-      ["bold", "italic", "underline", "strike"],
-      [{ color: [] }, { background: [] }],
-      [{ list: "ordered" }, { list: "bullet" }],
-      [{ align: [] }],
-      ["link", "image", "video"],
-      ["clean"],
-    ],
+  const handleImageSelected = async (lang: "zh" | "en", file: File) => {
+    const publicUrl = await uploadImageForLanguage(lang, file);
+    if (!publicUrl) return;
+    insertImageIntoEditor(lang, publicUrl);
   };
 
-  const formats: NonNullable<ReactQuillProps["formats"]> = [
-    "header",
-    "bold",
-    "italic",
-    "underline",
-    "strike",
-    "color",
-    "background",
-    "list",
-    "bullet",
-    "align",
-    "link",
-    "image",
-    "video",
-  ];
+  const handleImageToolbarSelected = async (lang: "zh" | "en") => {
+    if (formLoading || mediaUploading[lang]) return;
+    const file = await selectNewsImageFile();
+    if (!file) return;
+    await handleImageSelected(lang, file);
+  };
+
+  // Quill editor modules configuration
+  const handleImageToolbarSelectedRef = useRef(handleImageToolbarSelected);
+  handleImageToolbarSelectedRef.current = handleImageToolbarSelected;
+  const zhModules = useMemo(
+    () =>
+      createNewsEditorModules(
+        () => void handleImageToolbarSelectedRef.current("zh")
+      ),
+    []
+  );
+  const enModules = useMemo(
+    () =>
+      createNewsEditorModules(
+        () => void handleImageToolbarSelectedRef.current("en")
+      ),
+    []
+  );
+
+  const formats: NonNullable<ReactQuillProps["formats"]> = NEWS_EDITOR_FORMATS;
 
   const modal = (
     <motion.div
@@ -1286,7 +1531,7 @@ function NewsFormModal({
         isImageUploadModalOpen ? "z-[48]" : "z-50"
       }`}
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget && !hasPendingVideoUpload) {
+        if (event.target === event.currentTarget && !hasPendingMediaUpload) {
           onClose();
         }
       }}
@@ -1307,7 +1552,7 @@ function NewsFormModal({
             </h2>
             <button
               onClick={onClose}
-              disabled={formLoading || hasPendingVideoUpload}
+              disabled={formLoading || hasPendingMediaUpload}
               className="p-2 hover:bg-white/20 rounded-lg transition-colors"
             >
               <X className="w-6 h-6" />
@@ -1319,7 +1564,10 @@ function NewsFormModal({
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6">
           <div className="space-y-6">
             {/* Image Section - Unsplash or Upload */}
-            <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+            <div
+              id="coverImageSettings"
+              className="border border-gray-200 rounded-lg p-4 bg-gray-50"
+            >
               <h3 className="text-gray-700 mb-4">
                 {t("admin.news.form.coverImageSettings")}
               </h3>
@@ -1332,6 +1580,7 @@ function NewsFormModal({
                     setImageSource("upload");
                     setUnsplashResults([]);
                     setUnsplashError(null);
+                    setCoverError(null);
                     setSelectedUnsplashId(null);
                     // 如果之前保存了上传的图片 URL，恢复它
                     if (uploadedImageUrl) {
@@ -1365,6 +1614,7 @@ function NewsFormModal({
                     setImageSource("unsplash");
                     setUnsplashResults([]);
                     setUnsplashError(null);
+                    setCoverError(null);
                     setSelectedUnsplashId(null);
                     // 如果当前 formData.image 是图片 URL，保存到 uploadedImageUrl 并清空搜索框
                     if (
@@ -1539,6 +1789,11 @@ function NewsFormModal({
                         />
                       </div>
                     )}
+                  {coverError && (
+                    <p className="mt-3 text-xs text-red-600" role="alert">
+                      {coverError}
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -1675,7 +1930,7 @@ function NewsFormModal({
                   <div className="flex items-center gap-2">
                     <NewsVideoUploadControl
                       language={language}
-                      uploading={videoUploading.zh}
+                      uploading={mediaUploading.zh}
                       disabled={formLoading}
                       onSelectFile={(file) => handleVideoSelected("zh", file)}
                     />
@@ -1703,7 +1958,7 @@ function NewsFormModal({
                       handleFieldChange("contentZh", value);
                     }}
                     onBlur={(_, __, ___) => handleFieldBlur("contentZh")}
-                    modules={modules}
+                    modules={zhModules}
                     formats={formats}
                     className="bg-white"
                     style={{ height: "300px", marginBottom: "42px" }}
@@ -1718,9 +1973,9 @@ function NewsFormModal({
                     )}
                   </p>
                 )}
-                {videoError.zh && (
+                {mediaError.zh && (
                   <p className="mt-2 text-xs text-red-600" role="alert">
-                    {videoError.zh}
+                    {mediaError.zh}
                   </p>
                 )}
               </div>
@@ -1732,7 +1987,7 @@ function NewsFormModal({
                   <div className="flex items-center gap-2">
                     <NewsVideoUploadControl
                       language={language}
-                      uploading={videoUploading.en}
+                      uploading={mediaUploading.en}
                       disabled={formLoading}
                       onSelectFile={(file) => handleVideoSelected("en", file)}
                     />
@@ -1760,7 +2015,7 @@ function NewsFormModal({
                       handleFieldChange("contentEn", value);
                     }}
                     onBlur={(_, __, ___) => handleFieldBlur("contentEn")}
-                    modules={modules}
+                    modules={enModules}
                     formats={formats}
                     className="bg-white"
                     style={{ height: "300px", marginBottom: "42px" }}
@@ -1775,9 +2030,9 @@ function NewsFormModal({
                     )}
                   </p>
                 )}
-                {videoError.en && (
+                {mediaError.en && (
                   <p className="mt-2 text-xs text-red-600" role="alert">
-                    {videoError.en}
+                    {mediaError.en}
                   </p>
                 )}
               </div>
@@ -1790,14 +2045,14 @@ function NewsFormModal({
               type="button"
               onClick={onClose}
               className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-center disabled:opacity-60 disabled:cursor-not-allowed"
-              disabled={formLoading || hasPendingVideoUpload}
+              disabled={formLoading || hasPendingMediaUpload}
             >
               {language === "zh" ? "取消" : "Cancel"}
             </button>
             <button
               type="submit"
               className="flex-1 px-6 py-3 bg-[#6BA868] text-white rounded-lg hover:bg-[#5a9157] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-              disabled={formLoading || hasPendingVideoUpload}
+              disabled={formLoading || hasPendingMediaUpload}
             >
               <Save className="w-5 h-5" />
               {formLoading
@@ -1812,7 +2067,7 @@ function NewsFormModal({
               type="button"
               onClick={handlePublishAttempt}
               className="flex-1 px-6 py-3 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-              disabled={formLoading || hasPendingVideoUpload}
+              disabled={formLoading || hasPendingMediaUpload}
             >
               <Save className="w-5 h-5" />
               {formLoading
@@ -1824,11 +2079,11 @@ function NewsFormModal({
                   : "Publish"}
             </button>
           </div>
-          {hasPendingVideoUpload && (
+          {hasPendingMediaUpload && (
             <p className="mt-3 text-sm text-amber-700">
               {language === "zh"
-                ? "视频仍在上传，上传完成后才能关闭、保存或发布。"
-                : "A video upload is still in progress. Wait for it to finish before closing, saving, or publishing."}
+                ? "媒体仍在上传，上传完成后才能关闭、保存或发布。"
+                : "A media upload is still in progress. Wait for it to finish before closing, saving, or publishing."}
             </p>
           )}
         </form>
@@ -1844,10 +2099,13 @@ function NewsFormModal({
               }
               onSave={() => setFullscreenEditor(null)}
               onClose={() => setFullscreenEditor(null)}
-              modules={modules}
+              modules={fullscreenEditor === "zh" ? zhModules : enModules}
               formats={formats}
-              uploading={videoUploading[fullscreenEditor]}
-              uploadError={videoError[fullscreenEditor]}
+              uploading={mediaUploading[fullscreenEditor]}
+              uploadError={mediaError[fullscreenEditor]}
+              onSelectImage={(file) =>
+                uploadImageForLanguage(fullscreenEditor, file)
+              }
               onSelectVideo={(file) =>
                 uploadVideoForLanguage(fullscreenEditor, file)
               }
@@ -1876,6 +2134,7 @@ export function FullscreenEditorModal({
   formats,
   uploading,
   uploadError,
+  onSelectImage,
   onSelectVideo,
 }: {
   lang: "zh" | "en";
@@ -1887,10 +2146,12 @@ export function FullscreenEditorModal({
   formats: string[];
   uploading: boolean;
   uploadError: string | null;
+  onSelectImage: (file: File) => Promise<string | null>;
   onSelectVideo: (file: File) => Promise<string | null>;
 }) {
   const { language, t } = useLanguage();
   const fullscreenEditorRef = useRef<ReactQuill | null>(null);
+  void modules;
 
   const handleClose = () => {
     if (uploading) return;
@@ -1911,6 +2172,39 @@ export function FullscreenEditorModal({
 
     onChange(`${content}${buildNewsVideoEmbedHtml(videoUrl)}`);
   };
+
+  const insertImageIntoFullscreenEditor = (imageUrl: string) => {
+    const quill = fullscreenEditorRef.current?.getEditor();
+    if (quill) {
+      onChange(insertNewsImageIntoEditor(quill, imageUrl));
+      return;
+    }
+
+    onChange(`${content}${buildNewsImageEmbedHtml(imageUrl)}`);
+  };
+
+  const handleImageSelected = async (file: File) => {
+    const publicUrl = await onSelectImage(file);
+    if (!publicUrl) return;
+    insertImageIntoFullscreenEditor(publicUrl);
+  };
+
+  const handleImageToolbarSelected = async () => {
+    if (uploading) return;
+    const file = await selectNewsImageFile();
+    if (!file) return;
+    await handleImageSelected(file);
+  };
+
+  const handleImageToolbarSelectedRef = useRef(handleImageToolbarSelected);
+  handleImageToolbarSelectedRef.current = handleImageToolbarSelected;
+  const modulesWithImageUpload = useMemo(
+    () =>
+      createNewsEditorModules(
+        () => void handleImageToolbarSelectedRef.current()
+      ),
+    []
+  );
 
   const handleVideoSelected = async (file: File) => {
     const publicUrl = await onSelectVideo(file);
@@ -2003,7 +2297,7 @@ export function FullscreenEditorModal({
               theme="snow"
               value={content}
               onChange={onChange}
-              modules={modules}
+              modules={modulesWithImageUpload}
               formats={formats}
               className="bg-white h-full news-fullscreen-editor"
             />

@@ -1,6 +1,11 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.86.0";
 import { verifyAdminToken } from "../_shared/auth.ts";
-import { isSupportedNewsVideoType } from "../../../shared/newsMedia.ts";
+import {
+  isSupportedNewsImageType,
+  isSupportedNewsVideoType,
+  NEWS_IMAGE_MAX_BYTES,
+  NEWS_VIDEO_MAX_BYTES,
+} from "../../../shared/newsMedia.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -10,7 +15,6 @@ if (!supabaseUrl || !supabaseServiceRoleKey) {
 }
 
 const BUCKET = "news-media";
-const MAX_FILE_BYTES = 50 * 1024 * 1024;
 const UUID_REGEX =
   /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
 
@@ -28,18 +32,31 @@ const jsonResponse = (payload: Record<string, unknown>, status = 200) =>
   });
 
 function getFileExtension(file: File) {
+  switch (file.type) {
+    case "image/jpeg":
+      return "jpg";
+    case "image/png":
+      return "png";
+    case "image/gif":
+      return "gif";
+    case "image/webp":
+      return "webp";
+    case "video/mp4":
+      return "mp4";
+    case "video/webm":
+      return "webm";
+    case "video/ogg":
+      return "ogv";
+  }
+
   const fileName = file.name.trim();
   const parts = fileName.split(".");
   if (parts.length > 1) {
     return parts[parts.length - 1].toLowerCase();
   }
   switch (file.type) {
-    case "video/webm":
-      return "webm";
-    case "video/ogg":
-      return "ogv";
     default:
-      return "mp4";
+      return "bin";
   }
 }
 
@@ -70,12 +87,28 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: "Missing file" }, 400);
   }
 
-  if (!isSupportedNewsVideoType(file.type)) {
-    return jsonResponse({ error: "Unsupported video type" }, 400);
+  const mediaType = isSupportedNewsImageType(file.type)
+    ? "image"
+    : isSupportedNewsVideoType(file.type)
+      ? "video"
+      : null;
+
+  if (!mediaType) {
+    return jsonResponse({ error: "Unsupported news media type" }, 400);
   }
 
-  if (file.size > MAX_FILE_BYTES) {
-    return jsonResponse({ error: "Video file too large" }, 413);
+  const maxFileBytes =
+    mediaType === "image" ? NEWS_IMAGE_MAX_BYTES : NEWS_VIDEO_MAX_BYTES;
+  if (file.size > maxFileBytes) {
+    return jsonResponse(
+      {
+        error:
+          mediaType === "image"
+            ? "Image file too large"
+            : "Video file too large",
+      },
+      413
+    );
   }
 
   const articleIdValue = formData.get("articleId");
@@ -87,20 +120,22 @@ Deno.serve(async (req) => {
   const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
   const objectPath = `articles/${articleId}/${Date.now()}-${crypto.randomUUID()}.${getFileExtension(file)}`;
 
-  const { error } = await supabase.storage.from(BUCKET).upload(objectPath, file, {
-    cacheControl: "3600",
-    contentType: file.type || "application/octet-stream",
-    upsert: false,
-  });
+  const { error } = await supabase.storage
+    .from(BUCKET)
+    .upload(objectPath, file, {
+      cacheControl: "3600",
+      contentType: file.type || "application/octet-stream",
+      upsert: false,
+    });
 
   if (error) {
     console.error("[news-media] upload", error);
-    return jsonResponse({ error: "Failed to upload news video" }, 500);
+    return jsonResponse({ error: "Failed to upload news media" }, 500);
   }
 
   const {
     data: { publicUrl },
   } = supabase.storage.from(BUCKET).getPublicUrl(objectPath);
 
-  return jsonResponse({ path: objectPath, publicUrl }, 200);
+  return jsonResponse({ path: objectPath, publicUrl, mediaType }, 200);
 });

@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.86.0";
 import { verifyAdminToken } from "../_shared/auth.ts";
+import { hasInlineNewsDataMedia } from "../../../shared/newsMedia.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -11,7 +12,8 @@ if (!supabaseUrl || !supabaseServiceRoleKey) {
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 type DraftPayload = {
@@ -42,7 +44,10 @@ Deno.serve(async (req) => {
   if (!admin) {
     return new Response(
       JSON.stringify({ error: "Unauthorized", code: "INVALID_TOKEN" }),
-      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
     );
   }
 
@@ -54,7 +59,10 @@ Deno.serve(async (req) => {
     return saveDraft(req, admin.id);
   }
 
-  return new Response("Method not allowed", { status: 405, headers: corsHeaders });
+  return new Response("Method not allowed", {
+    status: 405,
+    headers: corsHeaders,
+  });
 });
 
 async function listDrafts() {
@@ -70,21 +78,24 @@ async function listDrafts() {
 
     if (error) {
       console.error("[news-drafts] list", error);
-      return new Response(
-        JSON.stringify({ error: "Failed to fetch drafts" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+      return new Response(JSON.stringify({ error: "Failed to fetch drafts" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    return new Response(
-      JSON.stringify({ drafts: data ?? [] }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ drafts: data ?? [] }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (err) {
     console.error("[news-drafts] list unhandled", err);
     return new Response(
       JSON.stringify({ error: "Internal error", detail: String(err) }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
     );
   }
 }
@@ -93,9 +104,24 @@ async function saveDraft(req: Request, adminId: string) {
   const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
   const body = (await req.json().catch(() => null)) as DraftPayload | null;
   if (!body || !body.title_zh || !body.title_en) {
+    return new Response(JSON.stringify({ error: "Missing required fields" }), {
+      status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  if (
+    hasInlineNewsDataMedia(body.content_zh) ||
+    hasInlineNewsDataMedia(body.content_en) ||
+    hasInlineNewsDataMedia(body.cover_source) ||
+    hasInlineNewsDataMedia(body.cover_url)
+  ) {
     return new Response(
-      JSON.stringify({ error: "Missing required fields" }),
-      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      JSON.stringify({ error: "Inline base64 media is not supported" }),
+      {
+        status: 413,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
     );
   }
 
@@ -128,11 +154,12 @@ async function saveDraft(req: Request, adminId: string) {
     const coverSource =
       body.cover_url ?? body.cover_source ?? body.cover_keyword ?? null;
 
-    const { data: existingArticle, error: existingArticleError } = await supabase
-      .from("articles")
-      .select("author_id")
-      .eq("id", articleId)
-      .maybeSingle();
+    const { data: existingArticle, error: existingArticleError } =
+      await supabase
+        .from("articles")
+        .select("author_id")
+        .eq("id", articleId)
+        .maybeSingle();
 
     if (existingArticleError) {
       console.error("[news-drafts] fetch article author", {
@@ -140,8 +167,14 @@ async function saveDraft(req: Request, adminId: string) {
         error: existingArticleError,
       });
       return new Response(
-        JSON.stringify({ error: "Failed to fetch article author", detail: existingArticleError.message }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        JSON.stringify({
+          error: "Failed to fetch article author",
+          detail: existingArticleError.message,
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
@@ -173,8 +206,14 @@ async function saveDraft(req: Request, adminId: string) {
         error: articleError,
       });
       return new Response(
-        JSON.stringify({ error: "Failed to save draft", detail: articleError.message }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        JSON.stringify({
+          error: "Failed to save draft",
+          detail: articleError.message,
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
@@ -190,7 +229,10 @@ async function saveDraft(req: Request, adminId: string) {
       console.error("[news-drafts] existingDraft", existingError);
       return new Response(
         JSON.stringify({ error: "Failed to check existing draft" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
@@ -216,7 +258,7 @@ async function saveDraft(req: Request, adminId: string) {
         })
         .eq("id", existingDraft.id)
         .select(
-          "id, article_id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, cover_type, cover_keyword, cover_url, status, version_number, created_by, created_at, updated_at",
+          "id, article_id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, cover_type, cover_keyword, cover_url, status, version_number, created_by, created_at, updated_at"
         )
         .single();
 
@@ -227,15 +269,21 @@ async function saveDraft(req: Request, adminId: string) {
           error,
         });
         return new Response(
-          JSON.stringify({ error: "Failed to save draft", detail: error.message }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          JSON.stringify({
+            error: "Failed to save draft",
+            detail: error.message,
+          }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
         );
       }
 
-      return new Response(
-        JSON.stringify({ draft: data }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+      return new Response(JSON.stringify({ draft: data }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // 2.b 尚无草稿，则基于历史版本号创建新的草稿版本
@@ -249,10 +297,19 @@ async function saveDraft(req: Request, adminId: string) {
       .maybeSingle();
 
     if (latestError) {
-      console.error("[news-drafts] nextVersion", { articleId, error: latestError });
+      console.error("[news-drafts] nextVersion", {
+        articleId,
+        error: latestError,
+      });
       return new Response(
-        JSON.stringify({ error: "Failed to determine next version", detail: latestError.message }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        JSON.stringify({
+          error: "Failed to determine next version",
+          detail: latestError.message,
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
     if (latest?.version_number) {
@@ -278,27 +335,36 @@ async function saveDraft(req: Request, adminId: string) {
         created_by: authorId,
       })
       .select(
-        "id, article_id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, cover_type, cover_keyword, cover_url, status, version_number, created_by, created_at, updated_at",
+        "id, article_id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, cover_type, cover_keyword, cover_url, status, version_number, created_by, created_at, updated_at"
       )
       .single();
 
     if (error) {
       console.error("[news-drafts] save", { articleId, error });
       return new Response(
-        JSON.stringify({ error: "Failed to save draft", detail: error.message }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        JSON.stringify({
+          error: "Failed to save draft",
+          detail: error.message,
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
-    return new Response(
-      JSON.stringify({ draft: data }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ draft: data }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (err) {
     console.error("[news-drafts] save unhandled", err);
     return new Response(
       JSON.stringify({ error: "Internal error", detail: String(err) }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
     );
   }
 }

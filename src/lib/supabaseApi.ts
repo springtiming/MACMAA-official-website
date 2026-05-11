@@ -1,6 +1,7 @@
 import type { PostgrestError } from "@supabase/supabase-js";
 import { getSupabaseClient, logSupabaseError } from "./supabaseClient";
 import { isStrongAdminPassword } from "./passwordPolicy";
+import { hasInlineNewsDataMedia } from "./newsMedia";
 
 export interface NewsPostRecord {
   id: string;
@@ -468,10 +469,7 @@ export async function uploadPaymentProof(payload: {
   return body.path;
 }
 
-export async function uploadNewsVideo(payload: {
-  file: File;
-  articleId?: string;
-}) {
+async function uploadNewsMedia(payload: { file: File; articleId?: string }) {
   const formData = new FormData();
   formData.append("file", payload.file);
   if (payload.articleId) {
@@ -488,7 +486,7 @@ export async function uploadNewsVideo(payload: {
 
   if (!res.ok) {
     const detail = await res.text();
-    throw new Error(detail || "Failed to upload news video");
+    throw new Error(detail || "Failed to upload news media");
   }
 
   const body = (await res.json()) as { publicUrl?: string };
@@ -496,6 +494,20 @@ export async function uploadNewsVideo(payload: {
     throw new Error("Missing uploaded news video URL");
   }
   return body.publicUrl;
+}
+
+export async function uploadNewsVideo(payload: {
+  file: File;
+  articleId?: string;
+}) {
+  return uploadNewsMedia(payload);
+}
+
+export async function uploadNewsImage(payload: {
+  file: File;
+  articleId?: string;
+}) {
+  return uploadNewsMedia(payload);
 }
 
 export async function getPaymentProofSignedUrl(path: string, expiresIn = 3600) {
@@ -888,7 +900,24 @@ export type NewsDraftInput = {
   cover_url?: string | null;
 };
 
+function assertNewsDraftPayloadSafe(payload: NewsDraftInput) {
+  const fieldsToCheck = [
+    payload.content_zh,
+    payload.content_en,
+    payload.cover_source,
+    payload.cover_url,
+  ];
+
+  if (fieldsToCheck.some(hasInlineNewsDataMedia)) {
+    throw new Error(
+      "Inline base64 media is not supported. Upload news media before saving."
+    );
+  }
+}
+
 export async function saveNewsDraft(payload: NewsDraftInput) {
+  assertNewsDraftPayloadSafe(payload);
+
   const res = await callEdgeFunction("news-drafts", {
     method: "POST",
     headers: {

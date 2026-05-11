@@ -5,7 +5,7 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { LanguageProvider } from "@/contexts/LanguageContext";
-import { FullscreenEditorModal } from "../AdminNews";
+import { createNewsEditorModules, FullscreenEditorModal } from "../AdminNews";
 
 vi.mock("motion/react", async () => {
   const React = await import("react");
@@ -99,6 +99,7 @@ function FullscreenEditorHarness() {
           formats={[]}
           uploading={false}
           uploadError={null}
+          onSelectImage={async () => "https://cdn.example.com/demo.jpg"}
           onSelectVideo={async () => "https://cdn.example.com/demo.mp4"}
         />
       ) : (
@@ -123,6 +124,25 @@ describe("FullscreenEditorModal", () => {
     container = null;
     document.body.innerHTML = "";
     vi.clearAllMocks();
+  });
+
+  it("overrides Quill's default base64 image toolbar handler", () => {
+    const onSelectImage = vi.fn();
+    const modules = createNewsEditorModules(onSelectImage);
+    const toolbar = modules.toolbar as {
+      container: unknown[];
+      handlers: { image: () => void };
+    };
+
+    expect(Array.isArray(modules.toolbar)).toBe(false);
+    expect(toolbar.container).toEqual(
+      expect.arrayContaining([
+        expect.arrayContaining(["link", "image", "video"]),
+      ])
+    );
+
+    toolbar.handlers.image();
+    expect(onSelectImage).toHaveBeenCalledTimes(1);
   });
 
   it("keeps uploaded video markup after exiting fullscreen", async () => {

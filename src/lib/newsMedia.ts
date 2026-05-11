@@ -1,8 +1,15 @@
 import {
+  buildNewsImageEmbedHtml,
   buildNewsVideoEmbedHtml,
+  hasInlineNewsDataMedia,
   hasPendingNewsMediaUploads,
+  isSupportedNewsImageType,
   isSupportedNewsVideoType,
+  NEWS_IMAGE_ACCEPT,
+  NEWS_IMAGE_MAX_BYTES,
   NEWS_VIDEO_ACCEPT,
+  NEWS_VIDEO_MAX_BYTES,
+  SUPPORTED_NEWS_IMAGE_TYPES,
   SUPPORTED_NEWS_VIDEO_TYPES,
   type NewsMediaUploadState,
 } from "../../shared/newsMedia";
@@ -28,7 +35,7 @@ type QuillEditor = {
   getLength: () => number;
   insertEmbed: (
     index: number,
-    type: "video",
+    type: "image" | "video",
     value: string,
     source: "user"
   ) => void;
@@ -83,11 +90,29 @@ export function insertNewsVideoIntoEditor(
   return editor.root.innerHTML;
 }
 
+export function insertNewsImageIntoEditor(
+  editor: QuillEditor,
+  imageUrl: string
+) {
+  const range = editor.getSelection(true);
+  const insertAt = range ? range.index : editor.getLength();
+  editor.insertEmbed(insertAt, "image", imageUrl, "user");
+  editor.insertText(insertAt + 1, "\n", "user");
+  return editor.root.innerHTML;
+}
+
 export {
+  buildNewsImageEmbedHtml,
   buildNewsVideoEmbedHtml,
+  hasInlineNewsDataMedia,
   hasPendingNewsMediaUploads,
+  isSupportedNewsImageType,
   isSupportedNewsVideoType,
+  NEWS_IMAGE_ACCEPT,
+  NEWS_IMAGE_MAX_BYTES,
   NEWS_VIDEO_ACCEPT,
+  NEWS_VIDEO_MAX_BYTES,
+  SUPPORTED_NEWS_IMAGE_TYPES,
   SUPPORTED_NEWS_VIDEO_TYPES,
 };
 
