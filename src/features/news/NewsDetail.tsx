@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -195,7 +195,7 @@ export function NewsDetail({ initialNews }: NewsDetailProps) {
                   {language === "zh" ? "内容提要" : "Summary"}
                 </span>
               </div>
-              <p className="text-[#475569] text-lg sm:text-xl leading-relaxed italic font-medium">
+              <p className="news-summary-text text-[#475569] text-lg sm:text-xl leading-relaxed italic font-medium">
                 {summary}
               </p>
             </div>

@@ -5474,6 +5474,14 @@ html {
 .ql-container.ql-snow {
   border: 1px solid #ccc;
 }
+.site-header-actions {
+  margin-left: auto;
+}
+.news-summary-text {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
 /*!
  * Quill Editor v1.3.7
  * https://quilljs.com/

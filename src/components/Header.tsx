@@ -71,7 +71,7 @@ export function Header() {
           </div>
 
           {/* Language Switcher & Mobile Menu */}
-          <div className="w-36 sm:w-44 shrink-0 flex items-center justify-end gap-2 sm:gap-4">
+          <div className="site-header-actions w-36 sm:w-44 shrink-0 flex items-center justify-end gap-2 sm:gap-4">
             {/* Language Switcher */}
             <motion.button
               onClick={() => setLanguage(language === "zh" ? "en" : "zh")}

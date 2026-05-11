@@ -1,4 +1,6 @@
 import React from "react";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { Header } from "../Header";
@@ -53,5 +55,22 @@ describe("Header", () => {
     );
 
     expect(html).toContain("hidden md:flex flex-1 items-center justify-center");
+  });
+
+  it("keeps language controls pinned to the right on mobile layouts", () => {
+    const html = renderToStaticMarkup(
+      <LanguageProvider>
+        <Header />
+      </LanguageProvider>
+    );
+
+    expect(html).toContain("site-header-actions w-36 sm:w-44 shrink-0");
+
+    const css = readFileSync(
+      path.resolve(process.cwd(), "src/index.css"),
+      "utf8"
+    );
+    expect(css).toContain(".site-header-actions");
+    expect(css).toContain("margin-left: auto");
   });
 });
