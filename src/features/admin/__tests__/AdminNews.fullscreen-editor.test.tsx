@@ -99,6 +99,10 @@ function FullscreenEditorHarness() {
           formats={[]}
           uploading={false}
           uploadError={null}
+          mediaAssets={[]}
+          mediaLibraryUploading={false}
+          mediaLibraryError={null}
+          onUploadMediaAsset={async () => null}
           onSelectImage={async () => "https://cdn.example.com/demo.jpg"}
           onSelectVideo={async () => "https://cdn.example.com/demo.mp4"}
         />

@@ -13,6 +13,7 @@ import {
   ArrowLeft,
   Upload,
   Image as ImageIcon,
+  Video,
   Maximize2,
   Minimize2,
 } from "lucide-react";
@@ -50,6 +51,8 @@ import {
   isSupportedNewsVideoType,
   NEWS_IMAGE_ACCEPT,
   NEWS_IMAGE_MAX_BYTES,
+  NEWS_VIDEO_ACCEPT,
+  NEWS_VIDEO_MAX_BYTES,
 } from "@/lib/newsMedia";
 import {
   type ErrorMessages,
@@ -128,6 +131,114 @@ async function dataUrlToImageFile(dataUrl: string) {
   return new File([blob], "news-cover.jpg", {
     type: blob.type || "image/jpeg",
   });
+}
+
+type NewsMediaAssetType = "image" | "video";
+
+type NewsMediaAsset = {
+  id: string;
+  type: NewsMediaAssetType;
+  url: string;
+  name: string;
+};
+
+const NEWS_MEDIA_ACCEPT = `${NEWS_IMAGE_ACCEPT},${NEWS_VIDEO_ACCEPT}`;
+const NEWS_MEDIA_DRAG_TYPE = "application/x-macmaa-news-media";
+const NEWS_MEDIA_SRC_REGEX = /<(img|video)\b[^>]*\bsrc=(['"])(.*?)\2[^>]*>/gi;
+
+function isReusableNewsMediaUrl(url: string) {
+  return (
+    !!url &&
+    !url.startsWith("data:") &&
+    !url.startsWith("blob:") &&
+    (url.startsWith("http") || url.startsWith("/"))
+  );
+}
+
+function getNewsMediaFileName(url: string, fallback: string) {
+  try {
+    const parsed = new URL(url, "https://macmaa.local");
+    const segment = parsed.pathname.split("/").filter(Boolean).pop();
+    return segment ? decodeURIComponent(segment) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function createNewsMediaAsset(
+  type: NewsMediaAssetType,
+  url: string,
+  name?: string
+): NewsMediaAsset {
+  const fallback = type === "image" ? "Image" : "Video";
+  return {
+    id: `${type}:${url}`,
+    type,
+    url,
+    name: name?.trim() || getNewsMediaFileName(url, fallback),
+  };
+}
+
+function addNewsMediaAssetToList(
+  assets: NewsMediaAsset[],
+  asset: NewsMediaAsset
+) {
+  if (assets.some((existing) => existing.id === asset.id)) {
+    return assets;
+  }
+  return [asset, ...assets];
+}
+
+function extractNewsMediaAssets(input: {
+  coverUrl?: string | null;
+  contentZh?: string | null;
+  contentEn?: string | null;
+}) {
+  let assets: NewsMediaAsset[] = [];
+  const addAsset = (asset: NewsMediaAsset) => {
+    assets = addNewsMediaAssetToList(assets, asset);
+  };
+
+  if (input.coverUrl && isReusableNewsMediaUrl(input.coverUrl)) {
+    addAsset(createNewsMediaAsset("image", input.coverUrl, "Cover image"));
+  }
+
+  [input.contentZh, input.contentEn].forEach((content) => {
+    if (!content) return;
+    for (const match of content.matchAll(NEWS_MEDIA_SRC_REGEX)) {
+      const tag = match[1]?.toLowerCase();
+      const url = match[3] ?? "";
+      if (!isReusableNewsMediaUrl(url)) continue;
+      addAsset(createNewsMediaAsset(tag === "video" ? "video" : "image", url));
+    }
+  });
+
+  return assets;
+}
+
+function getNewsMediaAssetHtml(asset: NewsMediaAsset) {
+  return asset.type === "image"
+    ? buildNewsImageEmbedHtml(asset.url)
+    : buildNewsVideoEmbedHtml(asset.url);
+}
+
+function parseDraggedNewsMediaAsset(
+  event: React.DragEvent
+): NewsMediaAsset | null {
+  const raw = event.dataTransfer.getData(NEWS_MEDIA_DRAG_TYPE);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as NewsMediaAsset;
+    if (
+      (parsed.type === "image" || parsed.type === "video") &&
+      isReusableNewsMediaUrl(parsed.url)
+    ) {
+      return parsed;
+    }
+  } catch {
+    return null;
+  }
+  return null;
 }
 
 export function AdminNews() {
@@ -1060,8 +1171,20 @@ function NewsFormModal({
     zh: string | null;
     en: string | null;
   }>({ zh: null, en: null });
-  const hasPendingMediaUpload = hasPendingNewsMediaUploads(mediaUploading);
   const [coverError, setCoverError] = useState<string | null>(null);
+  const [mediaAssets, setMediaAssets] = useState<NewsMediaAsset[]>(() =>
+    extractNewsMediaAssets({
+      coverUrl: uploadedImageUrl || initialCoverUrl,
+      contentZh: draft?.content_zh ?? news?.content_zh,
+      contentEn: draft?.content_en ?? news?.content_en,
+    })
+  );
+  const [mediaLibraryUploading, setMediaLibraryUploading] = useState(false);
+  const [mediaLibraryError, setMediaLibraryError] = useState<string | null>(
+    null
+  );
+  const hasPendingMediaUpload =
+    hasPendingNewsMediaUploads(mediaUploading) || mediaLibraryUploading;
   const [formData, setFormData] = useState<NewsFormState>(() => {
     const coverSource = draft?.cover_source || news?.cover_source || "";
     const coverUrl = draft?.cover_url || news?.cover_url || uploadedImageUrl;
@@ -1158,6 +1281,16 @@ function NewsFormModal({
     setImageSource("unsplash");
     setSelectedUnsplashId(photo.id);
     setCoverError(null);
+    setMediaAssets((prev) =>
+      addNewsMediaAssetToList(
+        prev,
+        createNewsMediaAsset(
+          "image",
+          url,
+          photo.alt_description ?? photo.description ?? "Unsplash image"
+        )
+      )
+    );
   };
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -1193,6 +1326,14 @@ function NewsFormModal({
         imageKeyword: "",
         imageType: "upload",
       }));
+      if (isReusableNewsMediaUrl(uploadedImage)) {
+        setMediaAssets((prev) =>
+          addNewsMediaAssetToList(
+            prev,
+            createNewsMediaAsset("image", uploadedImage, "Cover image")
+          )
+        );
+      }
     }
   }, [uploadedImage, setUploadedImageUrl]);
 
@@ -1354,6 +1495,10 @@ function NewsFormModal({
     handleFieldChange(lang === "zh" ? "contentZh" : "contentEn", value);
   };
 
+  const rememberMediaAsset = (asset: NewsMediaAsset) => {
+    setMediaAssets((prev) => addNewsMediaAssetToList(prev, asset));
+  };
+
   const insertVideoIntoEditor = (lang: "zh" | "en", videoUrl: string) => {
     const editorRef = lang === "zh" ? zhEditorRef : enEditorRef;
     const quill = editorRef.current?.getEditor();
@@ -1380,6 +1525,30 @@ function NewsFormModal({
       imageUrl
     )}`;
     updateEditorContent(lang, nextValue);
+  };
+
+  const insertMediaAssetIntoEditor = (
+    lang: "zh" | "en",
+    asset: NewsMediaAsset
+  ) => {
+    if (asset.type === "image") {
+      insertImageIntoEditor(lang, asset.url);
+      return;
+    }
+    insertVideoIntoEditor(lang, asset.url);
+  };
+
+  const handleEditorDragOver = (event: React.DragEvent) => {
+    if (Array.from(event.dataTransfer.types).includes(NEWS_MEDIA_DRAG_TYPE)) {
+      event.preventDefault();
+    }
+  };
+
+  const handleEditorDrop = (lang: "zh" | "en", event: React.DragEvent) => {
+    const asset = parseDraggedNewsMediaAsset(event);
+    if (!asset) return;
+    event.preventDefault();
+    insertMediaAssetIntoEditor(lang, asset);
   };
 
   const resolveImageUploadErrorMessage = (err: unknown) => {
@@ -1427,6 +1596,7 @@ function NewsFormModal({
         articleId: formData.id || undefined,
       });
       if (!isMountedRef.current) return null;
+      rememberMediaAsset(createNewsMediaAsset("image", publicUrl, file.name));
       return publicUrl;
     } catch (err) {
       if (!isMountedRef.current) return null;
@@ -1467,6 +1637,7 @@ function NewsFormModal({
         articleId: formData.id || undefined,
       });
       if (!isMountedRef.current) return null;
+      rememberMediaAsset(createNewsMediaAsset("video", publicUrl, file.name));
       return publicUrl;
     } catch (err) {
       if (!isMountedRef.current) return null;
@@ -1500,6 +1671,72 @@ function NewsFormModal({
     const file = await selectNewsImageFile();
     if (!file) return;
     await handleImageSelected(lang, file);
+  };
+
+  const uploadMediaAssetToLibrary = async (
+    file: File
+  ): Promise<NewsMediaAsset | null> => {
+    const mediaType = isSupportedNewsImageType(file.type)
+      ? "image"
+      : isSupportedNewsVideoType(file.type)
+        ? "video"
+        : null;
+
+    if (!mediaType) {
+      setMediaLibraryError(
+        language === "zh"
+          ? "仅支持 JPG、PNG、GIF、WebP 图片或 MP4、WebM、OGG 视频"
+          : "Only JPG, PNG, GIF, WebP images or MP4, WebM, OGG videos are supported"
+      );
+      return null;
+    }
+
+    if (mediaType === "image" && file.size > NEWS_IMAGE_MAX_BYTES) {
+      setMediaLibraryError(
+        language === "zh"
+          ? "图片文件过大，请选择 8MB 以下的图片"
+          : "Image is too large, please select a file smaller than 8MB"
+      );
+      return null;
+    }
+
+    if (mediaType === "video" && file.size > NEWS_VIDEO_MAX_BYTES) {
+      setMediaLibraryError(
+        language === "zh"
+          ? "视频文件过大，请选择 50MB 以下的视频"
+          : "Video is too large, please select a file smaller than 50MB"
+      );
+      return null;
+    }
+
+    setMediaLibraryError(null);
+    setMediaLibraryUploading(true);
+    try {
+      const publicUrl =
+        mediaType === "image"
+          ? await uploadNewsImage({ file, articleId: formData.id || undefined })
+          : await uploadNewsVideo({
+              file,
+              articleId: formData.id || undefined,
+            });
+      if (!isMountedRef.current) return null;
+      const asset = createNewsMediaAsset(mediaType, publicUrl, file.name);
+      rememberMediaAsset(asset);
+      return asset;
+    } catch (err) {
+      if (!isMountedRef.current) return null;
+      console.error("[admin-news] upload media asset failed", err);
+      setMediaLibraryError(
+        mediaType === "image"
+          ? resolveImageUploadErrorMessage(err)
+          : resolveVideoUploadErrorMessage(err)
+      );
+      return null;
+    } finally {
+      if (isMountedRef.current) {
+        setMediaLibraryUploading(false);
+      }
+    }
   };
 
   // Quill editor modules configuration
@@ -1920,6 +2157,25 @@ function NewsFormModal({
               </div>
             </div>
 
+            <NewsMediaLibrary
+              assets={mediaAssets}
+              language={language}
+              uploading={mediaLibraryUploading}
+              error={mediaLibraryError}
+              onUploadFile={(file) => void uploadMediaAssetToLibrary(file)}
+              onInsertAsset={insertMediaAssetIntoEditor}
+              targets={[
+                {
+                  lang: "zh",
+                  label: language === "zh" ? "插入中文" : "Insert Chinese",
+                },
+                {
+                  lang: "en",
+                  label: language === "zh" ? "插入英文" : "Insert English",
+                },
+              ]}
+            />
+
             {/* Content - Rich Text Editor */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div id="contentZh">
@@ -1945,7 +2201,11 @@ function NewsFormModal({
                     </button>
                   </div>
                 </div>
-                <div className="border border-gray-300 rounded-lg overflow-hidden">
+                <div
+                  className="border border-gray-300 rounded-lg overflow-hidden"
+                  onDragOver={handleEditorDragOver}
+                  onDrop={(event) => handleEditorDrop("zh", event)}
+                >
                   <ReactQuill
                     ref={zhEditorRef}
                     theme="snow"
@@ -1960,8 +2220,7 @@ function NewsFormModal({
                     onBlur={(_, __, ___) => handleFieldBlur("contentZh")}
                     modules={zhModules}
                     formats={formats}
-                    className="bg-white"
-                    style={{ height: "300px", marginBottom: "42px" }}
+                    className="bg-white news-inline-editor"
                   />
                 </div>
                 {touched.contentZh && errors.contentZh && (
@@ -2002,7 +2261,11 @@ function NewsFormModal({
                     </button>
                   </div>
                 </div>
-                <div className="border border-gray-300 rounded-lg overflow-hidden">
+                <div
+                  className="border border-gray-300 rounded-lg overflow-hidden"
+                  onDragOver={handleEditorDragOver}
+                  onDrop={(event) => handleEditorDrop("en", event)}
+                >
                   <ReactQuill
                     ref={enEditorRef}
                     theme="snow"
@@ -2017,8 +2280,7 @@ function NewsFormModal({
                     onBlur={(_, __, ___) => handleFieldBlur("contentEn")}
                     modules={enModules}
                     formats={formats}
-                    className="bg-white"
-                    style={{ height: "300px", marginBottom: "42px" }}
+                    className="bg-white news-inline-editor"
                   />
                 </div>
                 {touched.contentEn && errors.contentEn && (
@@ -2101,8 +2363,14 @@ function NewsFormModal({
               onClose={() => setFullscreenEditor(null)}
               modules={fullscreenEditor === "zh" ? zhModules : enModules}
               formats={formats}
-              uploading={mediaUploading[fullscreenEditor]}
-              uploadError={mediaError[fullscreenEditor]}
+              uploading={
+                mediaUploading[fullscreenEditor] || mediaLibraryUploading
+              }
+              uploadError={mediaError[fullscreenEditor] || mediaLibraryError}
+              mediaAssets={mediaAssets}
+              mediaLibraryUploading={mediaLibraryUploading}
+              mediaLibraryError={mediaLibraryError}
+              onUploadMediaAsset={uploadMediaAssetToLibrary}
               onSelectImage={(file) =>
                 uploadImageForLanguage(fullscreenEditor, file)
               }
@@ -2123,6 +2391,168 @@ function NewsFormModal({
   return createPortal(modal, document.body);
 }
 
+type NewsMediaLibraryTarget = {
+  lang: "zh" | "en";
+  label: string;
+};
+
+function NewsMediaLibrary({
+  assets,
+  language,
+  uploading,
+  error,
+  onUploadFile,
+  onInsertAsset,
+  targets,
+}: {
+  assets: NewsMediaAsset[];
+  language: "zh" | "en";
+  uploading: boolean;
+  error: string | null;
+  onUploadFile: (file: File) => void | Promise<void>;
+  onInsertAsset: (lang: "zh" | "en", asset: NewsMediaAsset) => void;
+  targets: NewsMediaLibraryTarget[];
+}) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleDragStart = (
+    event: React.DragEvent<HTMLElement>,
+    asset: NewsMediaAsset
+  ) => {
+    event.dataTransfer.effectAllowed = "copy";
+    event.dataTransfer.setData(NEWS_MEDIA_DRAG_TYPE, JSON.stringify(asset));
+    event.dataTransfer.setData("text/html", getNewsMediaAssetHtml(asset));
+    event.dataTransfer.setData("text/plain", asset.url);
+    event.dataTransfer.setData("text/uri-list", asset.url);
+  };
+
+  return (
+    <section className="rounded-xl border border-blue-100 bg-blue-50/60 p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h3 className="text-[#2B5F9E] font-medium">
+            {language === "zh"
+              ? "当前新闻素材库"
+              : "Current News Media Library"}
+          </h3>
+          <p className="mt-1 text-xs text-gray-600">
+            {language === "zh"
+              ? "上传一次图片或视频后，可拖到编辑器中，或点击按钮插入到当前光标位置。"
+              : "Upload an image or video once, then drag it into an editor or click a button to insert it at the current cursor."}
+          </p>
+        </div>
+        <div>
+          <input
+            ref={inputRef}
+            type="file"
+            accept={NEWS_MEDIA_ACCEPT}
+            className="hidden"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              event.target.value = "";
+              if (!file) return;
+              void onUploadFile(file);
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            disabled={uploading}
+            className="flex items-center justify-center gap-2 rounded-lg bg-[#2B5F9E] px-4 py-2 text-sm text-white transition-colors hover:bg-[#234a7e] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Upload className="h-4 w-4" />
+            <span>
+              {uploading
+                ? language === "zh"
+                  ? "上传中..."
+                  : "Uploading..."
+                : language === "zh"
+                  ? "上传素材"
+                  : "Upload media"}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {error && (
+        <p className="mt-3 text-xs text-red-600" role="alert">
+          {error}
+        </p>
+      )}
+
+      {assets.length === 0 ? (
+        <div className="mt-4 rounded-lg border border-dashed border-blue-200 bg-white/70 p-4 text-sm text-gray-500">
+          {language === "zh"
+            ? "还没有素材。上传封面、正文图片或视频后会自动出现在这里。"
+            : "No media yet. Cover images, body images, and videos will appear here after upload."}
+        </div>
+      ) : (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {assets.map((asset) => (
+            <article
+              key={asset.id}
+              draggable
+              onDragStart={(event) => handleDragStart(event, asset)}
+              className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+            >
+              <div className="relative h-32 bg-gray-100">
+                {asset.type === "image" ? (
+                  <img
+                    src={asset.url}
+                    alt={asset.name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <video
+                    src={asset.url}
+                    className="h-full w-full object-cover"
+                    muted
+                    preload="metadata"
+                  />
+                )}
+                <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-black/60 px-2 py-1 text-xs text-white">
+                  {asset.type === "image" ? (
+                    <ImageIcon className="h-3 w-3" />
+                  ) : (
+                    <Video className="h-3 w-3" />
+                  )}
+                  {asset.type === "image"
+                    ? language === "zh"
+                      ? "图片"
+                      : "Image"
+                    : language === "zh"
+                      ? "视频"
+                      : "Video"}
+                </span>
+              </div>
+              <div className="space-y-3 p-3">
+                <p
+                  className="truncate text-xs text-gray-600"
+                  title={asset.name}
+                >
+                  {asset.name}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {targets.map((target) => (
+                    <button
+                      key={`${asset.id}:${target.lang}`}
+                      type="button"
+                      onClick={() => onInsertAsset(target.lang, asset)}
+                      className="rounded-md bg-[#6BA868] px-2.5 py-1.5 text-xs text-white transition-colors hover:bg-[#5a9157]"
+                    >
+                      {target.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 // Fullscreen Editor Modal Component
 export function FullscreenEditorModal({
   lang,
@@ -2134,6 +2564,10 @@ export function FullscreenEditorModal({
   formats,
   uploading,
   uploadError,
+  mediaAssets,
+  mediaLibraryUploading,
+  mediaLibraryError,
+  onUploadMediaAsset,
   onSelectImage,
   onSelectVideo,
 }: {
@@ -2146,6 +2580,10 @@ export function FullscreenEditorModal({
   formats: string[];
   uploading: boolean;
   uploadError: string | null;
+  mediaAssets: NewsMediaAsset[];
+  mediaLibraryUploading: boolean;
+  mediaLibraryError: string | null;
+  onUploadMediaAsset: (file: File) => Promise<NewsMediaAsset | null>;
   onSelectImage: (file: File) => Promise<string | null>;
   onSelectVideo: (file: File) => Promise<string | null>;
 }) {
@@ -2181,6 +2619,27 @@ export function FullscreenEditorModal({
     }
 
     onChange(`${content}${buildNewsImageEmbedHtml(imageUrl)}`);
+  };
+
+  const insertMediaAssetIntoFullscreenEditor = (asset: NewsMediaAsset) => {
+    if (asset.type === "image") {
+      insertImageIntoFullscreenEditor(asset.url);
+      return;
+    }
+    insertVideoIntoFullscreenEditor(asset.url);
+  };
+
+  const handleEditorDragOver = (event: React.DragEvent) => {
+    if (Array.from(event.dataTransfer.types).includes(NEWS_MEDIA_DRAG_TYPE)) {
+      event.preventDefault();
+    }
+  };
+
+  const handleEditorDrop = (event: React.DragEvent) => {
+    const asset = parseDraggedNewsMediaAsset(event);
+    if (!asset) return;
+    event.preventDefault();
+    insertMediaAssetIntoFullscreenEditor(asset);
   };
 
   const handleImageSelected = async (file: File) => {
@@ -2226,7 +2685,7 @@ export function FullscreenEditorModal({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[60] bg-black/90 p-4"
+      className="fixed inset-0 z-[60] overflow-hidden bg-black/90 p-4"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget && !uploading) {
           handleClose();
@@ -2239,7 +2698,7 @@ export function FullscreenEditorModal({
         exit={{ scale: 0.95, opacity: 0 }}
         onMouseDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
-        className="mx-auto flex h-full w-full max-w-6xl flex-col"
+        className="mx-auto flex h-[calc(100vh-2rem)] w-full max-w-6xl flex-col"
       >
         {/* Header */}
         <div className="bg-gradient-to-r from-[#2B5F9E] to-[#6BA868] text-white p-4 sm:p-6 rounded-t-2xl flex-shrink-0">
@@ -2291,7 +2750,32 @@ export function FullscreenEditorModal({
               {uploadError}
             </p>
           )}
-          <div className="flex-1 min-h-0">
+          <div className="mb-4 max-h-80 overflow-y-auto">
+            <NewsMediaLibrary
+              assets={mediaAssets}
+              language={language}
+              uploading={mediaLibraryUploading}
+              error={mediaLibraryError}
+              onUploadFile={(file) => void onUploadMediaAsset(file)}
+              onInsertAsset={(_, asset) =>
+                insertMediaAssetIntoFullscreenEditor(asset)
+              }
+              targets={[
+                {
+                  lang,
+                  label:
+                    language === "zh"
+                      ? `插入${langLabel}`
+                      : `Insert ${langLabel}`,
+                },
+              ]}
+            />
+          </div>
+          <div
+            className="flex-1 min-h-0"
+            onDragOver={handleEditorDragOver}
+            onDrop={handleEditorDrop}
+          >
             <ReactQuill
               ref={fullscreenEditorRef}
               theme="snow"
