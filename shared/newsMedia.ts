@@ -16,6 +16,8 @@ export const NEWS_IMAGE_ACCEPT = SUPPORTED_NEWS_IMAGE_TYPES.join(",");
 export const NEWS_VIDEO_MAX_BYTES = 50 * 1024 * 1024;
 export const NEWS_IMAGE_MAX_BYTES = 8 * 1024 * 1024;
 
+export type NewsMediaType = "image" | "video";
+
 export type NewsMediaUploadState = {
   zh: boolean;
   en: boolean;
@@ -31,6 +33,14 @@ export function isSupportedNewsImageType(mimeType: string) {
   return SUPPORTED_NEWS_IMAGE_TYPES.includes(
     mimeType.trim().toLowerCase() as (typeof SUPPORTED_NEWS_IMAGE_TYPES)[number]
   );
+}
+
+export function getSupportedNewsMediaType(
+  mimeType: string
+): NewsMediaType | null {
+  if (isSupportedNewsImageType(mimeType)) return "image";
+  if (isSupportedNewsVideoType(mimeType)) return "video";
+  return null;
 }
 
 export function hasInlineNewsDataMedia(value?: string | null) {

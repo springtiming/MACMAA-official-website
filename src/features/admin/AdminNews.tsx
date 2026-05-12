@@ -43,6 +43,7 @@ import {
   buildNewsImageEmbedHtml,
   buildNewsVideoEmbedHtml,
   ensureNewsVideoBlotRegistered,
+  getSupportedNewsMediaType,
   hasInlineNewsDataMedia,
   hasPendingNewsMediaUploads,
   insertNewsImageIntoEditor,
@@ -1676,11 +1677,7 @@ function NewsFormModal({
   const uploadMediaAssetToLibrary = async (
     file: File
   ): Promise<NewsMediaAsset | null> => {
-    const mediaType = isSupportedNewsImageType(file.type)
-      ? "image"
-      : isSupportedNewsVideoType(file.type)
-        ? "video"
-        : null;
+    const mediaType = getSupportedNewsMediaType(file.type);
 
     if (!mediaType) {
       setMediaLibraryError(
