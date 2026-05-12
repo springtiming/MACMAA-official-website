@@ -36,9 +36,11 @@ describe("NewsMediaLibrary", () => {
 
   async function renderMediaLibrary({
     assets,
+    mobileTarget,
     onInsertAsset = vi.fn(),
   }: {
     assets: NewsMediaAsset[];
+    mobileTarget?: { lang: "zh" | "en"; label: string };
     onInsertAsset?: (lang: "zh" | "en", asset: NewsMediaAsset) => void;
   }) {
     (
@@ -59,6 +61,7 @@ describe("NewsMediaLibrary", () => {
           error={null}
           onUploadFile={vi.fn()}
           onInsertAsset={onInsertAsset}
+          mobileTarget={mobileTarget}
           targets={[
             { lang: "zh", label: "Insert Chinese" },
             { lang: "en", label: "Insert English" },
@@ -98,6 +101,32 @@ describe("NewsMediaLibrary", () => {
 
     expect(onInsertAsset).toHaveBeenNthCalledWith(1, "zh", asset);
     expect(onInsertAsset).toHaveBeenNthCalledWith(2, "en", asset);
+  });
+
+  it("can insert into the currently selected mobile editor", async () => {
+    const asset: NewsMediaAsset = {
+      id: "image:https://cdn.example.com/reusable.jpg",
+      type: "image",
+      url: "https://cdn.example.com/reusable.jpg",
+      name: "Reusable image",
+    };
+    const onInsertAsset = vi.fn();
+    await renderMediaLibrary({
+      assets: [asset],
+      mobileTarget: { lang: "en", label: "Insert current" },
+      onInsertAsset,
+    });
+
+    const mobileInsert = Array.from(document.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("Insert current")
+    );
+    expect(mobileInsert).toBeTruthy();
+
+    await act(async () => {
+      mobileInsert?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    expect(onInsertAsset).toHaveBeenCalledWith("en", asset);
   });
 
   it("provides reusable media data when dragging assets", async () => {
