@@ -53,7 +53,15 @@ export function buildNewsImageEmbedHtml(src: string) {
 }
 
 export function buildNewsVideoEmbedHtml(src: string) {
-  return `<p><video class="news-inline-video" controls preload="metadata" playsinline src="${src}"></video></p>`;
+  return `<p><video class="news-inline-video" controls preload="none" playsinline src="${src}"></video></p>`;
+}
+
+export function normalizeNewsMediaHtml(value?: string | null) {
+  if (!value) return "";
+
+  return value
+    .replace(/(<video\b[^>]*?)\s+preload=(['"])[^'"]*\2/gi, '$1 preload="none"')
+    .replace(/<video\b(?![^>]*\s+preload=)/gi, '<video preload="none"');
 }
 
 export function hasPendingNewsMediaUploads(state: NewsMediaUploadState) {

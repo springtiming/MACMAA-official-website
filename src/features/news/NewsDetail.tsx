@@ -5,6 +5,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "motion/react";
 import { Calendar, ArrowLeft, Share2, Quote } from "lucide-react";
 import { fetchNewsPostById, type NewsPostRecord } from "@/lib/supabaseApi";
+import { normalizeNewsMediaHtml } from "@/lib/newsMedia";
 import { pickLocalized, resolveNewsCover } from "@/lib/supabaseHelpers";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 
@@ -208,7 +209,9 @@ export function NewsDetail({ initialNews }: NewsDetailProps) {
             className="news-content text-gray-700"
             dangerouslySetInnerHTML={{
               __html:
-                pickLocalized(news.content_zh, news.content_en, language) || "",
+                normalizeNewsMediaHtml(
+                  pickLocalized(news.content_zh, news.content_en, language)
+                ) || "",
             }}
           />
         </div>

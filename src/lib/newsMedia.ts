@@ -6,6 +6,7 @@ import {
   hasPendingNewsMediaUploads,
   isSupportedNewsImageType,
   isSupportedNewsVideoType,
+  normalizeNewsMediaHtml,
   NEWS_IMAGE_ACCEPT,
   NEWS_IMAGE_MAX_BYTES,
   NEWS_VIDEO_ACCEPT,
@@ -60,7 +61,7 @@ export function ensureNewsVideoBlotRegistered(quill: QuillNamespace) {
       const node = super.create(value) as HTMLVideoElement;
       node.setAttribute("src", value);
       node.setAttribute("controls", "true");
-      node.setAttribute("preload", "metadata");
+      node.setAttribute("preload", "none");
       node.setAttribute("playsinline", "true");
       node.setAttribute("class", "news-inline-video");
       node.removeAttribute("frameborder");
@@ -110,6 +111,7 @@ export {
   hasPendingNewsMediaUploads,
   isSupportedNewsImageType,
   isSupportedNewsVideoType,
+  normalizeNewsMediaHtml,
   NEWS_IMAGE_ACCEPT,
   NEWS_IMAGE_MAX_BYTES,
   NEWS_VIDEO_ACCEPT,

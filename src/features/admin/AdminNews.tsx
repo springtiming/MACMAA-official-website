@@ -44,6 +44,7 @@ import {
   hasInlineNewsDataMedia,
   insertNewsImageIntoEditor,
   insertNewsVideoIntoEditor,
+  normalizeNewsMediaHtml,
   NEWS_IMAGE_ACCEPT,
   NEWS_IMAGE_MAX_BYTES,
   NEWS_VIDEO_ACCEPT,
@@ -89,12 +90,48 @@ const NEWS_EDITOR_FORMATS = [
   "video",
 ];
 
+type NewsEditorDelta = {
+  ops?: unknown[];
+};
+
+type NewsEditorMediaNode = {
+  getAttribute?: (name: string) => string | null;
+  querySelector?: (selector: string) => NewsEditorMediaNode | null;
+};
+
 export function createNewsEditorModules(): NonNullable<
   ReactQuillProps["modules"]
 > {
   return {
     toolbar: NEWS_EDITOR_TOOLBAR,
+    clipboard: {
+      matchers: [
+        ["IMG", blockInlineNewsMediaMatcher],
+        ["VIDEO", blockInlineNewsMediaMatcher],
+      ],
+    },
   };
+}
+
+function createEmptyNewsEditorDelta(delta: NewsEditorDelta) {
+  const DeltaCtor = delta.constructor as unknown;
+  if (typeof DeltaCtor === "function" && DeltaCtor !== Object) {
+    return new (DeltaCtor as new () => NewsEditorDelta)();
+  }
+  return { ...delta, ops: [] };
+}
+
+export function blockInlineNewsMediaMatcher(
+  node: NewsEditorMediaNode,
+  delta: NewsEditorDelta
+) {
+  const src =
+    node.getAttribute?.("src") ??
+    node.querySelector?.("source")?.getAttribute?.("src") ??
+    "";
+  return hasInlineNewsDataMedia(src)
+    ? createEmptyNewsEditorDelta(delta)
+    : delta;
 }
 
 async function dataUrlToImageFile(dataUrl: string) {
@@ -159,6 +196,31 @@ function addNewsMediaAssetToList(
     return assets;
   }
   return [asset, ...assets];
+}
+
+function isRenderableNewsImageUrl(value?: string | null) {
+  const url = value?.trim() ?? "";
+  if (!url || hasInlineNewsDataMedia(url)) return false;
+  return (
+    url.startsWith("http") || url.startsWith("/") || url.startsWith("blob:")
+  );
+}
+
+function getRenderableNewsImageUrl(value?: string | null) {
+  const url = value?.trim() ?? "";
+  return isRenderableNewsImageUrl(url) ? url : "";
+}
+
+function getSafeCoverText(value?: string | null) {
+  const text = value?.trim() ?? "";
+  return hasInlineNewsDataMedia(text) ? "" : text;
+}
+
+function hasInlineCoverMedia(input: {
+  coverUrl?: string | null;
+  coverSource?: string | null;
+}) {
+  return [input.coverUrl, input.coverSource].some(hasInlineNewsDataMedia);
 }
 
 function extractNewsMediaAssets(input: {
@@ -335,10 +397,8 @@ export function AdminNews() {
 
   const handleEdit = (news: NewsPostRecord) => {
     const coverUrl =
-      news.cover_url ||
-      (news.cover_source && news.cover_source.startsWith("http")
-        ? news.cover_source
-        : "");
+      getRenderableNewsImageUrl(news.cover_url) ||
+      getRenderableNewsImageUrl(news.cover_source);
     setUploadedImage(coverUrl ?? "");
     setEditingArticle(news);
     setEditingDraft(null);
@@ -348,10 +408,8 @@ export function AdminNews() {
 
   const handleEditDraft = (draft: ArticleVersionRecord) => {
     const coverUrl =
-      draft.cover_url ||
-      (draft.cover_source && draft.cover_source.startsWith("http")
-        ? draft.cover_source
-        : "");
+      getRenderableNewsImageUrl(draft.cover_url) ||
+      getRenderableNewsImageUrl(draft.cover_source);
     setUploadedImage(coverUrl ?? "");
     setEditingDraft(draft);
     setEditingArticle(null);
@@ -412,10 +470,11 @@ export function AdminNews() {
   const buildCoverFields = (news: NewsFormState) => {
     const type = news.imageType || "upload";
     const keyword = type === "unsplash" ? news.imageKeyword.trim() : "";
-    const url =
+    const rawUrl =
       type === "upload"
         ? news.image || uploadedImage || uploadedImageUrl || ""
         : news.image;
+    const url = hasInlineNewsDataMedia(rawUrl) ? "" : rawUrl;
     const coverSource = url || keyword || null;
     return {
       cover_source: coverSource,
@@ -1079,30 +1138,33 @@ function NewsFormModal({
   }, []);
 
   const initialCoverUrl =
-    draft?.cover_url ||
-    news?.cover_url ||
-    (draft?.cover_source && draft.cover_source.startsWith("http")
-      ? draft.cover_source
-      : news?.cover_source && news.cover_source.startsWith("http")
-        ? news.cover_source
-        : "");
+    getRenderableNewsImageUrl(draft?.cover_url) ||
+    getRenderableNewsImageUrl(news?.cover_url) ||
+    getRenderableNewsImageUrl(draft?.cover_source) ||
+    getRenderableNewsImageUrl(news?.cover_source);
   const initialCoverKeyword =
     draft?.cover_keyword ||
     news?.cover_keyword ||
-    (!initialCoverUrl ? (draft?.cover_source ?? news?.cover_source ?? "") : "");
+    (!initialCoverUrl
+      ? getSafeCoverText(draft?.cover_source ?? news?.cover_source)
+      : "");
   const initialCoverType =
     draft?.cover_type ||
     news?.cover_type ||
     (initialCoverUrl ? "upload" : initialCoverKeyword ? "unsplash" : "upload");
+  const hasLegacyInlineCover =
+    hasInlineCoverMedia({
+      coverUrl: draft?.cover_url,
+      coverSource: draft?.cover_source,
+    }) ||
+    hasInlineCoverMedia({
+      coverUrl: news?.cover_url,
+      coverSource: news?.cover_source,
+    });
 
   // 辅助函数：判断字符串是否为图片 URL
   const isImageUrl = (str: string): boolean => {
-    return (
-      str.startsWith("http") ||
-      str.startsWith("/") ||
-      str.startsWith("data:") ||
-      str.startsWith("blob:")
-    );
+    return isRenderableNewsImageUrl(str);
   };
 
   const isUnsplashUrl = (str: string): boolean =>
@@ -1141,8 +1203,13 @@ function NewsFormModal({
   );
   const hasPendingMediaUpload = mediaLibraryUploading;
   const [formData, setFormData] = useState<NewsFormState>(() => {
-    const coverSource = draft?.cover_source || news?.cover_source || "";
-    const coverUrl = draft?.cover_url || news?.cover_url || uploadedImageUrl;
+    const coverSource = getSafeCoverText(
+      draft?.cover_source || news?.cover_source
+    );
+    const coverUrl =
+      getRenderableNewsImageUrl(draft?.cover_url) ||
+      getRenderableNewsImageUrl(news?.cover_url) ||
+      uploadedImageUrl;
     const coverKeyword =
       draft?.cover_keyword || news?.cover_keyword || unsplashKeyword;
     const isCoverImageUrl = !!coverUrl && isImageUrl(coverUrl);
@@ -1153,7 +1220,10 @@ function NewsFormModal({
         id: draft.article_id ?? "",
         title: { zh: draft.title_zh ?? "", en: draft.title_en ?? "" },
         summary: { zh: draft.summary_zh ?? "", en: draft.summary_en ?? "" },
-        content: { zh: draft.content_zh ?? "", en: draft.content_en ?? "" },
+        content: {
+          zh: normalizeNewsMediaHtml(draft.content_zh),
+          en: normalizeNewsMediaHtml(draft.content_en),
+        },
         image:
           isCoverImageUrl && imageSource === "unsplash" && !isCoverUnsplash
             ? ""
@@ -1167,7 +1237,10 @@ function NewsFormModal({
         id: news.id,
         title: { zh: news.title_zh ?? "", en: news.title_en ?? "" },
         summary: { zh: news.summary_zh ?? "", en: news.summary_en ?? "" },
-        content: { zh: news.content_zh ?? "", en: news.content_en ?? "" },
+        content: {
+          zh: normalizeNewsMediaHtml(news.content_zh),
+          en: normalizeNewsMediaHtml(news.content_en),
+        },
         image:
           isCoverImageUrl && imageSource === "unsplash" && !isCoverUnsplash
             ? ""
@@ -1272,6 +1345,7 @@ function NewsFormModal({
 
   useEffect(() => {
     if (uploadedImage) {
+      if (hasInlineNewsDataMedia(uploadedImage)) return;
       setImageSource("upload");
       setUploadedImageUrl(uploadedImage);
       setCoverError(null);
@@ -1443,6 +1517,15 @@ function NewsFormModal({
   };
 
   const updateEditorContent = (lang: "zh" | "en", value: string) => {
+    if (hasInlineNewsDataMedia(value)) {
+      setMediaLibraryError(
+        language === "zh"
+          ? "不支持直接粘贴图片或视频文件，请先上传到素材库"
+          : "Pasted image or video files are not supported. Upload them to the media library first."
+      );
+      return;
+    }
+    setMediaLibraryError(null);
     setFormData((prev) => ({
       ...prev,
       content: { ...prev.content, [lang]: value },
@@ -1631,6 +1714,13 @@ function NewsFormModal({
               <h3 className="text-gray-700 mb-4">
                 {t("admin.news.form.coverImageSettings")}
               </h3>
+              {hasLegacyInlineCover && (
+                <p className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+                  {language === "zh"
+                    ? "这篇新闻使用旧版内联封面。为避免浏览器内存过高，请重新上传封面后再保存。"
+                    : "This article uses a legacy inline cover. Re-upload the cover before saving to avoid high browser memory use."}
+                </p>
+              )}
 
               {/* Toggle Buttons */}
               <div className="flex gap-2 mb-4">
@@ -2016,13 +2106,9 @@ function NewsFormModal({
                     ref={zhEditorRef}
                     theme="snow"
                     value={formData.content.zh}
-                    onChange={(value: string) => {
-                      setFormData({
-                        ...formData,
-                        content: { ...formData.content, zh: value },
-                      });
-                      handleFieldChange("contentZh", value);
-                    }}
+                    onChange={(value: string) =>
+                      updateEditorContent("zh", value)
+                    }
                     onBlur={(_, __, ___) => handleFieldBlur("contentZh")}
                     modules={editorModules}
                     formats={formats}
@@ -2054,13 +2140,9 @@ function NewsFormModal({
                     ref={enEditorRef}
                     theme="snow"
                     value={formData.content.en}
-                    onChange={(value: string) => {
-                      setFormData({
-                        ...formData,
-                        content: { ...formData.content, en: value },
-                      });
-                      handleFieldChange("contentEn", value);
-                    }}
+                    onChange={(value: string) =>
+                      updateEditorContent("en", value)
+                    }
                     onBlur={(_, __, ___) => handleFieldBlur("contentEn")}
                     modules={editorModules}
                     formats={formats}
@@ -2253,15 +2335,14 @@ export function NewsMediaLibrary({
                   <img
                     src={asset.url}
                     alt={asset.name}
+                    loading="lazy"
+                    decoding="async"
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <video
-                    src={asset.url}
-                    className="h-full w-full object-cover"
-                    muted
-                    preload="metadata"
-                  />
+                  <div className="flex h-full w-full items-center justify-center bg-gray-900 text-white">
+                    <Video className="h-6 w-6" />
+                  </div>
                 )}
                 <span className="absolute left-1 top-1 inline-flex items-center rounded-full bg-black/60 p-1 text-white">
                   {asset.type === "image" ? (

@@ -114,6 +114,20 @@ describe("NewsMediaLibrary", () => {
 
     expect(thumbnail?.className).toContain("h-14");
     expect(thumbnail?.className).toContain("w-14");
+    expect(image?.getAttribute("loading")).toBe("lazy");
+    expect(image?.getAttribute("decoding")).toBe("async");
+  });
+
+  it("does not preload video files for media library thumbnails", async () => {
+    const asset: NewsMediaAsset = {
+      id: "video:https://cdn.example.com/reusable.mp4",
+      type: "video",
+      url: "https://cdn.example.com/reusable.mp4",
+      name: "Reusable video",
+    };
+    await renderMediaLibrary({ assets: [asset] });
+
+    expect(document.querySelector("video")).toBeNull();
   });
 
   it("provides reusable media data when dragging assets", async () => {
