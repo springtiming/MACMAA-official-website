@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useRouter } from "next/router";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import {
   Search,
   Plus,
@@ -14,8 +14,6 @@ import {
   Upload,
   Image as ImageIcon,
   Video,
-  Maximize2,
-  Minimize2,
 } from "lucide-react";
 import { createPortal } from "react-dom";
 import ReactQuill from "react-quill";
@@ -134,9 +132,9 @@ async function dataUrlToImageFile(dataUrl: string) {
   });
 }
 
-type NewsMediaAssetType = "image" | "video";
+export type NewsMediaAssetType = "image" | "video";
 
-type NewsMediaAsset = {
+export type NewsMediaAsset = {
   id: string;
   type: NewsMediaAssetType;
   url: string;
@@ -1156,14 +1154,6 @@ function NewsFormModal({
     null
   );
 
-  // 状态：保存上传的图片 URL（用于在模式切换时恢复）
-  // 由父组件传入，避免多份状态不一致
-  // const [uploadedImageUrl, setUploadedImageUrl] = useState<string>(() => {
-  //   return initialCoverUrl || "";
-  // });
-  const [fullscreenEditor, setFullscreenEditor] = useState<"zh" | "en" | null>(
-    null
-  );
   const [mediaUploading, setMediaUploading] = useState<{
     zh: boolean;
     en: boolean;
@@ -2187,15 +2177,6 @@ function NewsFormModal({
                       disabled={formLoading}
                       onSelectFile={(file) => handleVideoSelected("zh", file)}
                     />
-                    <button
-                      type="button"
-                      onClick={() => setFullscreenEditor("zh")}
-                      className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-[#2B5F9E] hover:bg-blue-50 rounded-lg transition-colors"
-                      title={t("admin.news.form.fullscreenEdit")}
-                    >
-                      <Maximize2 className="w-4 h-4" />
-                      <span>{t("admin.news.form.fullscreenEdit")}</span>
-                    </button>
                   </div>
                 </div>
                 <div
@@ -2247,15 +2228,6 @@ function NewsFormModal({
                       disabled={formLoading}
                       onSelectFile={(file) => handleVideoSelected("en", file)}
                     />
-                    <button
-                      type="button"
-                      onClick={() => setFullscreenEditor("en")}
-                      className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-[#2B5F9E] hover:bg-blue-50 rounded-lg transition-colors"
-                      title={t("admin.news.form.fullscreenEdit")}
-                    >
-                      <Maximize2 className="w-4 h-4" />
-                      <span>{t("admin.news.form.fullscreenEdit")}</span>
-                    </button>
                   </div>
                 </div>
                 <div
@@ -2346,37 +2318,6 @@ function NewsFormModal({
             </p>
           )}
         </form>
-
-        {/* Fullscreen Editor Modal */}
-        <AnimatePresence>
-          {fullscreenEditor && (
-            <FullscreenEditorModal
-              lang={fullscreenEditor}
-              content={formData.content[fullscreenEditor]}
-              onChange={(content) =>
-                updateEditorContent(fullscreenEditor, content)
-              }
-              onSave={() => setFullscreenEditor(null)}
-              onClose={() => setFullscreenEditor(null)}
-              modules={fullscreenEditor === "zh" ? zhModules : enModules}
-              formats={formats}
-              uploading={
-                mediaUploading[fullscreenEditor] || mediaLibraryUploading
-              }
-              uploadError={mediaError[fullscreenEditor] || mediaLibraryError}
-              mediaAssets={mediaAssets}
-              mediaLibraryUploading={mediaLibraryUploading}
-              mediaLibraryError={mediaLibraryError}
-              onUploadMediaAsset={uploadMediaAssetToLibrary}
-              onSelectImage={(file) =>
-                uploadImageForLanguage(fullscreenEditor, file)
-              }
-              onSelectVideo={(file) =>
-                uploadVideoForLanguage(fullscreenEditor, file)
-              }
-            />
-          )}
-        </AnimatePresence>
       </motion.div>
     </motion.div>
   );
@@ -2393,7 +2334,7 @@ type NewsMediaLibraryTarget = {
   label: string;
 };
 
-function NewsMediaLibrary({
+export function NewsMediaLibrary({
   assets,
   language,
   uploading,
@@ -2548,249 +2489,4 @@ function NewsMediaLibrary({
       )}
     </section>
   );
-}
-
-// Fullscreen Editor Modal Component
-export function FullscreenEditorModal({
-  lang,
-  content,
-  onChange,
-  onSave,
-  onClose,
-  modules,
-  formats,
-  uploading,
-  uploadError,
-  mediaAssets,
-  mediaLibraryUploading,
-  mediaLibraryError,
-  onUploadMediaAsset,
-  onSelectImage,
-  onSelectVideo,
-}: {
-  lang: "zh" | "en";
-  content: string;
-  onChange: (content: string) => void;
-  onSave: () => void;
-  onClose: () => void;
-  modules: NonNullable<ReactQuillProps["modules"]>;
-  formats: string[];
-  uploading: boolean;
-  uploadError: string | null;
-  mediaAssets: NewsMediaAsset[];
-  mediaLibraryUploading: boolean;
-  mediaLibraryError: string | null;
-  onUploadMediaAsset: (file: File) => Promise<NewsMediaAsset | null>;
-  onSelectImage: (file: File) => Promise<string | null>;
-  onSelectVideo: (file: File) => Promise<string | null>;
-}) {
-  const { language, t } = useLanguage();
-  const fullscreenEditorRef = useRef<ReactQuill | null>(null);
-  void modules;
-
-  const handleClose = () => {
-    if (uploading) return;
-    onClose();
-  };
-
-  const handleSave = () => {
-    if (uploading) return;
-    onSave();
-  };
-
-  const insertVideoIntoFullscreenEditor = (videoUrl: string) => {
-    const quill = fullscreenEditorRef.current?.getEditor();
-    if (quill) {
-      onChange(insertNewsVideoIntoEditor(quill, videoUrl));
-      return;
-    }
-
-    onChange(`${content}${buildNewsVideoEmbedHtml(videoUrl)}`);
-  };
-
-  const insertImageIntoFullscreenEditor = (imageUrl: string) => {
-    const quill = fullscreenEditorRef.current?.getEditor();
-    if (quill) {
-      onChange(insertNewsImageIntoEditor(quill, imageUrl));
-      return;
-    }
-
-    onChange(`${content}${buildNewsImageEmbedHtml(imageUrl)}`);
-  };
-
-  const insertMediaAssetIntoFullscreenEditor = (asset: NewsMediaAsset) => {
-    if (asset.type === "image") {
-      insertImageIntoFullscreenEditor(asset.url);
-      return;
-    }
-    insertVideoIntoFullscreenEditor(asset.url);
-  };
-
-  const handleEditorDragOver = (event: React.DragEvent) => {
-    if (Array.from(event.dataTransfer.types).includes(NEWS_MEDIA_DRAG_TYPE)) {
-      event.preventDefault();
-    }
-  };
-
-  const handleEditorDrop = (event: React.DragEvent) => {
-    const asset = parseDraggedNewsMediaAsset(event);
-    if (!asset) return;
-    event.preventDefault();
-    insertMediaAssetIntoFullscreenEditor(asset);
-  };
-
-  const handleImageSelected = async (file: File) => {
-    const publicUrl = await onSelectImage(file);
-    if (!publicUrl) return;
-    insertImageIntoFullscreenEditor(publicUrl);
-  };
-
-  const handleImageToolbarSelected = async () => {
-    if (uploading) return;
-    const file = await selectNewsImageFile();
-    if (!file) return;
-    await handleImageSelected(file);
-  };
-
-  const handleImageToolbarSelectedRef = useRef(handleImageToolbarSelected);
-  handleImageToolbarSelectedRef.current = handleImageToolbarSelected;
-  const modulesWithImageUpload = useMemo(
-    () =>
-      createNewsEditorModules(
-        () => void handleImageToolbarSelectedRef.current()
-      ),
-    []
-  );
-
-  const handleVideoSelected = async (file: File) => {
-    const publicUrl = await onSelectVideo(file);
-    if (!publicUrl) return;
-    insertVideoIntoFullscreenEditor(publicUrl);
-  };
-
-  const langLabel =
-    lang === "zh"
-      ? language === "zh"
-        ? "中文"
-        : "Chinese"
-      : language === "zh"
-        ? "英文"
-        : "English";
-
-  const modal = (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[60] overflow-hidden bg-black/90 p-4"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget && !uploading) {
-          handleClose();
-        }
-      }}
-    >
-      <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        onMouseDown={(e) => e.stopPropagation()}
-        onClick={(e) => e.stopPropagation()}
-        className="mx-auto flex h-[calc(100vh-2rem)] w-full max-w-6xl flex-col"
-      >
-        {/* Header */}
-        <div className="bg-gradient-to-r from-[#2B5F9E] to-[#6BA868] text-white p-4 sm:p-6 rounded-t-2xl flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl sm:text-2xl flex items-center gap-2">
-              <Maximize2 className="w-6 h-6" />
-              <span>
-                {t("admin.news.form.fullscreenTitle")}
-                {langLabel}
-              </span>
-            </h2>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleSave}
-                className="flex items-center gap-2 px-4 py-2 bg-[#6BA868] hover:bg-[#5a9157] rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                disabled={uploading}
-              >
-                <Save className="w-5 h-5" />
-                <span className="hidden sm:inline">
-                  {t("admin.news.form.saveDraft")}
-                </span>
-              </button>
-              <button
-                onClick={handleClose}
-                className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                disabled={uploading}
-              >
-                <Minimize2 className="w-5 h-5" />
-                <span className="hidden sm:inline">
-                  {t("admin.news.form.exitFullscreen")}
-                </span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Editor Content */}
-        <div className="flex-1 min-h-0 bg-white rounded-b-2xl p-4 flex flex-col">
-          <div className="mb-3 flex items-center justify-end border-b border-gray-200 pb-3">
-            <NewsVideoUploadControl
-              language={language}
-              uploading={uploading}
-              disabled={uploading}
-              onSelectFile={handleVideoSelected}
-            />
-          </div>
-          {uploadError && (
-            <p className="mb-3 text-xs text-red-600" role="alert">
-              {uploadError}
-            </p>
-          )}
-          <div className="mb-4 max-h-80 overflow-y-auto">
-            <NewsMediaLibrary
-              assets={mediaAssets}
-              language={language}
-              uploading={mediaLibraryUploading}
-              error={mediaLibraryError}
-              onUploadFile={(file) => void onUploadMediaAsset(file)}
-              onInsertAsset={(_, asset) =>
-                insertMediaAssetIntoFullscreenEditor(asset)
-              }
-              targets={[
-                {
-                  lang,
-                  label:
-                    language === "zh"
-                      ? `插入${langLabel}`
-                      : `Insert ${langLabel}`,
-                },
-              ]}
-            />
-          </div>
-          <div
-            className="flex-1 min-h-0"
-            onDragOver={handleEditorDragOver}
-            onDrop={handleEditorDrop}
-          >
-            <ReactQuill
-              ref={fullscreenEditorRef}
-              theme="snow"
-              value={content}
-              onChange={onChange}
-              modules={modulesWithImageUpload}
-              formats={formats}
-              className="bg-white h-full news-fullscreen-editor"
-            />
-          </div>
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-
-  if (typeof document === "undefined") {
-    return modal;
-  }
-
-  return createPortal(modal, document.body);
 }
