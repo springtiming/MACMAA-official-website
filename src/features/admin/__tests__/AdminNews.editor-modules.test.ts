@@ -12,22 +12,15 @@ vi.mock("react-quill", () => ({
 }));
 
 describe("admin news editor modules", () => {
-  it("overrides Quill's default base64 image toolbar handler", () => {
-    const onSelectImage = vi.fn();
-    const modules = createNewsEditorModules(onSelectImage);
-    const toolbar = modules.toolbar as {
-      container: unknown[];
-      handlers: { image: () => void };
-    };
+  it("keeps media upload out of the editor toolbar", () => {
+    const modules = createNewsEditorModules();
+    const toolbar = modules.toolbar as unknown[];
 
-    expect(Array.isArray(modules.toolbar)).toBe(false);
-    expect(toolbar.container).toEqual(
-      expect.arrayContaining([
-        expect.arrayContaining(["link", "image", "video"]),
-      ])
+    expect(Array.isArray(toolbar)).toBe(true);
+    expect(toolbar).toEqual(
+      expect.arrayContaining([expect.arrayContaining(["link"])])
     );
-
-    toolbar.handlers.image();
-    expect(onSelectImage).toHaveBeenCalledTimes(1);
+    expect(JSON.stringify(toolbar)).not.toContain("image");
+    expect(JSON.stringify(toolbar)).not.toContain("video");
   });
 });
