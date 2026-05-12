@@ -1128,7 +1128,6 @@ function NewsFormModal({
   );
 
   const [coverError, setCoverError] = useState<string | null>(null);
-  const [activeContentLang, setActiveContentLang] = useState<"zh" | "en">("zh");
   const [mediaAssets, setMediaAssets] = useState<NewsMediaAsset[]>(() =>
     extractNewsMediaAssets({
       coverUrl: uploadedImageUrl || initialCoverUrl,
@@ -1389,11 +1388,6 @@ function NewsFormModal({
     );
 
     if (Object.keys(mediaErrors).length > 0) {
-      if (mediaErrors.contentZh) {
-        setActiveContentLang("zh");
-      } else if (mediaErrors.contentEn) {
-        setActiveContentLang("en");
-      }
       setErrors((prev) => ({ ...prev, ...mediaErrors }));
       setTouched((prev) => ({
         ...prev,
@@ -1427,11 +1421,6 @@ function NewsFormModal({
       validationConfig
     );
     if (Object.keys(validationErrors).length > 0) {
-      if (validationErrors.contentZh) {
-        setActiveContentLang("zh");
-      } else if (validationErrors.contentEn) {
-        setActiveContentLang("en");
-      }
       setErrors(validationErrors);
       touchAllFields();
       scrollToFirstError(validationErrors);
@@ -1998,17 +1987,6 @@ function NewsFormModal({
               error={mediaLibraryError}
               onUploadFile={(file) => void uploadMediaAssetToLibrary(file)}
               onInsertAsset={insertMediaAssetIntoEditor}
-              mobileTarget={{
-                lang: activeContentLang,
-                label:
-                  language === "zh"
-                    ? activeContentLang === "zh"
-                      ? "插入当前中文"
-                      : "插入当前英文"
-                    : activeContentLang === "zh"
-                      ? "Insert Chinese"
-                      : "Insert English",
-              }}
               targets={[
                 {
                   lang: "zh",
@@ -2022,119 +2000,82 @@ function NewsFormModal({
             />
 
             {/* Content - Rich Text Editor */}
-            <div className="space-y-4">
-              <div className="lg:hidden rounded-xl border border-gray-200 bg-gray-50 p-1 grid grid-cols-2 gap-1">
-                <button
-                  type="button"
-                  onClick={() => setActiveContentLang("zh")}
-                  className={`rounded-lg px-3 py-2 text-sm transition-colors ${
-                    activeContentLang === "zh"
-                      ? "bg-[#2B5F9E] text-white shadow-sm"
-                      : "text-gray-600 hover:bg-white"
-                  }`}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div id="contentZh">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-gray-700">
+                    {t("admin.news.form.contentZh")} *
+                  </label>
+                </div>
+                <div
+                  className="border border-gray-300 rounded-lg overflow-hidden"
+                  onDragOver={handleEditorDragOver}
+                  onDrop={(event) => handleEditorDrop("zh", event)}
                 >
-                  {language === "zh" ? "中文正文" : "Chinese"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveContentLang("en")}
-                  className={`rounded-lg px-3 py-2 text-sm transition-colors ${
-                    activeContentLang === "en"
-                      ? "bg-[#2B5F9E] text-white shadow-sm"
-                      : "text-gray-600 hover:bg-white"
-                  }`}
-                >
-                  {language === "zh" ? "英文正文" : "English"}
-                </button>
+                  <ReactQuill
+                    ref={zhEditorRef}
+                    theme="snow"
+                    value={formData.content.zh}
+                    onChange={(value: string) => {
+                      setFormData({
+                        ...formData,
+                        content: { ...formData.content, zh: value },
+                      });
+                      handleFieldChange("contentZh", value);
+                    }}
+                    onBlur={(_, __, ___) => handleFieldBlur("contentZh")}
+                    modules={editorModules}
+                    formats={formats}
+                    className="bg-white news-inline-editor"
+                  />
+                </div>
+                {touched.contentZh && errors.contentZh && (
+                  <p className="mt-2 text-xs text-red-600" role="alert">
+                    {getErrorMessage(
+                      errors.contentZh,
+                      validationConfig.errorMessages,
+                      language
+                    )}
+                  </p>
+                )}
               </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div
-                  id="contentZh"
-                  className={
-                    activeContentLang === "zh" ? "block" : "hidden lg:block"
-                  }
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="block text-gray-700">
-                      {t("admin.news.form.contentZh")} *
-                    </label>
-                  </div>
-                  <div
-                    className="border border-gray-300 rounded-lg overflow-hidden"
-                    onDragOver={handleEditorDragOver}
-                    onDrop={(event) => handleEditorDrop("zh", event)}
-                  >
-                    <ReactQuill
-                      ref={zhEditorRef}
-                      theme="snow"
-                      value={formData.content.zh}
-                      onChange={(value: string) => {
-                        setFormData({
-                          ...formData,
-                          content: { ...formData.content, zh: value },
-                        });
-                        handleFieldChange("contentZh", value);
-                      }}
-                      onBlur={(_, __, ___) => handleFieldBlur("contentZh")}
-                      modules={editorModules}
-                      formats={formats}
-                      className="bg-white news-inline-editor"
-                    />
-                  </div>
-                  {touched.contentZh && errors.contentZh && (
-                    <p className="mt-2 text-xs text-red-600" role="alert">
-                      {getErrorMessage(
-                        errors.contentZh,
-                        validationConfig.errorMessages,
-                        language
-                      )}
-                    </p>
-                  )}
+              <div id="contentEn">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-gray-700">
+                    {t("admin.news.form.contentEn")} *
+                  </label>
                 </div>
                 <div
-                  id="contentEn"
-                  className={
-                    activeContentLang === "en" ? "block" : "hidden lg:block"
-                  }
+                  className="border border-gray-300 rounded-lg overflow-hidden"
+                  onDragOver={handleEditorDragOver}
+                  onDrop={(event) => handleEditorDrop("en", event)}
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="block text-gray-700">
-                      {t("admin.news.form.contentEn")} *
-                    </label>
-                  </div>
-                  <div
-                    className="border border-gray-300 rounded-lg overflow-hidden"
-                    onDragOver={handleEditorDragOver}
-                    onDrop={(event) => handleEditorDrop("en", event)}
-                  >
-                    <ReactQuill
-                      ref={enEditorRef}
-                      theme="snow"
-                      value={formData.content.en}
-                      onChange={(value: string) => {
-                        setFormData({
-                          ...formData,
-                          content: { ...formData.content, en: value },
-                        });
-                        handleFieldChange("contentEn", value);
-                      }}
-                      onBlur={(_, __, ___) => handleFieldBlur("contentEn")}
-                      modules={editorModules}
-                      formats={formats}
-                      className="bg-white news-inline-editor"
-                    />
-                  </div>
-                  {touched.contentEn && errors.contentEn && (
-                    <p className="mt-2 text-xs text-red-600" role="alert">
-                      {getErrorMessage(
-                        errors.contentEn,
-                        validationConfig.errorMessages,
-                        language
-                      )}
-                    </p>
-                  )}
+                  <ReactQuill
+                    ref={enEditorRef}
+                    theme="snow"
+                    value={formData.content.en}
+                    onChange={(value: string) => {
+                      setFormData({
+                        ...formData,
+                        content: { ...formData.content, en: value },
+                      });
+                      handleFieldChange("contentEn", value);
+                    }}
+                    onBlur={(_, __, ___) => handleFieldBlur("contentEn")}
+                    modules={editorModules}
+                    formats={formats}
+                    className="bg-white news-inline-editor"
+                  />
                 </div>
+                {touched.contentEn && errors.contentEn && (
+                  <p className="mt-2 text-xs text-red-600" role="alert">
+                    {getErrorMessage(
+                      errors.contentEn,
+                      validationConfig.errorMessages,
+                      language
+                    )}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -2210,7 +2151,6 @@ export function NewsMediaLibrary({
   error,
   onUploadFile,
   onInsertAsset,
-  mobileTarget,
   targets,
 }: {
   assets: NewsMediaAsset[];
@@ -2219,7 +2159,6 @@ export function NewsMediaLibrary({
   error: string | null;
   onUploadFile: (file: File) => void | Promise<void>;
   onInsertAsset: (lang: "zh" | "en", asset: NewsMediaAsset) => void;
-  mobileTarget?: NewsMediaLibraryTarget;
   targets: NewsMediaLibraryTarget[];
 }) {
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -2248,6 +2187,11 @@ export function NewsMediaLibrary({
             {language === "zh"
               ? "上传一次图片或视频后，可插入中文或英文正文。"
               : "Upload an image or video once, then reuse it in either editor."}
+          </p>
+          <p className="mt-1 text-xs text-gray-600 sm:hidden">
+            {language === "zh"
+              ? "上传后点“中文”或“英文”插入到对应正文。"
+              : "Upload media, then tap ZH or EN to insert into that editor."}
           </p>
         </div>
         <div className="shrink-0">
@@ -2296,15 +2240,15 @@ export function NewsMediaLibrary({
             : "No media yet. Cover images, body images, and videos will appear here after upload."}
         </div>
       ) : (
-        <div className="mt-3 flex gap-2 overflow-x-auto pb-1 lg:grid lg:grid-cols-3 lg:overflow-visible xl:grid-cols-4">
+        <div className="mt-3 flex gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:overflow-visible">
           {assets.map((asset) => (
             <article
               key={asset.id}
               draggable
               onDragStart={(event) => handleDragStart(event, asset)}
-              className="w-24 shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm lg:w-auto"
+              className="flex w-40 shrink-0 items-center gap-2 rounded-lg border border-gray-200 bg-white p-2 shadow-sm sm:w-44"
             >
-              <div className="relative aspect-square bg-gray-100">
+              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-gray-100">
                 {asset.type === "image" ? (
                   <img
                     src={asset.url}
@@ -2319,50 +2263,39 @@ export function NewsMediaLibrary({
                     preload="metadata"
                   />
                 )}
-                <span className="absolute left-1.5 top-1.5 inline-flex items-center rounded-full bg-black/60 p-1 text-white lg:left-2 lg:top-2 lg:gap-1 lg:px-2 lg:py-1 lg:text-xs">
+                <span className="absolute left-1 top-1 inline-flex items-center rounded-full bg-black/60 p-1 text-white">
                   {asset.type === "image" ? (
                     <ImageIcon className="h-3 w-3" />
                   ) : (
                     <Video className="h-3 w-3" />
                   )}
-                  <span className="hidden lg:inline">
-                    {asset.type === "image"
-                      ? language === "zh"
-                        ? "图片"
-                        : "Image"
-                      : language === "zh"
-                        ? "视频"
-                        : "Video"}
-                  </span>
                 </span>
               </div>
-              <div className="space-y-2 p-2 lg:p-3">
+              <div className="min-w-0 flex-1 space-y-1.5">
                 <p
-                  className="truncate text-[11px] text-gray-600 lg:text-xs"
+                  className="truncate text-[11px] text-gray-600"
                   title={asset.name}
                 >
                   {asset.name}
                 </p>
-                {mobileTarget && (
-                  <button
-                    type="button"
-                    onClick={() => onInsertAsset(mobileTarget.lang, asset)}
-                    className="w-full rounded-md bg-[#6BA868] px-2 py-1.5 text-[11px] text-white transition-colors hover:bg-[#5a9157] lg:hidden"
-                  >
-                    {mobileTarget.label}
-                  </button>
-                )}
-                <div
-                  className={`${mobileTarget ? "hidden lg:flex" : "flex"} flex-wrap gap-2`}
-                >
+                <div className="flex flex-wrap gap-1.5">
                   {targets.map((target) => (
                     <button
                       key={`${asset.id}:${target.lang}`}
                       type="button"
                       onClick={() => onInsertAsset(target.lang, asset)}
-                      className="rounded-md bg-[#6BA868] px-2.5 py-1.5 text-xs text-white transition-colors hover:bg-[#5a9157]"
+                      className="rounded-md bg-[#6BA868] px-2 py-1 text-[11px] text-white transition-colors hover:bg-[#5a9157]"
                     >
-                      {target.label}
+                      <span className="sm:hidden">
+                        {target.lang === "zh"
+                          ? language === "zh"
+                            ? "中文"
+                            : "ZH"
+                          : language === "zh"
+                            ? "英文"
+                            : "EN"}
+                      </span>
+                      <span className="hidden sm:inline">{target.label}</span>
                     </button>
                   ))}
                 </div>
