@@ -2188,6 +2188,11 @@ export function NewsMediaLibrary({
               ? "上传一次图片或视频后，可插入中文或英文正文。"
               : "Upload an image or video once, then reuse it in either editor."}
           </p>
+          <p className="mt-1 text-xs text-gray-600 sm:hidden">
+            {language === "zh"
+              ? "上传后点“中文”或“英文”插入到对应正文。"
+              : "Upload media, then tap ZH or EN to insert into that editor."}
+          </p>
         </div>
         <div className="shrink-0">
           <input
@@ -2241,7 +2246,7 @@ export function NewsMediaLibrary({
               key={asset.id}
               draggable
               onDragStart={(event) => handleDragStart(event, asset)}
-              className="flex w-44 shrink-0 items-center gap-2 rounded-lg border border-gray-200 bg-white p-2 shadow-sm"
+              className="flex w-40 shrink-0 items-center gap-2 rounded-lg border border-gray-200 bg-white p-2 shadow-sm sm:w-44"
             >
               <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-gray-100">
                 {asset.type === "image" ? (
@@ -2281,7 +2286,16 @@ export function NewsMediaLibrary({
                       onClick={() => onInsertAsset(target.lang, asset)}
                       className="rounded-md bg-[#6BA868] px-2 py-1 text-[11px] text-white transition-colors hover:bg-[#5a9157]"
                     >
-                      {target.label}
+                      <span className="sm:hidden">
+                        {target.lang === "zh"
+                          ? language === "zh"
+                            ? "中文"
+                            : "ZH"
+                          : language === "zh"
+                            ? "英文"
+                            : "EN"}
+                      </span>
+                      <span className="hidden sm:inline">{target.label}</span>
                     </button>
                   ))}
                 </div>
