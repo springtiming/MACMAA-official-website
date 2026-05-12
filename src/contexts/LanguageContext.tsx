@@ -336,9 +336,6 @@ const translations: Record<Language, Record<string, string>> = {
       "系统将从Unsplash免费图库中搜索匹配的高质量图片",
     "admin.news.form.uploadImageBtn": "选择并上传图片",
     "admin.news.form.uploadHelp": "支持JPG、PNG、GIF等格式，上传后可以裁剪调整",
-    "admin.news.form.fullscreenEdit": "全屏编辑",
-    "admin.news.form.exitFullscreen": "退出全屏",
-    "admin.news.form.fullscreenTitle": "全屏编辑 - ",
     "admin.news.form.saveDraft": "保存成草稿",
     "admin.news.form.save": "保存新闻",
     "admin.news.deleteConfirm": "确定要删除这条新闻吗？",
@@ -930,9 +927,6 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.news.form.uploadImageBtn": "Select and Upload Image",
     "admin.news.form.uploadHelp":
       "Supports JPG, PNG, GIF, etc. formats, can be cropped and adjusted after upload",
-    "admin.news.form.fullscreenEdit": "Fullscreen Edit",
-    "admin.news.form.exitFullscreen": "Exit Fullscreen",
-    "admin.news.form.fullscreenTitle": "Fullscreen Edit - ",
     "admin.news.form.saveDraft": "Save as draft",
     "admin.news.form.save": "Save News",
     "admin.news.deleteConfirm":

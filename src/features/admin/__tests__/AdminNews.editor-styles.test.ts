@@ -17,12 +17,7 @@ describe("admin news editor scroll styles", () => {
     );
   });
 
-  it("keeps fullscreen editors scrollable within the modal", () => {
-    expect(css).toMatch(
-      /\.news-fullscreen-editor \.ql-container\.ql-snow\s*{[^}]*overflow:\s*hidden;/s
-    );
-    expect(css).toMatch(
-      /\.news-fullscreen-editor \.ql-editor\s*{[^}]*height:\s*100%;[^}]*overflow-y:\s*auto;/s
-    );
+  it("does not keep obsolete fullscreen editor styles", () => {
+    expect(css).not.toContain("news-fullscreen-editor");
   });
 });
