@@ -1,8 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.86.0";
 import { verifyAdminToken } from "../_shared/auth.ts";
 import {
-  isSupportedNewsImageType,
-  isSupportedNewsVideoType,
+  getSupportedNewsMediaType,
   NEWS_IMAGE_MAX_BYTES,
   NEWS_VIDEO_MAX_BYTES,
 } from "../../../shared/newsMedia.ts";
@@ -87,11 +86,7 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: "Missing file" }, 400);
   }
 
-  const mediaType = isSupportedNewsImageType(file.type)
-    ? "image"
-    : isSupportedNewsVideoType(file.type)
-      ? "video"
-      : null;
+  const mediaType = getSupportedNewsMediaType(file.type);
 
   if (!mediaType) {
     return jsonResponse({ error: "Unsupported news media type" }, 400);

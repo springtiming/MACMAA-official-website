@@ -1,6 +1,7 @@
 import {
   buildNewsImageEmbedHtml,
   buildNewsVideoEmbedHtml,
+  getSupportedNewsMediaType,
   hasInlineNewsDataMedia,
   hasPendingNewsMediaUploads,
   isSupportedNewsImageType,
@@ -104,6 +105,7 @@ export function insertNewsImageIntoEditor(
 export {
   buildNewsImageEmbedHtml,
   buildNewsVideoEmbedHtml,
+  getSupportedNewsMediaType,
   hasInlineNewsDataMedia,
   hasPendingNewsMediaUploads,
   isSupportedNewsImageType,

@@ -7,6 +7,15 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { createNewsEditorModules, FullscreenEditorModal } from "../AdminNews";
 
+const NEWS_MEDIA_DRAG_TYPE = "application/x-macmaa-news-media";
+
+type TestMediaAsset = {
+  id: string;
+  type: "image" | "video";
+  url: string;
+  name: string;
+};
+
 vi.mock("motion/react", async () => {
   const React = await import("react");
 
@@ -82,7 +91,13 @@ vi.mock("react-quill", async () => {
   };
 });
 
-function FullscreenEditorHarness() {
+function FullscreenEditorHarness({
+  mediaAssets = [],
+  onUploadMediaAsset = async () => null,
+}: {
+  mediaAssets?: TestMediaAsset[];
+  onUploadMediaAsset?: (file: File) => Promise<TestMediaAsset | null>;
+}) {
   const [content, setContent] = useState("<p>Initial</p>");
   const [open, setOpen] = useState(true);
 
@@ -99,6 +114,10 @@ function FullscreenEditorHarness() {
           formats={[]}
           uploading={false}
           uploadError={null}
+          mediaAssets={mediaAssets}
+          mediaLibraryUploading={false}
+          mediaLibraryError={null}
+          onUploadMediaAsset={onUploadMediaAsset}
           onSelectImage={async () => "https://cdn.example.com/demo.jpg"}
           onSelectVideo={async () => "https://cdn.example.com/demo.mp4"}
         />
@@ -126,6 +145,40 @@ describe("FullscreenEditorModal", () => {
     vi.clearAllMocks();
   });
 
+  async function renderFullscreenEditor(
+    props: React.ComponentProps<typeof FullscreenEditorHarness> = {}
+  ) {
+    (
+      globalThis as typeof globalThis & {
+        IS_REACT_ACT_ENVIRONMENT?: boolean;
+      }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
+    Object.defineProperty(window.navigator, "language", {
+      configurable: true,
+      value: "zh-CN",
+    });
+
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+
+    await act(async () => {
+      root?.render(<FullscreenEditorHarness {...props} />);
+    });
+  }
+
+  async function closeFullscreenEditor() {
+    const closeButton = Array.from(document.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("退出全屏")
+    );
+
+    expect(closeButton).toBeTruthy();
+
+    await act(async () => {
+      closeButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+  }
+
   it("overrides Quill's default base64 image toolbar handler", () => {
     const onSelectImage = vi.fn();
     const modules = createNewsEditorModules(onSelectImage);
@@ -146,23 +199,7 @@ describe("FullscreenEditorModal", () => {
   });
 
   it("keeps uploaded video markup after exiting fullscreen", async () => {
-    (
-      globalThis as typeof globalThis & {
-        IS_REACT_ACT_ENVIRONMENT?: boolean;
-      }
-    ).IS_REACT_ACT_ENVIRONMENT = true;
-    Object.defineProperty(window.navigator, "language", {
-      configurable: true,
-      value: "zh-CN",
-    });
-
-    container = document.createElement("div");
-    document.body.appendChild(container);
-    root = createRoot(container);
-
-    await act(async () => {
-      root?.render(<FullscreenEditorHarness />);
-    });
+    await renderFullscreenEditor();
 
     const uploadButton = Array.from(document.querySelectorAll("button")).find(
       (button) => button.textContent?.includes("Trigger Upload")
@@ -175,15 +212,7 @@ describe("FullscreenEditorModal", () => {
       await Promise.resolve();
     });
 
-    const closeButton = Array.from(document.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("退出全屏")
-    );
-
-    expect(closeButton).toBeTruthy();
-
-    await act(async () => {
-      closeButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    });
+    await closeFullscreenEditor();
 
     const savedContent = document.querySelector(
       "[data-testid='saved-content']"
@@ -191,5 +220,88 @@ describe("FullscreenEditorModal", () => {
     expect(savedContent?.textContent).toContain(
       "https://cdn.example.com/demo.mp4"
     );
+  });
+
+  it("inserts a reusable media library image without uploading it again", async () => {
+    const onUploadMediaAsset = vi.fn(async () => null);
+    await renderFullscreenEditor({
+      onUploadMediaAsset,
+      mediaAssets: [
+        {
+          id: "image:https://cdn.example.com/reusable.jpg",
+          type: "image",
+          url: "https://cdn.example.com/reusable.jpg",
+          name: "Reusable image",
+        },
+      ],
+    });
+
+    const insertButton = Array.from(document.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("插入中文")
+    );
+    expect(insertButton).toBeTruthy();
+
+    await act(async () => {
+      insertButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    await closeFullscreenEditor();
+
+    const savedContent = document.querySelector(
+      "[data-testid='saved-content']"
+    );
+    expect(savedContent?.textContent).toContain(
+      "https://cdn.example.com/reusable.jpg"
+    );
+    expect(savedContent?.textContent).toContain("img");
+    expect(onUploadMediaAsset).not.toHaveBeenCalled();
+  });
+
+  it("accepts dragged reusable media assets in the fullscreen editor", async () => {
+    await renderFullscreenEditor();
+
+    const dropTarget = document.querySelector(
+      ".news-fullscreen-editor"
+    )?.parentElement;
+    expect(dropTarget).toBeTruthy();
+
+    const dropEvent = new Event("drop", {
+      bubbles: true,
+      cancelable: true,
+    });
+    Object.defineProperty(dropEvent, "dataTransfer", {
+      value: {
+        getData: (type: string) =>
+          type === NEWS_MEDIA_DRAG_TYPE
+            ? JSON.stringify({
+                id: "video:https://cdn.example.com/reusable.mp4",
+                type: "video",
+                url: "https://cdn.example.com/reusable.mp4",
+                name: "Reusable video",
+              })
+            : "",
+      },
+    });
+
+    await act(async () => {
+      dropTarget?.dispatchEvent(dropEvent);
+    });
+
+    await closeFullscreenEditor();
+
+    const savedContent = document.querySelector(
+      "[data-testid='saved-content']"
+    );
+    expect(savedContent?.textContent).toContain(
+      "https://cdn.example.com/reusable.mp4"
+    );
+    expect(savedContent?.textContent).toContain("video");
+  });
+
+  it("keeps the fullscreen editor scroll styling hook", async () => {
+    await renderFullscreenEditor();
+
+    const editor = document.querySelector("[data-testid='mock-react-quill']");
+    expect(editor?.className).toContain("news-fullscreen-editor");
   });
 });

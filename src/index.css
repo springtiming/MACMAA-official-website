@@ -3961,6 +3961,30 @@ html {
   line-height: 1.6;
 }
 
+.news-inline-editor {
+  height: 420px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.news-inline-editor .ql-toolbar.ql-snow {
+  flex-shrink: 0;
+}
+
+.news-inline-editor .ql-container.ql-snow {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.news-inline-editor .ql-editor {
+  min-height: 0;
+  height: 100%;
+  overflow-y: auto;
+  padding-bottom: 2rem;
+}
+
 .news-fullscreen-editor {
   height: 100%;
   display: flex;
@@ -3975,6 +3999,14 @@ html {
 .news-fullscreen-editor .ql-container.ql-snow {
   flex: 1;
   min-height: 0;
+  overflow: hidden;
+}
+
+.news-fullscreen-editor .ql-editor {
+  min-height: 0;
+  height: 100%;
+  overflow-y: auto;
+  padding-bottom: 3rem;
 }
 
 .ql-editor p {
