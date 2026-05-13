@@ -164,6 +164,27 @@ type NewsMediaUploadPreview = Omit<NewsMediaUploadItem, "abortController">;
 const NEWS_MEDIA_ACCEPT = `${NEWS_IMAGE_ACCEPT},${NEWS_VIDEO_ACCEPT}`;
 const NEWS_MEDIA_DRAG_TYPE = "application/x-macmaa-news-media";
 const NEWS_MEDIA_SRC_REGEX = /<(img|video)\b[^>]*\bsrc=(['"])(.*?)\2[^>]*>/gi;
+const NEWS_MEDIA_CARD_WIDTH = 260;
+const NEWS_MEDIA_CARD_STYLE: React.CSSProperties = {
+  width: NEWS_MEDIA_CARD_WIDTH,
+  minWidth: NEWS_MEDIA_CARD_WIDTH,
+  maxWidth: NEWS_MEDIA_CARD_WIDTH,
+  height: 78,
+  minHeight: 78,
+  maxHeight: 78,
+  flex: `0 0 ${NEWS_MEDIA_CARD_WIDTH}px`,
+};
+const NEWS_MEDIA_REMOVE_BUTTON_STYLE: React.CSSProperties = {
+  top: 4,
+  right: 4,
+};
+const NEWS_MEDIA_NAME_STYLE: React.CSSProperties = {
+  display: "block",
+  maxWidth: "100%",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+};
 
 function isReusableNewsMediaUrl(url: string) {
   return (
@@ -2391,17 +2412,19 @@ export function NewsMediaLibrary({
           {uploadingAssets.map((upload) => (
             <article
               key={upload.id}
-              className="relative flex w-[250px] min-w-[250px] max-w-[250px] items-center gap-2 rounded-lg border border-blue-100 bg-white p-2 shadow-md ring-1 ring-black/5"
+              style={NEWS_MEDIA_CARD_STYLE}
+              className="relative flex items-center gap-2 rounded-lg border border-blue-100 bg-white p-2 shadow-md ring-1 ring-black/5"
             >
               <button
                 type="button"
                 onClick={() => onCancelUpload(upload.id)}
-                className="absolute right-1 top-1 z-10 rounded-full bg-red-600 p-1 text-white shadow-sm transition-colors hover:bg-red-700"
+                style={NEWS_MEDIA_REMOVE_BUTTON_STYLE}
+                className="absolute z-20 rounded-full bg-red-600 p-0.5 text-white shadow-sm ring-2 ring-white transition-colors hover:bg-red-700"
                 aria-label={
                   language === "zh" ? "取消上传素材" : "Cancel media upload"
                 }
               >
-                <X className="h-3 w-3" />
+                <X className="h-3 w-3" strokeWidth={3} />
               </button>
               <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-gray-100">
                 <div className="flex h-full w-full items-center justify-center bg-gray-100 text-gray-400">
@@ -2414,7 +2437,8 @@ export function NewsMediaLibrary({
               </div>
               <div className="min-w-0 flex-1 space-y-1.5 pr-3">
                 <p
-                  className="truncate text-[11px] text-gray-600"
+                  style={NEWS_MEDIA_NAME_STYLE}
+                  className="text-[11px] text-gray-600"
                   title={upload.name}
                 >
                   {upload.name}
@@ -2437,17 +2461,19 @@ export function NewsMediaLibrary({
               key={asset.id}
               draggable
               onDragStart={(event) => handleDragStart(event, asset)}
-              className="relative flex w-[250px] min-w-[250px] max-w-[250px] items-center gap-2 rounded-lg border border-gray-200 bg-white p-2 shadow-md ring-1 ring-black/5"
+              style={NEWS_MEDIA_CARD_STYLE}
+              className="relative flex items-center gap-2 rounded-lg border border-gray-200 bg-white p-2 shadow-md ring-1 ring-black/5"
             >
               <button
                 type="button"
                 onClick={() => onRemoveAsset(asset.id)}
-                className="absolute right-1 top-1 z-10 rounded-full bg-red-600 p-1 text-white shadow-sm transition-colors hover:bg-red-700"
+                style={NEWS_MEDIA_REMOVE_BUTTON_STYLE}
+                className="absolute z-20 rounded-full bg-red-600 p-0.5 text-white shadow-sm ring-2 ring-white transition-colors hover:bg-red-700"
                 aria-label={
                   language === "zh" ? "删除素材" : "Remove media asset"
                 }
               >
-                <X className="h-3 w-3" />
+                <X className="h-3 w-3" strokeWidth={3} />
               </button>
               <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-gray-100">
                 {asset.type === "image" ? (
@@ -2477,18 +2503,19 @@ export function NewsMediaLibrary({
               </div>
               <div className="min-w-0 flex-1 space-y-1.5 pr-3">
                 <p
-                  className="truncate text-[11px] text-gray-600"
+                  style={NEWS_MEDIA_NAME_STYLE}
+                  className="text-[11px] text-gray-600"
                   title={asset.name}
                 >
                   {asset.name}
                 </p>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex gap-1">
                   {targets.map((target) => (
                     <button
                       key={`${asset.id}:${target.lang}`}
                       type="button"
                       onClick={() => onInsertAsset(target.lang, asset)}
-                      className="rounded-md bg-[#6BA868] px-2 py-1 text-[11px] text-white transition-colors hover:bg-[#5a9157]"
+                      className="rounded-md bg-[#6BA868] px-1.5 py-0.5 text-[10px] leading-4 text-white transition-colors hover:bg-[#5a9157]"
                     >
                       <span className="sm:hidden">
                         {target.lang === "zh"

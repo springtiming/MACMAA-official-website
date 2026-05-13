@@ -156,18 +156,53 @@ describe("NewsMediaLibrary", () => {
     const onRemoveAsset = vi.fn();
     await renderMediaLibrary({ assets: [asset], onRemoveAsset });
 
-    const card = document.querySelector("article");
-    expect(card?.className).toContain("w-[250px]");
+    const card = document.querySelector("article") as HTMLElement | null;
+    expect(card?.style.width).toBe("260px");
+    expect(card?.style.minWidth).toBe("260px");
+    expect(card?.style.maxWidth).toBe("260px");
+    expect(card?.style.height).toBe("78px");
     expect(card?.className).toContain("bg-white");
 
     const removeButton = document.querySelector(
       'button[aria-label="Remove media asset"]'
-    );
+    ) as HTMLButtonElement | null;
+    expect(removeButton?.style.top).toBe("4px");
+    expect(removeButton?.style.right).toBe("4px");
     await act(async () => {
       removeButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
 
     expect(onRemoveAsset).toHaveBeenCalledWith(asset.id);
+  });
+
+  it("keeps long and short named asset cards the same width", async () => {
+    await renderMediaLibrary({
+      assets: [
+        {
+          id: "image:https://cdn.example.com/long.jpg",
+          type: "image",
+          url: "https://cdn.example.com/long.jpg",
+          name: "1778639231189-737b4fd3-95f5-47b0-bf3e-e4400684-very-long-name.jpg",
+        },
+        {
+          id: "image:https://cdn.example.com/short.jpg",
+          type: "image",
+          url: "https://cdn.example.com/short.jpg",
+          name: "hero.jpg",
+        },
+      ],
+    });
+
+    const cardWidths = Array.from(document.querySelectorAll("article")).map(
+      (card) => (card as HTMLElement).style.width
+    );
+
+    expect(cardWidths).toEqual(["260px", "260px"]);
+    const longName = document.querySelector(
+      "p[title*='very-long-name']"
+    ) as HTMLParagraphElement | null;
+    expect(longName?.style.whiteSpace).toBe("nowrap");
+    expect(longName?.style.textOverflow).toBe("ellipsis");
   });
 
   it("shows upload progress cards and supports cancelling uploads", async () => {
@@ -187,10 +222,18 @@ describe("NewsMediaLibrary", () => {
 
     expect(document.body.textContent).toContain("Uploading...");
     expect(document.body.textContent).toContain("42%");
+    expect(
+      (document.querySelector("article") as HTMLElement | null)?.style.width
+    ).toBe("260px");
+    expect(
+      (document.querySelector("article") as HTMLElement | null)?.style.height
+    ).toBe("78px");
 
     const cancelButton = document.querySelector(
       'button[aria-label="Cancel media upload"]'
-    );
+    ) as HTMLButtonElement | null;
+    expect(cancelButton?.style.top).toBe("4px");
+    expect(cancelButton?.style.right).toBe("4px");
     await act(async () => {
       cancelButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
