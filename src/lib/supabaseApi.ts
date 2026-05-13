@@ -314,20 +314,21 @@ function ensureEdgeConfig() {
   }
 }
 
-async function callEdgeFunction(path: string, init?: RequestInit) {
+function buildEdgeFunctionUrl(path: string) {
   ensureEdgeConfig();
-  const url = `${SUPABASE_URL.replace(/\/$/, "")}/functions/v1/${path}`;
+  return `${SUPABASE_URL.replace(/\/$/, "")}/functions/v1/${path}`;
+}
 
-  // 获取token（如果存在）
+async function buildEdgeFunctionHeaders(headersInit?: HeadersInit) {
   const token =
     typeof window !== "undefined"
       ? (await import("./tokenStorage")).getToken()
       : null;
 
-  const providedHeaders = headersToRecord(init?.headers);
+  const providedHeaders = headersToRecord(headersInit);
   const providedAuth =
     providedHeaders.Authorization ?? providedHeaders.authorization;
-  const headers: Record<string, string> = {
+  return {
     apikey: SUPABASE_ANON_KEY,
     ...providedHeaders,
     Authorization: providedAuth
@@ -336,6 +337,11 @@ async function callEdgeFunction(path: string, init?: RequestInit) {
         ? `Bearer ${token}`
         : `Bearer ${SUPABASE_ANON_KEY}`,
   };
+}
+
+async function callEdgeFunction(path: string, init?: RequestInit) {
+  const url = buildEdgeFunctionUrl(path);
+  const headers = await buildEdgeFunctionHeaders(init?.headers);
 
   return fetch(url, { ...init, headers });
 }
@@ -469,12 +475,101 @@ export async function uploadPaymentProof(payload: {
   return body.path;
 }
 
-async function uploadNewsMedia(payload: { file: File; articleId?: string }) {
+type NewsMediaUploadPayload = {
+  file: File;
+  articleId?: string;
+  signal?: AbortSignal;
+  onProgress?: (progress: number) => void;
+};
+
+function buildNewsMediaFormData(payload: NewsMediaUploadPayload) {
   const formData = new FormData();
   formData.append("file", payload.file);
   if (payload.articleId) {
     formData.append("articleId", payload.articleId);
   }
+  return formData;
+}
+
+function createUploadAbortError() {
+  if (typeof DOMException !== "undefined") {
+    return new DOMException("Upload cancelled", "AbortError");
+  }
+  const error = new Error("Upload cancelled");
+  error.name = "AbortError";
+  return error;
+}
+
+async function uploadNewsMediaWithProgress(payload: NewsMediaUploadPayload) {
+  const formData = buildNewsMediaFormData(payload);
+  const url = buildEdgeFunctionUrl("news-media");
+  const headers = await buildEdgeFunctionHeaders({
+    Accept: "application/json",
+  });
+
+  return new Promise<string>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    const abort = () => xhr.abort();
+
+    xhr.open("POST", url);
+    Object.entries(headers).forEach(([key, value]) => {
+      xhr.setRequestHeader(key, value);
+    });
+
+    xhr.upload.onprogress = (event) => {
+      if (!event.lengthComputable || event.total <= 0) return;
+      const progress = Math.min(
+        99,
+        Math.max(1, Math.round((event.loaded / event.total) * 100))
+      );
+      payload.onProgress?.(progress);
+    };
+
+    xhr.onload = () => {
+      payload.signal?.removeEventListener("abort", abort);
+      if (xhr.status < 200 || xhr.status >= 300) {
+        reject(new Error(xhr.responseText || "Failed to upload news media"));
+        return;
+      }
+
+      try {
+        const body = JSON.parse(xhr.responseText) as { publicUrl?: string };
+        if (!body?.publicUrl) {
+          reject(new Error("Missing uploaded news video URL"));
+          return;
+        }
+        payload.onProgress?.(100);
+        resolve(body.publicUrl);
+      } catch {
+        reject(new Error("Failed to parse uploaded news media response"));
+      }
+    };
+
+    xhr.onerror = () => {
+      payload.signal?.removeEventListener("abort", abort);
+      reject(new Error("Failed to upload news media"));
+    };
+
+    xhr.onabort = () => {
+      payload.signal?.removeEventListener("abort", abort);
+      reject(createUploadAbortError());
+    };
+
+    if (payload.signal?.aborted) {
+      xhr.abort();
+      return;
+    }
+    payload.signal?.addEventListener("abort", abort, { once: true });
+    xhr.send(formData);
+  });
+}
+
+async function uploadNewsMedia(payload: NewsMediaUploadPayload) {
+  if (payload.onProgress && typeof XMLHttpRequest !== "undefined") {
+    return uploadNewsMediaWithProgress(payload);
+  }
+
+  const formData = buildNewsMediaFormData(payload);
 
   const res = await callEdgeFunction("news-media", {
     method: "POST",
@@ -482,6 +577,7 @@ async function uploadNewsMedia(payload: { file: File; articleId?: string }) {
       Accept: "application/json",
     },
     body: formData,
+    signal: payload.signal,
   });
 
   if (!res.ok) {
@@ -499,6 +595,8 @@ async function uploadNewsMedia(payload: { file: File; articleId?: string }) {
 export async function uploadNewsVideo(payload: {
   file: File;
   articleId?: string;
+  signal?: AbortSignal;
+  onProgress?: (progress: number) => void;
 }) {
   return uploadNewsMedia(payload);
 }
@@ -506,6 +604,8 @@ export async function uploadNewsVideo(payload: {
 export async function uploadNewsImage(payload: {
   file: File;
   articleId?: string;
+  signal?: AbortSignal;
+  onProgress?: (progress: number) => void;
 }) {
   return uploadNewsMedia(payload);
 }

@@ -95,4 +95,18 @@ describe("NewsDetail summary", () => {
     expect(css).toContain(".news-summary-text");
     expect(css).toContain("overflow-wrap: anywhere");
   });
+
+  it("keeps article images aligned to the same readable width as videos", () => {
+    const css = readFileSync(
+      path.resolve(process.cwd(), "src/index.css"),
+      "utf8"
+    );
+
+    expect(css).toMatch(
+      /\.news-content img\s*{[^}]*width:\s*85%;[^}]*max-width:\s*85%;[^}]*margin:\s*1rem auto;/s
+    );
+    expect(css).toMatch(
+      /@media \(min-width:\s*1024px\)\s*{[^}]*\.news-content img,[^}]*width:\s*80%;[^}]*max-width:\s*80%;/s
+    );
+  });
 });

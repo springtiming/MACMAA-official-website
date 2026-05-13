@@ -4070,10 +4070,12 @@ html {
 }
 
 .news-content img {
+  display: block;
   border-radius: 0.5rem;
-  max-width: 100%;
+  width: 85%;
+  max-width: 85%;
   height: auto;
-  margin: 1rem 0;
+  margin: 1rem auto;
 }
 
 .news-content video,
@@ -4087,6 +4089,7 @@ html {
 
 @media (min-width: 1024px) {
   .news-content video,
+  .news-content img,
   .news-content .news-inline-video {
     width: 80%;
     max-width: 80%;

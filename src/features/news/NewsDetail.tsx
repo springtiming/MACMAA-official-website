@@ -204,7 +204,7 @@ export function NewsDetail({ initialNews }: NewsDetailProps) {
         ) : null}
 
         {/* Article Content */}
-        <div className="prose prose-lg max-w-none prose-img:rounded-xl prose-img:w-full prose-p:my-3">
+        <div className="prose prose-lg max-w-none prose-img:rounded-xl prose-p:my-3">
           <div
             className="news-content text-gray-700"
             dangerouslySetInnerHTML={{

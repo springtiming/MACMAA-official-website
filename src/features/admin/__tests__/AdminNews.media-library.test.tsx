@@ -37,9 +37,20 @@ describe("NewsMediaLibrary", () => {
   async function renderMediaLibrary({
     assets,
     onInsertAsset = vi.fn(),
+    onRemoveAsset = vi.fn(),
+    onCancelUpload = vi.fn(),
+    uploadingAssets = [],
   }: {
     assets: NewsMediaAsset[];
     onInsertAsset?: (lang: "zh" | "en", asset: NewsMediaAsset) => void;
+    onRemoveAsset?: (assetId: string) => void;
+    onCancelUpload?: (uploadId: string) => void;
+    uploadingAssets?: Array<{
+      id: string;
+      type: "image" | "video";
+      name: string;
+      progress: number;
+    }>;
   }) {
     (
       globalThis as typeof globalThis & {
@@ -55,10 +66,13 @@ describe("NewsMediaLibrary", () => {
         <NewsMediaLibrary
           assets={assets}
           language="en"
-          uploading={false}
+          uploading={uploadingAssets.length > 0}
+          uploadingAssets={uploadingAssets}
           error={null}
           onUploadFile={vi.fn()}
           onInsertAsset={onInsertAsset}
+          onRemoveAsset={onRemoveAsset}
+          onCancelUpload={onCancelUpload}
           targets={[
             { lang: "zh", label: "Insert Chinese" },
             { lang: "en", label: "Insert English" },
@@ -67,7 +81,7 @@ describe("NewsMediaLibrary", () => {
       );
     });
 
-    return { onInsertAsset };
+    return { onInsertAsset, onRemoveAsset, onCancelUpload };
   }
 
   it("reuses one uploaded asset for both language editors", async () => {
@@ -118,7 +132,7 @@ describe("NewsMediaLibrary", () => {
     expect(image?.getAttribute("decoding")).toBe("async");
   });
 
-  it("does not preload video files for media library thumbnails", async () => {
+  it("renders video thumbnails with metadata-only preload", async () => {
     const asset: NewsMediaAsset = {
       id: "video:https://cdn.example.com/reusable.mp4",
       type: "video",
@@ -127,7 +141,61 @@ describe("NewsMediaLibrary", () => {
     };
     await renderMediaLibrary({ assets: [asset] });
 
-    expect(document.querySelector("video")).toBeNull();
+    const video = document.querySelector("video");
+    expect(video?.getAttribute("preload")).toBe("metadata");
+    expect(video?.getAttribute("src")).toBe(`${asset.url}#t=0.1`);
+  });
+
+  it("uses fixed opaque cards and can remove assets", async () => {
+    const asset: NewsMediaAsset = {
+      id: "image:https://cdn.example.com/reusable.jpg",
+      type: "image",
+      url: "https://cdn.example.com/reusable.jpg",
+      name: "1778639231189-737b4fd3-95f5-47b0-bf3e-e4400684-long-name.jpg",
+    };
+    const onRemoveAsset = vi.fn();
+    await renderMediaLibrary({ assets: [asset], onRemoveAsset });
+
+    const card = document.querySelector("article");
+    expect(card?.className).toContain("w-[250px]");
+    expect(card?.className).toContain("bg-white");
+
+    const removeButton = document.querySelector(
+      'button[aria-label="Remove media asset"]'
+    );
+    await act(async () => {
+      removeButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    expect(onRemoveAsset).toHaveBeenCalledWith(asset.id);
+  });
+
+  it("shows upload progress cards and supports cancelling uploads", async () => {
+    const onCancelUpload = vi.fn();
+    await renderMediaLibrary({
+      assets: [],
+      onCancelUpload,
+      uploadingAssets: [
+        {
+          id: "upload:1",
+          type: "video",
+          name: "clip.mp4",
+          progress: 42,
+        },
+      ],
+    });
+
+    expect(document.body.textContent).toContain("Uploading...");
+    expect(document.body.textContent).toContain("42%");
+
+    const cancelButton = document.querySelector(
+      'button[aria-label="Cancel media upload"]'
+    );
+    await act(async () => {
+      cancelButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    expect(onCancelUpload).toHaveBeenCalledWith("upload:1");
   });
 
   it("provides reusable media data when dragging assets", async () => {

@@ -151,6 +151,16 @@ export type NewsMediaAsset = {
   name: string;
 };
 
+type NewsMediaUploadItem = {
+  id: string;
+  type: NewsMediaAssetType;
+  name: string;
+  progress: number;
+  abortController: AbortController;
+};
+
+type NewsMediaUploadPreview = Omit<NewsMediaUploadItem, "abortController">;
+
 const NEWS_MEDIA_ACCEPT = `${NEWS_IMAGE_ACCEPT},${NEWS_VIDEO_ACCEPT}`;
 const NEWS_MEDIA_DRAG_TYPE = "application/x-macmaa-news-media";
 const NEWS_MEDIA_SRC_REGEX = /<(img|video)\b[^>]*\bsrc=(['"])(.*?)\2[^>]*>/gi;
@@ -1197,10 +1207,13 @@ function NewsFormModal({
       contentEn: draft?.content_en ?? news?.content_en,
     })
   );
-  const [mediaLibraryUploading, setMediaLibraryUploading] = useState(false);
+  const [uploadingMediaAssets, setUploadingMediaAssets] = useState<
+    NewsMediaUploadItem[]
+  >([]);
   const [mediaLibraryError, setMediaLibraryError] = useState<string | null>(
     null
   );
+  const mediaLibraryUploading = uploadingMediaAssets.length > 0;
   const hasPendingMediaUpload = mediaLibraryUploading;
   const [formData, setFormData] = useState<NewsFormState>(() => {
     const coverSource = getSafeCoverText(
@@ -1537,6 +1550,19 @@ function NewsFormModal({
     setMediaAssets((prev) => addNewsMediaAssetToList(prev, asset));
   };
 
+  const removeMediaAsset = (assetId: string) => {
+    setMediaAssets((prev) => prev.filter((asset) => asset.id !== assetId));
+  };
+
+  const cancelMediaUpload = (uploadId: string) => {
+    uploadingMediaAssets
+      .find((upload) => upload.id === uploadId)
+      ?.abortController.abort();
+    setUploadingMediaAssets((prev) =>
+      prev.filter((upload) => upload.id !== uploadId)
+    );
+  };
+
   const insertVideoIntoEditor = (lang: "zh" | "en", videoUrl: string) => {
     const editorRef = lang === "zh" ? zhEditorRef : enEditorRef;
     const quill = editorRef.current?.getEditor();
@@ -1632,14 +1658,40 @@ function NewsFormModal({
     }
 
     setMediaLibraryError(null);
-    setMediaLibraryUploading(true);
+    const uploadId = `upload:${Date.now()}:${file.name}`;
+    const abortController = new AbortController();
+    setUploadingMediaAssets((prev) => [
+      {
+        id: uploadId,
+        type: mediaType,
+        name: file.name,
+        progress: 0,
+        abortController,
+      },
+      ...prev,
+    ]);
     try {
+      const updateProgress = (progress: number) => {
+        if (!isMountedRef.current) return;
+        setUploadingMediaAssets((prev) =>
+          prev.map((upload) =>
+            upload.id === uploadId ? { ...upload, progress } : upload
+          )
+        );
+      };
       const publicUrl =
         mediaType === "image"
-          ? await uploadNewsImage({ file, articleId: formData.id || undefined })
+          ? await uploadNewsImage({
+              file,
+              articleId: formData.id || undefined,
+              signal: abortController.signal,
+              onProgress: updateProgress,
+            })
           : await uploadNewsVideo({
               file,
               articleId: formData.id || undefined,
+              signal: abortController.signal,
+              onProgress: updateProgress,
             });
       if (!isMountedRef.current) return null;
       const asset = createNewsMediaAsset(mediaType, publicUrl, file.name);
@@ -1647,6 +1699,7 @@ function NewsFormModal({
       return asset;
     } catch (err) {
       if (!isMountedRef.current) return null;
+      if (abortController.signal.aborted) return null;
       console.error("[admin-news] upload media asset failed", err);
       setMediaLibraryError(
         mediaType === "image"
@@ -1656,7 +1709,9 @@ function NewsFormModal({
       return null;
     } finally {
       if (isMountedRef.current) {
-        setMediaLibraryUploading(false);
+        setUploadingMediaAssets((prev) =>
+          prev.filter((upload) => upload.id !== uploadId)
+        );
       }
     }
   };
@@ -2074,9 +2129,12 @@ function NewsFormModal({
               assets={mediaAssets}
               language={language}
               uploading={mediaLibraryUploading}
+              uploadingAssets={uploadingMediaAssets}
               error={mediaLibraryError}
               onUploadFile={(file) => void uploadMediaAssetToLibrary(file)}
               onInsertAsset={insertMediaAssetIntoEditor}
+              onRemoveAsset={removeMediaAsset}
+              onCancelUpload={cancelMediaUpload}
               targets={[
                 {
                   lang: "zh",
@@ -2230,20 +2288,27 @@ export function NewsMediaLibrary({
   assets,
   language,
   uploading,
+  uploadingAssets,
   error,
   onUploadFile,
   onInsertAsset,
+  onRemoveAsset,
+  onCancelUpload,
   targets,
 }: {
   assets: NewsMediaAsset[];
   language: "zh" | "en";
   uploading: boolean;
+  uploadingAssets: NewsMediaUploadPreview[];
   error: string | null;
   onUploadFile: (file: File) => void | Promise<void>;
   onInsertAsset: (lang: "zh" | "en", asset: NewsMediaAsset) => void;
+  onRemoveAsset: (assetId: string) => void;
+  onCancelUpload: (uploadId: string) => void;
   targets: NewsMediaLibraryTarget[];
 }) {
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const hasMediaItems = assets.length > 0 || uploadingAssets.length > 0;
 
   const handleDragStart = (
     event: React.DragEvent<HTMLElement>,
@@ -2257,7 +2322,7 @@ export function NewsMediaLibrary({
   };
 
   return (
-    <section className="sticky top-0 z-10 rounded-xl border border-blue-100 bg-blue-50/95 p-3 shadow-sm backdrop-blur lg:static lg:p-4 lg:shadow-none">
+    <section className="sticky top-0 z-10 rounded-xl border border-blue-100 bg-white p-3 shadow-lg lg:static lg:p-4 lg:shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="text-sm font-medium text-[#2B5F9E] sm:text-base">
@@ -2315,7 +2380,7 @@ export function NewsMediaLibrary({
         </p>
       )}
 
-      {assets.length === 0 ? (
+      {!hasMediaItems ? (
         <div className="mt-3 rounded-lg border border-dashed border-blue-200 bg-white/70 p-3 text-xs text-gray-500 sm:text-sm">
           {language === "zh"
             ? "还没有素材。上传封面、正文图片或视频后会自动出现在这里。"
@@ -2323,13 +2388,67 @@ export function NewsMediaLibrary({
         </div>
       ) : (
         <div className="mt-3 flex gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:overflow-visible">
+          {uploadingAssets.map((upload) => (
+            <article
+              key={upload.id}
+              className="relative flex w-[250px] min-w-[250px] max-w-[250px] items-center gap-2 rounded-lg border border-blue-100 bg-white p-2 shadow-md ring-1 ring-black/5"
+            >
+              <button
+                type="button"
+                onClick={() => onCancelUpload(upload.id)}
+                className="absolute right-1 top-1 z-10 rounded-full bg-red-600 p-1 text-white shadow-sm transition-colors hover:bg-red-700"
+                aria-label={
+                  language === "zh" ? "取消上传素材" : "Cancel media upload"
+                }
+              >
+                <X className="h-3 w-3" />
+              </button>
+              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-gray-100">
+                <div className="flex h-full w-full items-center justify-center bg-gray-100 text-gray-400">
+                  {upload.type === "image" ? (
+                    <ImageIcon className="h-6 w-6" />
+                  ) : (
+                    <Video className="h-6 w-6" />
+                  )}
+                </div>
+              </div>
+              <div className="min-w-0 flex-1 space-y-1.5 pr-3">
+                <p
+                  className="truncate text-[11px] text-gray-600"
+                  title={upload.name}
+                >
+                  {upload.name}
+                </p>
+                <p className="text-[11px] font-medium text-[#2B5F9E]">
+                  {language === "zh" ? "上传中..." : "Uploading..."}{" "}
+                  {upload.progress}%
+                </p>
+                <div className="h-1.5 overflow-hidden rounded-full bg-blue-100">
+                  <div
+                    className="h-full rounded-full bg-[#2B5F9E] transition-[width]"
+                    style={{ width: `${upload.progress}%` }}
+                  />
+                </div>
+              </div>
+            </article>
+          ))}
           {assets.map((asset) => (
             <article
               key={asset.id}
               draggable
               onDragStart={(event) => handleDragStart(event, asset)}
-              className="flex w-40 shrink-0 items-center gap-2 rounded-lg border border-gray-200 bg-white p-2 shadow-sm sm:w-44"
+              className="relative flex w-[250px] min-w-[250px] max-w-[250px] items-center gap-2 rounded-lg border border-gray-200 bg-white p-2 shadow-md ring-1 ring-black/5"
             >
+              <button
+                type="button"
+                onClick={() => onRemoveAsset(asset.id)}
+                className="absolute right-1 top-1 z-10 rounded-full bg-red-600 p-1 text-white shadow-sm transition-colors hover:bg-red-700"
+                aria-label={
+                  language === "zh" ? "删除素材" : "Remove media asset"
+                }
+              >
+                <X className="h-3 w-3" />
+              </button>
               <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-gray-100">
                 {asset.type === "image" ? (
                   <img
@@ -2340,9 +2459,13 @@ export function NewsMediaLibrary({
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-gray-900 text-white">
-                    <Video className="h-6 w-6" />
-                  </div>
+                  <video
+                    src={`${asset.url}#t=0.1`}
+                    className="h-full w-full object-cover"
+                    muted
+                    playsInline
+                    preload="metadata"
+                  />
                 )}
                 <span className="absolute left-1 top-1 inline-flex items-center rounded-full bg-black/60 p-1 text-white">
                   {asset.type === "image" ? (
@@ -2352,7 +2475,7 @@ export function NewsMediaLibrary({
                   )}
                 </span>
               </div>
-              <div className="min-w-0 flex-1 space-y-1.5">
+              <div className="min-w-0 flex-1 space-y-1.5 pr-3">
                 <p
                   className="truncate text-[11px] text-gray-600"
                   title={asset.name}
