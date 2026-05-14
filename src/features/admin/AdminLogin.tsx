@@ -53,10 +53,9 @@ export function AdminLogin() {
     } catch (err) {
       const errMessage = (err as Error)?.message ?? "";
       const lockPrefix = "account-locked:";
-      const lockUntil =
-        errMessage.startsWith(lockPrefix)
-          ? errMessage.slice(lockPrefix.length)
-          : "";
+      const lockUntil = errMessage.startsWith(lockPrefix)
+        ? errMessage.slice(lockPrefix.length)
+        : "";
       const lockUntilMs = Date.parse(lockUntil);
       const remainingMinutes = Number.isFinite(lockUntilMs)
         ? Math.max(1, Math.ceil((lockUntilMs - Date.now()) / 60000))

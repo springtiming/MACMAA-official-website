@@ -1,7 +1,7 @@
-import { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useRouter } from "next/router";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import {
   Search,
   Plus,
@@ -13,8 +13,7 @@ import {
   ArrowLeft,
   Upload,
   Image as ImageIcon,
-  Maximize2,
-  Minimize2,
+  Video,
 } from "lucide-react";
 import { createPortal } from "react-dom";
 import ReactQuill from "react-quill";
@@ -31,10 +30,26 @@ import {
   saveNewsDraft,
   deleteArticle,
   deleteDraft,
+  uploadNewsImage,
+  uploadNewsVideo,
   type NewsPostRecord,
   type ArticleVersionRecord,
 } from "@/lib/supabaseApi";
 import { pickLocalized } from "@/lib/supabaseHelpers";
+import {
+  buildNewsImageEmbedHtml,
+  buildNewsVideoEmbedHtml,
+  ensureNewsVideoBlotRegistered,
+  getSupportedNewsMediaType,
+  hasInlineNewsDataMedia,
+  insertNewsImageIntoEditor,
+  insertNewsVideoIntoEditor,
+  normalizeNewsMediaHtml,
+  NEWS_IMAGE_ACCEPT,
+  NEWS_IMAGE_MAX_BYTES,
+  NEWS_VIDEO_ACCEPT,
+  NEWS_VIDEO_MAX_BYTES,
+} from "@/lib/newsMedia";
 import {
   type ErrorMessages,
   type FormErrors,
@@ -45,6 +60,251 @@ import {
   validateField as validateFieldUtil,
   validateForm as validateFormUtil,
 } from "@/lib/formValidation";
+import { isWithinCharacterLimit } from "@/lib/textLength";
+
+ensureNewsVideoBlotRegistered(ReactQuill.Quill);
+
+const NEWS_EDITOR_TOOLBAR = [
+  [{ header: [1, 2, 3, false] }],
+  ["bold", "italic", "underline", "strike"],
+  [{ color: [] }, { background: [] }],
+  [{ list: "ordered" }, { list: "bullet" }],
+  [{ align: [] }],
+  ["link"],
+  ["clean"],
+];
+
+const NEWS_EDITOR_FORMATS = [
+  "header",
+  "bold",
+  "italic",
+  "underline",
+  "strike",
+  "color",
+  "background",
+  "list",
+  "bullet",
+  "align",
+  "link",
+  "image",
+  "video",
+];
+
+type NewsEditorDelta = {
+  ops?: unknown[];
+};
+
+type NewsEditorMediaNode = {
+  getAttribute?: (name: string) => string | null;
+  querySelector?: (selector: string) => NewsEditorMediaNode | null;
+};
+
+export function createNewsEditorModules(): NonNullable<
+  ReactQuillProps["modules"]
+> {
+  return {
+    toolbar: NEWS_EDITOR_TOOLBAR,
+    clipboard: {
+      matchers: [
+        ["IMG", blockInlineNewsMediaMatcher],
+        ["VIDEO", blockInlineNewsMediaMatcher],
+      ],
+    },
+  };
+}
+
+function createEmptyNewsEditorDelta(delta: NewsEditorDelta) {
+  const DeltaCtor = delta.constructor as unknown;
+  if (typeof DeltaCtor === "function" && DeltaCtor !== Object) {
+    return new (DeltaCtor as new () => NewsEditorDelta)();
+  }
+  return { ...delta, ops: [] };
+}
+
+export function blockInlineNewsMediaMatcher(
+  node: NewsEditorMediaNode,
+  delta: NewsEditorDelta
+) {
+  const src =
+    node.getAttribute?.("src") ??
+    node.querySelector?.("source")?.getAttribute?.("src") ??
+    "";
+  return hasInlineNewsDataMedia(src)
+    ? createEmptyNewsEditorDelta(delta)
+    : delta;
+}
+
+async function dataUrlToImageFile(dataUrl: string) {
+  const response = await fetch(dataUrl);
+  const blob = await response.blob();
+  return new File([blob], "news-cover.jpg", {
+    type: blob.type || "image/jpeg",
+  });
+}
+
+export type NewsMediaAssetType = "image" | "video";
+
+export type NewsMediaAsset = {
+  id: string;
+  type: NewsMediaAssetType;
+  url: string;
+  name: string;
+};
+
+type NewsMediaUploadItem = {
+  id: string;
+  type: NewsMediaAssetType;
+  name: string;
+  progress: number;
+  abortController: AbortController;
+};
+
+type NewsMediaUploadPreview = Omit<NewsMediaUploadItem, "abortController">;
+
+const NEWS_MEDIA_ACCEPT = `${NEWS_IMAGE_ACCEPT},${NEWS_VIDEO_ACCEPT}`;
+const NEWS_MEDIA_DRAG_TYPE = "application/x-macmaa-news-media";
+const NEWS_MEDIA_SRC_REGEX = /<(img|video)\b[^>]*\bsrc=(['"])(.*?)\2[^>]*>/gi;
+const NEWS_MEDIA_CARD_WIDTH = 260;
+const NEWS_MEDIA_CARD_STYLE: React.CSSProperties = {
+  width: NEWS_MEDIA_CARD_WIDTH,
+  minWidth: NEWS_MEDIA_CARD_WIDTH,
+  maxWidth: NEWS_MEDIA_CARD_WIDTH,
+  height: 78,
+  minHeight: 78,
+  maxHeight: 78,
+  flex: `0 0 ${NEWS_MEDIA_CARD_WIDTH}px`,
+};
+const NEWS_MEDIA_REMOVE_BUTTON_STYLE: React.CSSProperties = {
+  top: 4,
+  right: 4,
+};
+const NEWS_MEDIA_NAME_STYLE: React.CSSProperties = {
+  display: "block",
+  maxWidth: "100%",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+};
+
+function isReusableNewsMediaUrl(url: string) {
+  return (
+    !!url &&
+    !url.startsWith("data:") &&
+    !url.startsWith("blob:") &&
+    (url.startsWith("http") || url.startsWith("/"))
+  );
+}
+
+function getNewsMediaFileName(url: string, fallback: string) {
+  try {
+    const parsed = new URL(url, "https://macmaa.local");
+    const segment = parsed.pathname.split("/").filter(Boolean).pop();
+    return segment ? decodeURIComponent(segment) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function createNewsMediaAsset(
+  type: NewsMediaAssetType,
+  url: string,
+  name?: string
+): NewsMediaAsset {
+  const fallback = type === "image" ? "Image" : "Video";
+  return {
+    id: `${type}:${url}`,
+    type,
+    url,
+    name: name?.trim() || getNewsMediaFileName(url, fallback),
+  };
+}
+
+function addNewsMediaAssetToList(
+  assets: NewsMediaAsset[],
+  asset: NewsMediaAsset
+) {
+  if (assets.some((existing) => existing.id === asset.id)) {
+    return assets;
+  }
+  return [asset, ...assets];
+}
+
+function isRenderableNewsImageUrl(value?: string | null) {
+  const url = value?.trim() ?? "";
+  if (!url || hasInlineNewsDataMedia(url)) return false;
+  return (
+    url.startsWith("http") || url.startsWith("/") || url.startsWith("blob:")
+  );
+}
+
+function getRenderableNewsImageUrl(value?: string | null) {
+  const url = value?.trim() ?? "";
+  return isRenderableNewsImageUrl(url) ? url : "";
+}
+
+function getSafeCoverText(value?: string | null) {
+  const text = value?.trim() ?? "";
+  return hasInlineNewsDataMedia(text) ? "" : text;
+}
+
+function hasInlineCoverMedia(input: {
+  coverUrl?: string | null;
+  coverSource?: string | null;
+}) {
+  return [input.coverUrl, input.coverSource].some(hasInlineNewsDataMedia);
+}
+
+function extractNewsMediaAssets(input: {
+  coverUrl?: string | null;
+  contentZh?: string | null;
+  contentEn?: string | null;
+}) {
+  let assets: NewsMediaAsset[] = [];
+  const addAsset = (asset: NewsMediaAsset) => {
+    assets = addNewsMediaAssetToList(assets, asset);
+  };
+
+  if (input.coverUrl && isReusableNewsMediaUrl(input.coverUrl)) {
+    addAsset(createNewsMediaAsset("image", input.coverUrl, "Cover image"));
+  }
+
+  [input.contentZh, input.contentEn].forEach((content) => {
+    if (!content) return;
+    for (const match of content.matchAll(NEWS_MEDIA_SRC_REGEX)) {
+      const tag = match[1]?.toLowerCase();
+      const url = match[3] ?? "";
+      if (!isReusableNewsMediaUrl(url)) continue;
+      addAsset(createNewsMediaAsset(tag === "video" ? "video" : "image", url));
+    }
+  });
+
+  return assets;
+}
+
+function getNewsMediaAssetHtml(asset: NewsMediaAsset) {
+  return asset.type === "image"
+    ? buildNewsImageEmbedHtml(asset.url)
+    : buildNewsVideoEmbedHtml(asset.url);
+}
+
+function parseDraggedNewsMediaAsset(
+  event: React.DragEvent
+): NewsMediaAsset | null {
+  const raw = event.dataTransfer.getData(NEWS_MEDIA_DRAG_TYPE);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as NewsMediaAsset;
+    if (
+      (parsed.type === "image" || parsed.type === "video") &&
+      isReusableNewsMediaUrl(parsed.url)
+    ) {
+      return parsed;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
 
 export function AdminNews() {
   const { language, t } = useLanguage();
@@ -67,6 +327,7 @@ export function AdminNews() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [formLoading, setFormLoading] = useState(false);
+  const [coverUploading, setCoverUploading] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{
     type: "delete" | "deleteDraft";
     targetId: string;
@@ -94,6 +355,13 @@ export function AdminNews() {
     showError: showProcessingError,
     reset: resetProcessing,
   } = useProcessingFeedback();
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const getFeedbackMessages = (
     action: "save" | "publish" | "delete" | "deleteDraft"
@@ -160,10 +428,8 @@ export function AdminNews() {
 
   const handleEdit = (news: NewsPostRecord) => {
     const coverUrl =
-      news.cover_url ||
-      (news.cover_source && news.cover_source.startsWith("http")
-        ? news.cover_source
-        : "");
+      getRenderableNewsImageUrl(news.cover_url) ||
+      getRenderableNewsImageUrl(news.cover_source);
     setUploadedImage(coverUrl ?? "");
     setEditingArticle(news);
     setEditingDraft(null);
@@ -173,10 +439,8 @@ export function AdminNews() {
 
   const handleEditDraft = (draft: ArticleVersionRecord) => {
     const coverUrl =
-      draft.cover_url ||
-      (draft.cover_source && draft.cover_source.startsWith("http")
-        ? draft.cover_source
-        : "");
+      getRenderableNewsImageUrl(draft.cover_url) ||
+      getRenderableNewsImageUrl(draft.cover_source);
     setUploadedImage(coverUrl ?? "");
     setEditingDraft(draft);
     setEditingArticle(null);
@@ -196,12 +460,15 @@ export function AdminNews() {
         async () => {
           if (type === "delete") {
             await deleteArticle(targetId);
+            if (!isMountedRef.current) return;
             setNewsList((prev) => prev.filter((n) => n.id !== targetId));
             const drafts = await fetchMyDrafts();
+            if (!isMountedRef.current) return;
             setDraftList(drafts);
             setSuccess(language === "zh" ? "已删除" : "Deleted");
           } else {
             await deleteDraft(targetId);
+            if (!isMountedRef.current) return;
             setDraftList((prev) => prev.filter((d) => d.id !== targetId));
             setSuccess(language === "zh" ? "草稿已删除" : "Draft deleted");
           }
@@ -209,8 +476,11 @@ export function AdminNews() {
         {
           onError: (err) => {
             const detail =
-              err instanceof Error && err.message ? err.message : t("common.error");
+              err instanceof Error && err.message
+                ? err.message
+                : t("common.error");
             console.error("[admin-news] delete failed", err);
+            if (!isMountedRef.current) return;
             setError(detail);
             showProcessingError({
               errorTitle: messages.errorTitle,
@@ -222,17 +492,20 @@ export function AdminNews() {
     } catch (err) {
       const detail =
         err instanceof Error && err.message ? err.message : t("common.error");
-      setError(detail);
+      if (isMountedRef.current) {
+        setError(detail);
+      }
     }
   };
 
   const buildCoverFields = (news: NewsFormState) => {
     const type = news.imageType || "upload";
     const keyword = type === "unsplash" ? news.imageKeyword.trim() : "";
-    const url =
+    const rawUrl =
       type === "upload"
         ? news.image || uploadedImage || uploadedImageUrl || ""
         : news.image;
+    const url = hasInlineNewsDataMedia(rawUrl) ? "" : rawUrl;
     const coverSource = url || keyword || null;
     return {
       cover_source: coverSource,
@@ -241,6 +514,9 @@ export function AdminNews() {
       cover_url: url || null,
     };
   };
+
+  const isInlineNewsMediaPayloadError = (err: unknown) =>
+    err instanceof Error && err.message.includes("Inline base64 media");
 
   const handleSave = async (news: NewsFormState) => {
     setFormLoading(true);
@@ -265,14 +541,25 @@ export function AdminNews() {
             content_en: news.content.en,
             ...coverFields,
           });
+          if (!isMountedRef.current) return;
           // 记录当前正在编辑的草稿版本以及对应的新闻编号
           setDraftVersionId(draft.id);
           setEditingDraft(draft);
           setEditingArticle(null);
           setSuccess(language === "zh" ? "草稿已保存" : "Draft saved");
           const drafts = await fetchMyDrafts();
+          if (!isMountedRef.current) return;
           setDraftList(drafts);
         } catch (err) {
+          if (!isMountedRef.current) return;
+          if (isInlineNewsMediaPayloadError(err)) {
+            setError(
+              language === "zh"
+                ? "正文或封面仍包含内联媒体，请重新上传图片后再保存"
+                : "The body or cover still contains inline media. Re-upload images before saving."
+            );
+            throw err;
+          }
           setError(t("common.error"));
           const localDraft: ArticleVersionRecord = {
             id: createUuid(),
@@ -310,7 +597,9 @@ export function AdminNews() {
     } catch (err) {
       console.error("[AdminNews] save draft", err);
     } finally {
-      setFormLoading(false);
+      if (isMountedRef.current) {
+        setFormLoading(false);
+      }
     }
   };
   const handlePublish = async (news: NewsFormState) => {
@@ -338,12 +627,14 @@ export function AdminNews() {
               content_en: news.content.en,
               ...coverFields,
             });
+            if (!isMountedRef.current) return;
             versionId = draft.id;
             setEditingDraft(draft);
             setEditingArticle(null);
           }
 
           const result = await publishNewsFromDraft(versionId!);
+          if (!isMountedRef.current) return;
           setNewsList((prev) => {
             const exists = prev.some((n) => n.id === result.article.id);
             if (exists) {
@@ -359,8 +650,18 @@ export function AdminNews() {
           setEditingDraft(null);
           setSuccess(language === "zh" ? "发布成功" : "Published");
           const drafts = await fetchMyDrafts();
+          if (!isMountedRef.current) return;
           setDraftList(drafts);
         } catch (err) {
+          if (!isMountedRef.current) return;
+          if (isInlineNewsMediaPayloadError(err)) {
+            setError(
+              language === "zh"
+                ? "正文或封面仍包含内联媒体，请重新上传图片后再发布"
+                : "The body or cover still contains inline media. Re-upload images before publishing."
+            );
+            throw err;
+          }
           setError(t("common.error"));
           const localArticle: NewsPostRecord = {
             id: normalizeArticleId(news.id, editingArticle?.id) ?? createUuid(),
@@ -402,7 +703,9 @@ export function AdminNews() {
     } catch (err) {
       console.error("[AdminNews] publish news", err);
     } finally {
-      setFormLoading(false);
+      if (isMountedRef.current) {
+        setFormLoading(false);
+      }
     }
   };
 
@@ -414,10 +717,32 @@ export function AdminNews() {
     setShowImageUploadModal(false);
   };
 
-  const handleImageUploadSuccess = (imageUrl: string) => {
-    setUploadedImage(imageUrl);
-    setUploadedImageUrl(imageUrl);
-    setShowImageUploadModal(false);
+  const handleImageUploadSuccess = async (imageUrl: string) => {
+    setCoverUploading(true);
+    setError(null);
+    try {
+      const finalImageUrl = hasInlineNewsDataMedia(imageUrl)
+        ? await uploadNewsImage({
+            file: await dataUrlToImageFile(imageUrl),
+            articleId: normalizeArticleId(
+              editingArticle?.id,
+              editingDraft?.article_id
+            ),
+          })
+        : imageUrl;
+      setUploadedImage(finalImageUrl);
+      setUploadedImageUrl(finalImageUrl);
+      setShowImageUploadModal(false);
+    } catch (err) {
+      console.error("[AdminNews] upload cover image", err);
+      setError(
+        language === "zh"
+          ? "封面图片上传失败，请重试"
+          : "Failed to upload cover image, please try again"
+      );
+    } finally {
+      setCoverUploading(false);
+    }
   };
 
   const confirmCopy = confirmDialog
@@ -664,7 +989,7 @@ export function AdminNews() {
             uploadedImage={uploadedImage}
             uploadedImageUrl={uploadedImageUrl}
             setUploadedImageUrl={setUploadedImageUrl}
-            formLoading={formLoading}
+            formLoading={formLoading || coverUploading}
             isImageUploadModalOpen={showImageUploadModal}
           />
         )}
@@ -698,14 +1023,12 @@ type NewsFormState = {
   title: { zh: string; en: string };
   summary: { zh: string; en: string };
   content: { zh: string; en: string };
-  date: string;
   image: string;
   imageKeyword: string;
   imageType: "unsplash" | "upload";
 };
 
 type NewsValidationFields = {
-  date: string;
   titleZh: string;
   titleEn: string;
   summaryZh: string;
@@ -724,12 +1047,13 @@ const hasRichTextContent = (value: string): boolean => {
   return text.length > 0;
 };
 
+const isWithinSummaryLimit = (value: string): boolean =>
+  isWithinCharacterLimit(value, 200);
+
+const hasSafeRichTextContent = (value: string): boolean =>
+  hasRichTextContent(value) && !hasInlineNewsDataMedia(value);
+
 const newsValidationRules: ValidationRules<NewsValidationFields> = {
-  date: {
-    pattern: /^\d{4}-\d{2}-\d{2}$/,
-    errorType: "invalidDate",
-    required: true,
-  },
   titleZh: {
     pattern: /^.{2,120}$/,
     errorType: "invalidTitleZh",
@@ -741,22 +1065,22 @@ const newsValidationRules: ValidationRules<NewsValidationFields> = {
     required: true,
   },
   summaryZh: {
-    pattern: /^.{0,200}$/,
+    validate: isWithinSummaryLimit,
     errorType: "invalidSummaryZh",
     required: true,
   },
   summaryEn: {
-    pattern: /^.{0,200}$/,
+    validate: isWithinSummaryLimit,
     errorType: "invalidSummaryEn",
     required: true,
   },
   contentZh: {
-    validate: hasRichTextContent,
+    validate: hasSafeRichTextContent,
     errorType: "invalidContentZh",
     required: true,
   },
   contentEn: {
-    validate: hasRichTextContent,
+    validate: hasSafeRichTextContent,
     errorType: "invalidContentEn",
     required: true,
   },
@@ -766,10 +1090,6 @@ const newsErrorMessages: ErrorMessages = {
   required: {
     zh: "此字段为必填项",
     en: "This field is required",
-  },
-  invalidDate: {
-    zh: "请选择发布日期",
-    en: "Please select a publish date",
   },
   invalidTitleZh: {
     zh: "请输入至少2个字符的中文标题",
@@ -788,19 +1108,18 @@ const newsErrorMessages: ErrorMessages = {
     en: "Enter an English summary with at most 200 characters",
   },
   invalidContentZh: {
-    zh: "请输入中文正文内容",
-    en: "Enter the Chinese body content",
+    zh: "请输入中文正文内容，正文图片请通过上传插入，不能直接保存内联图片",
+    en: "Enter Chinese body content. Body images must be uploaded, not saved inline.",
   },
   invalidContentEn: {
-    zh: "请输入英文正文内容",
-    en: "Enter the English body content",
+    zh: "请输入英文正文内容，正文图片请通过上传插入，不能直接保存内联图片",
+    en: "Enter English body content. Body images must be uploaded, not saved inline.",
   },
 };
 
 const mapNewsFormToValidation = (
   data: NewsFormState
 ): NewsValidationFields => ({
-  date: data.date,
   titleZh: data.title.zh.trim(),
   titleEn: data.title.en.trim(),
   summaryZh: data.summary.zh.trim(),
@@ -839,31 +1158,44 @@ function NewsFormModal({
   isImageUploadModalOpen?: boolean;
 }) {
   const { language, t } = useLanguage();
+  const zhEditorRef = useRef<ReactQuill | null>(null);
+  const enEditorRef = useRef<ReactQuill | null>(null);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   const initialCoverUrl =
-    draft?.cover_url ||
-    news?.cover_url ||
-    (draft?.cover_source && draft.cover_source.startsWith("http")
-      ? draft.cover_source
-      : news?.cover_source && news.cover_source.startsWith("http")
-        ? news.cover_source
-        : "");
+    getRenderableNewsImageUrl(draft?.cover_url) ||
+    getRenderableNewsImageUrl(news?.cover_url) ||
+    getRenderableNewsImageUrl(draft?.cover_source) ||
+    getRenderableNewsImageUrl(news?.cover_source);
   const initialCoverKeyword =
     draft?.cover_keyword ||
     news?.cover_keyword ||
-    (!initialCoverUrl ? (draft?.cover_source ?? news?.cover_source ?? "") : "");
+    (!initialCoverUrl
+      ? getSafeCoverText(draft?.cover_source ?? news?.cover_source)
+      : "");
   const initialCoverType =
     draft?.cover_type ||
     news?.cover_type ||
     (initialCoverUrl ? "upload" : initialCoverKeyword ? "unsplash" : "upload");
+  const hasLegacyInlineCover =
+    hasInlineCoverMedia({
+      coverUrl: draft?.cover_url,
+      coverSource: draft?.cover_source,
+    }) ||
+    hasInlineCoverMedia({
+      coverUrl: news?.cover_url,
+      coverSource: news?.cover_source,
+    });
 
   // 辅助函数：判断字符串是否为图片 URL
   const isImageUrl = (str: string): boolean => {
-    return (
-      str.startsWith("http") ||
-      str.startsWith("/") ||
-      str.startsWith("data:") ||
-      str.startsWith("blob:")
-    );
+    return isRenderableNewsImageUrl(str);
   };
 
   const isUnsplashUrl = (str: string): boolean =>
@@ -888,17 +1220,30 @@ function NewsFormModal({
     null
   );
 
-  // 状态：保存上传的图片 URL（用于在模式切换时恢复）
-  // 由父组件传入，避免多份状态不一致
-  // const [uploadedImageUrl, setUploadedImageUrl] = useState<string>(() => {
-  //   return initialCoverUrl || "";
-  // });
-  const [fullscreenEditor, setFullscreenEditor] = useState<"zh" | "en" | null>(
+  const [coverError, setCoverError] = useState<string | null>(null);
+  const [mediaAssets, setMediaAssets] = useState<NewsMediaAsset[]>(() =>
+    extractNewsMediaAssets({
+      coverUrl: uploadedImageUrl || initialCoverUrl,
+      contentZh: draft?.content_zh ?? news?.content_zh,
+      contentEn: draft?.content_en ?? news?.content_en,
+    })
+  );
+  const [uploadingMediaAssets, setUploadingMediaAssets] = useState<
+    NewsMediaUploadItem[]
+  >([]);
+  const [mediaLibraryError, setMediaLibraryError] = useState<string | null>(
     null
   );
+  const mediaLibraryUploading = uploadingMediaAssets.length > 0;
+  const hasPendingMediaUpload = mediaLibraryUploading;
   const [formData, setFormData] = useState<NewsFormState>(() => {
-    const coverSource = draft?.cover_source || news?.cover_source || "";
-    const coverUrl = draft?.cover_url || news?.cover_url || uploadedImageUrl;
+    const coverSource = getSafeCoverText(
+      draft?.cover_source || news?.cover_source
+    );
+    const coverUrl =
+      getRenderableNewsImageUrl(draft?.cover_url) ||
+      getRenderableNewsImageUrl(news?.cover_url) ||
+      uploadedImageUrl;
     const coverKeyword =
       draft?.cover_keyword || news?.cover_keyword || unsplashKeyword;
     const isCoverImageUrl = !!coverUrl && isImageUrl(coverUrl);
@@ -909,8 +1254,10 @@ function NewsFormModal({
         id: draft.article_id ?? "",
         title: { zh: draft.title_zh ?? "", en: draft.title_en ?? "" },
         summary: { zh: draft.summary_zh ?? "", en: draft.summary_en ?? "" },
-        content: { zh: draft.content_zh ?? "", en: draft.content_en ?? "" },
-        date: new Date().toISOString().split("T")[0],
+        content: {
+          zh: normalizeNewsMediaHtml(draft.content_zh),
+          en: normalizeNewsMediaHtml(draft.content_en),
+        },
         image:
           isCoverImageUrl && imageSource === "unsplash" && !isCoverUnsplash
             ? ""
@@ -924,10 +1271,10 @@ function NewsFormModal({
         id: news.id,
         title: { zh: news.title_zh ?? "", en: news.title_en ?? "" },
         summary: { zh: news.summary_zh ?? "", en: news.summary_en ?? "" },
-        content: { zh: news.content_zh ?? "", en: news.content_en ?? "" },
-        date: news.published_at
-          ? news.published_at.slice(0, 10)
-          : new Date().toISOString().split("T")[0],
+        content: {
+          zh: normalizeNewsMediaHtml(news.content_zh),
+          en: normalizeNewsMediaHtml(news.content_en),
+        },
         image:
           isCoverImageUrl && imageSource === "unsplash" && !isCoverUnsplash
             ? ""
@@ -941,7 +1288,6 @@ function NewsFormModal({
       title: { zh: "", en: "" },
       summary: { zh: "", en: "" },
       content: { zh: "", en: "" },
-      date: new Date().toISOString().split("T")[0],
       image: coverUrl || coverSource || "",
       imageKeyword: coverKeyword || "",
       imageType: imageSource,
@@ -996,6 +1342,17 @@ function NewsFormModal({
     }));
     setImageSource("unsplash");
     setSelectedUnsplashId(photo.id);
+    setCoverError(null);
+    setMediaAssets((prev) =>
+      addNewsMediaAssetToList(
+        prev,
+        createNewsMediaAsset(
+          "image",
+          url,
+          photo.alt_description ?? photo.description ?? "Unsplash image"
+        )
+      )
+    );
   };
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -1022,14 +1379,24 @@ function NewsFormModal({
 
   useEffect(() => {
     if (uploadedImage) {
+      if (hasInlineNewsDataMedia(uploadedImage)) return;
       setImageSource("upload");
       setUploadedImageUrl(uploadedImage);
+      setCoverError(null);
       setFormData((prev) => ({
         ...prev,
         image: uploadedImage,
         imageKeyword: "",
         imageType: "upload",
       }));
+      if (isReusableNewsMediaUrl(uploadedImage)) {
+        setMediaAssets((prev) =>
+          addNewsMediaAssetToList(
+            prev,
+            createNewsMediaAsset("image", uploadedImage, "Cover image")
+          )
+        );
+      }
     }
   }, [uploadedImage, setUploadedImageUrl]);
 
@@ -1106,7 +1473,57 @@ function NewsFormModal({
     setTouched((prev) => ({ ...prev, ...touchedMap }));
   };
 
+  const validateNoInlineDataMedia = (): boolean => {
+    const mediaErrors: FormErrors = {};
+    if (hasInlineNewsDataMedia(formData.content.zh)) {
+      mediaErrors.contentZh = "invalidContentZh";
+    }
+    if (hasInlineNewsDataMedia(formData.content.en)) {
+      mediaErrors.contentEn = "invalidContentEn";
+    }
+
+    const hasCoverDataMedia =
+      formData.imageType === "upload" &&
+      hasInlineNewsDataMedia(
+        formData.image || uploadedImageUrl || uploadedImage
+      );
+    setCoverError(
+      hasCoverDataMedia
+        ? language === "zh"
+          ? "封面图片仍是内联数据，请重新上传并等待上传完成"
+          : "The cover image is still inline data. Re-upload it and wait for upload to finish."
+        : null
+    );
+
+    if (Object.keys(mediaErrors).length > 0) {
+      setErrors((prev) => ({ ...prev, ...mediaErrors }));
+      setTouched((prev) => ({
+        ...prev,
+        ...Object.keys(mediaErrors).reduce<Record<string, boolean>>(
+          (acc, field) => {
+            acc[field] = true;
+            return acc;
+          },
+          {}
+        ),
+      }));
+      scrollToFirstError(mediaErrors);
+      return false;
+    }
+
+    if (hasCoverDataMedia) {
+      document
+        .getElementById("coverImageSettings")
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return false;
+    }
+
+    return true;
+  };
+
   const validateBeforePublish = (): boolean => {
+    if (!validateNoInlineDataMedia()) return false;
+
     const validationErrors = validateFormUtil(
       mapNewsFormToValidation(formData),
       validationConfig
@@ -1122,41 +1539,207 @@ function NewsFormModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (hasPendingMediaUpload) return;
+    if (!validateNoInlineDataMedia()) return;
     onSave(formData);
   };
 
   const handlePublishAttempt = () => {
+    if (hasPendingMediaUpload) return;
     if (!validateBeforePublish()) return;
     onPublish(formData);
   };
 
-  // Quill editor modules configuration
-  const modules: NonNullable<ReactQuillProps["modules"]> = {
-    toolbar: [
-      [{ header: [1, 2, 3, false] }],
-      ["bold", "italic", "underline", "strike"],
-      [{ color: [] }, { background: [] }],
-      [{ list: "ordered" }, { list: "bullet" }],
-      [{ align: [] }],
-      ["link", "image"],
-      ["clean"],
-    ],
+  const updateEditorContent = (lang: "zh" | "en", value: string) => {
+    if (hasInlineNewsDataMedia(value)) {
+      setMediaLibraryError(
+        language === "zh"
+          ? "不支持直接粘贴图片或视频文件，请先上传到素材库"
+          : "Pasted image or video files are not supported. Upload them to the media library first."
+      );
+      return;
+    }
+    setMediaLibraryError(null);
+    setFormData((prev) => ({
+      ...prev,
+      content: { ...prev.content, [lang]: value },
+    }));
+    handleFieldChange(lang === "zh" ? "contentZh" : "contentEn", value);
   };
 
-  const formats: NonNullable<ReactQuillProps["formats"]> = [
-    "header",
-    "bold",
-    "italic",
-    "underline",
-    "strike",
-    "color",
-    "background",
-    "list",
-    "bullet",
-    "align",
-    "link",
-    "image",
-  ];
+  const rememberMediaAsset = (asset: NewsMediaAsset) => {
+    setMediaAssets((prev) => addNewsMediaAssetToList(prev, asset));
+  };
+
+  const removeMediaAsset = (assetId: string) => {
+    setMediaAssets((prev) => prev.filter((asset) => asset.id !== assetId));
+  };
+
+  const cancelMediaUpload = (uploadId: string) => {
+    uploadingMediaAssets
+      .find((upload) => upload.id === uploadId)
+      ?.abortController.abort();
+    setUploadingMediaAssets((prev) =>
+      prev.filter((upload) => upload.id !== uploadId)
+    );
+  };
+
+  const insertVideoIntoEditor = (lang: "zh" | "en", videoUrl: string) => {
+    const editorRef = lang === "zh" ? zhEditorRef : enEditorRef;
+    const quill = editorRef.current?.getEditor();
+    if (quill) {
+      updateEditorContent(lang, insertNewsVideoIntoEditor(quill, videoUrl));
+      return;
+    }
+
+    const nextValue = `${formData.content[lang] ?? ""}${buildNewsVideoEmbedHtml(
+      videoUrl
+    )}`;
+    updateEditorContent(lang, nextValue);
+  };
+
+  const insertImageIntoEditor = (lang: "zh" | "en", imageUrl: string) => {
+    const editorRef = lang === "zh" ? zhEditorRef : enEditorRef;
+    const quill = editorRef.current?.getEditor();
+    if (quill) {
+      updateEditorContent(lang, insertNewsImageIntoEditor(quill, imageUrl));
+      return;
+    }
+
+    const nextValue = `${formData.content[lang] ?? ""}${buildNewsImageEmbedHtml(
+      imageUrl
+    )}`;
+    updateEditorContent(lang, nextValue);
+  };
+
+  const insertMediaAssetIntoEditor = (
+    lang: "zh" | "en",
+    asset: NewsMediaAsset
+  ) => {
+    if (asset.type === "image") {
+      insertImageIntoEditor(lang, asset.url);
+      return;
+    }
+    insertVideoIntoEditor(lang, asset.url);
+  };
+
+  const handleEditorDragOver = (event: React.DragEvent) => {
+    if (Array.from(event.dataTransfer.types).includes(NEWS_MEDIA_DRAG_TYPE)) {
+      event.preventDefault();
+    }
+  };
+
+  const handleEditorDrop = (lang: "zh" | "en", event: React.DragEvent) => {
+    const asset = parseDraggedNewsMediaAsset(event);
+    if (!asset) return;
+    event.preventDefault();
+    insertMediaAssetIntoEditor(lang, asset);
+  };
+
+  const resolveImageUploadErrorMessage = (err: unknown) => {
+    if (err instanceof Error && err.message) return err.message;
+    return language === "zh" ? "图片上传失败" : "Failed to upload image";
+  };
+
+  const resolveVideoUploadErrorMessage = (err: unknown) => {
+    if (err instanceof Error && err.message) return err.message;
+    return language === "zh" ? "视频上传失败" : "Failed to upload video";
+  };
+
+  const uploadMediaAssetToLibrary = async (
+    file: File
+  ): Promise<NewsMediaAsset | null> => {
+    const mediaType = getSupportedNewsMediaType(file.type);
+
+    if (!mediaType) {
+      setMediaLibraryError(
+        language === "zh"
+          ? "仅支持 JPG、PNG、GIF、WebP 图片或 MP4、WebM、OGG 视频"
+          : "Only JPG, PNG, GIF, WebP images or MP4, WebM, OGG videos are supported"
+      );
+      return null;
+    }
+
+    if (mediaType === "image" && file.size > NEWS_IMAGE_MAX_BYTES) {
+      setMediaLibraryError(
+        language === "zh"
+          ? "图片文件过大，请选择 8MB 以下的图片"
+          : "Image is too large, please select a file smaller than 8MB"
+      );
+      return null;
+    }
+
+    if (mediaType === "video" && file.size > NEWS_VIDEO_MAX_BYTES) {
+      setMediaLibraryError(
+        language === "zh"
+          ? "视频文件过大，请选择 50MB 以下的视频"
+          : "Video is too large, please select a file smaller than 50MB"
+      );
+      return null;
+    }
+
+    setMediaLibraryError(null);
+    const uploadId = `upload:${Date.now()}:${file.name}`;
+    const abortController = new AbortController();
+    setUploadingMediaAssets((prev) => [
+      {
+        id: uploadId,
+        type: mediaType,
+        name: file.name,
+        progress: 0,
+        abortController,
+      },
+      ...prev,
+    ]);
+    try {
+      const updateProgress = (progress: number) => {
+        if (!isMountedRef.current) return;
+        setUploadingMediaAssets((prev) =>
+          prev.map((upload) =>
+            upload.id === uploadId ? { ...upload, progress } : upload
+          )
+        );
+      };
+      const publicUrl =
+        mediaType === "image"
+          ? await uploadNewsImage({
+              file,
+              articleId: formData.id || undefined,
+              signal: abortController.signal,
+              onProgress: updateProgress,
+            })
+          : await uploadNewsVideo({
+              file,
+              articleId: formData.id || undefined,
+              signal: abortController.signal,
+              onProgress: updateProgress,
+            });
+      if (!isMountedRef.current) return null;
+      const asset = createNewsMediaAsset(mediaType, publicUrl, file.name);
+      rememberMediaAsset(asset);
+      return asset;
+    } catch (err) {
+      if (!isMountedRef.current) return null;
+      if (abortController.signal.aborted) return null;
+      console.error("[admin-news] upload media asset failed", err);
+      setMediaLibraryError(
+        mediaType === "image"
+          ? resolveImageUploadErrorMessage(err)
+          : resolveVideoUploadErrorMessage(err)
+      );
+      return null;
+    } finally {
+      if (isMountedRef.current) {
+        setUploadingMediaAssets((prev) =>
+          prev.filter((upload) => upload.id !== uploadId)
+        );
+      }
+    }
+  };
+
+  const editorModules = useMemo(() => createNewsEditorModules(), []);
+
+  const formats: NonNullable<ReactQuillProps["formats"]> = NEWS_EDITOR_FORMATS;
 
   const modal = (
     <motion.div
@@ -1167,7 +1750,9 @@ function NewsFormModal({
         isImageUploadModalOpen ? "z-[48]" : "z-50"
       }`}
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
+        if (event.target === event.currentTarget && !hasPendingMediaUpload) {
+          onClose();
+        }
       }}
     >
       <motion.div
@@ -1186,6 +1771,7 @@ function NewsFormModal({
             </h2>
             <button
               onClick={onClose}
+              disabled={formLoading || hasPendingMediaUpload}
               className="p-2 hover:bg-white/20 rounded-lg transition-colors"
             >
               <X className="w-6 h-6" />
@@ -1196,38 +1782,21 @@ function NewsFormModal({
         {/* Scrollable Form Content */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6">
           <div className="space-y-6">
-            {/* Date */}
-            <div>
-              <label className="block text-gray-700 mb-2">
-                {t("admin.news.form.date")} *
-              </label>
-              <input
-                id="date"
-                type="date"
-                value={formData.date}
-                onChange={(e) => {
-                  setFormData({ ...formData, date: e.target.value });
-                  handleFieldChange("date", e.target.value);
-                }}
-                onBlur={() => handleFieldBlur("date")}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5F9E]"
-              />
-              {touched.date && errors.date && (
-                <p className="mt-1 text-xs text-red-600" role="alert">
-                  {getErrorMessage(
-                    errors.date,
-                    validationConfig.errorMessages,
-                    language
-                  )}
-                </p>
-              )}
-            </div>
-
             {/* Image Section - Unsplash or Upload */}
-            <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+            <div
+              id="coverImageSettings"
+              className="border border-gray-200 rounded-lg p-4 bg-gray-50"
+            >
               <h3 className="text-gray-700 mb-4">
                 {t("admin.news.form.coverImageSettings")}
               </h3>
+              {hasLegacyInlineCover && (
+                <p className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+                  {language === "zh"
+                    ? "这篇新闻使用旧版内联封面。为避免浏览器内存过高，请重新上传封面后再保存。"
+                    : "This article uses a legacy inline cover. Re-upload the cover before saving to avoid high browser memory use."}
+                </p>
+              )}
 
               {/* Toggle Buttons */}
               <div className="flex gap-2 mb-4">
@@ -1237,6 +1806,7 @@ function NewsFormModal({
                     setImageSource("upload");
                     setUnsplashResults([]);
                     setUnsplashError(null);
+                    setCoverError(null);
                     setSelectedUnsplashId(null);
                     // 如果之前保存了上传的图片 URL，恢复它
                     if (uploadedImageUrl) {
@@ -1270,6 +1840,7 @@ function NewsFormModal({
                     setImageSource("unsplash");
                     setUnsplashResults([]);
                     setUnsplashError(null);
+                    setCoverError(null);
                     setSelectedUnsplashId(null);
                     // 如果当前 formData.image 是图片 URL，保存到 uploadedImageUrl 并清空搜索框
                     if (
@@ -1444,6 +2015,11 @@ function NewsFormModal({
                         />
                       </div>
                     )}
+                  {coverError && (
+                    <p className="mt-3 text-xs text-red-600" role="alert">
+                      {coverError}
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -1517,6 +2093,7 @@ function NewsFormModal({
                 <textarea
                   id="summaryZh"
                   value={formData.summary.zh}
+                  maxLength={200}
                   onChange={(e) => {
                     setFormData({
                       ...formData,
@@ -1545,6 +2122,7 @@ function NewsFormModal({
                 <textarea
                   id="summaryEn"
                   value={formData.summary.en}
+                  maxLength={200}
                   onChange={(e) => {
                     setFormData({
                       ...formData,
@@ -1568,6 +2146,28 @@ function NewsFormModal({
               </div>
             </div>
 
+            <NewsMediaLibrary
+              assets={mediaAssets}
+              language={language}
+              uploading={mediaLibraryUploading}
+              uploadingAssets={uploadingMediaAssets}
+              error={mediaLibraryError}
+              onUploadFile={(file) => void uploadMediaAssetToLibrary(file)}
+              onInsertAsset={insertMediaAssetIntoEditor}
+              onRemoveAsset={removeMediaAsset}
+              onCancelUpload={cancelMediaUpload}
+              targets={[
+                {
+                  lang: "zh",
+                  label: language === "zh" ? "插入中文" : "Insert Chinese",
+                },
+                {
+                  lang: "en",
+                  label: language === "zh" ? "插入英文" : "Insert English",
+                },
+              ]}
+            />
+
             {/* Content - Rich Text Editor */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div id="contentZh">
@@ -1575,32 +2175,23 @@ function NewsFormModal({
                   <label className="block text-gray-700">
                     {t("admin.news.form.contentZh")} *
                   </label>
-                  <button
-                    type="button"
-                    onClick={() => setFullscreenEditor("zh")}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-[#2B5F9E] hover:bg-blue-50 rounded-lg transition-colors"
-                    title={t("admin.news.form.fullscreenEdit")}
-                  >
-                    <Maximize2 className="w-4 h-4" />
-                    <span>{t("admin.news.form.fullscreenEdit")}</span>
-                  </button>
                 </div>
-                <div className="border border-gray-300 rounded-lg overflow-hidden">
+                <div
+                  className="border border-gray-300 rounded-lg overflow-hidden"
+                  onDragOver={handleEditorDragOver}
+                  onDrop={(event) => handleEditorDrop("zh", event)}
+                >
                   <ReactQuill
+                    ref={zhEditorRef}
                     theme="snow"
                     value={formData.content.zh}
-                    onChange={(value: string) => {
-                      setFormData({
-                        ...formData,
-                        content: { ...formData.content, zh: value },
-                      });
-                      handleFieldChange("contentZh", value);
-                    }}
+                    onChange={(value: string) =>
+                      updateEditorContent("zh", value)
+                    }
                     onBlur={(_, __, ___) => handleFieldBlur("contentZh")}
-                    modules={modules}
+                    modules={editorModules}
                     formats={formats}
-                    className="bg-white"
-                    style={{ height: "300px", marginBottom: "42px" }}
+                    className="bg-white news-inline-editor"
                   />
                 </div>
                 {touched.contentZh && errors.contentZh && (
@@ -1612,43 +2203,29 @@ function NewsFormModal({
                     )}
                   </p>
                 )}
-                <p className="text-xs text-gray-500 mt-2">
-                  {language === "zh"
-                    ? "支持富文本格式、插入图片等"
-                    : "Supports rich text formatting and image insertion"}
-                </p>
               </div>
               <div id="contentEn">
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-gray-700">
                     {t("admin.news.form.contentEn")} *
                   </label>
-                  <button
-                    type="button"
-                    onClick={() => setFullscreenEditor("en")}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-[#2B5F9E] hover:bg-blue-50 rounded-lg transition-colors"
-                    title={t("admin.news.form.fullscreenEdit")}
-                  >
-                    <Maximize2 className="w-4 h-4" />
-                    <span>{t("admin.news.form.fullscreenEdit")}</span>
-                  </button>
                 </div>
-                <div className="border border-gray-300 rounded-lg overflow-hidden">
+                <div
+                  className="border border-gray-300 rounded-lg overflow-hidden"
+                  onDragOver={handleEditorDragOver}
+                  onDrop={(event) => handleEditorDrop("en", event)}
+                >
                   <ReactQuill
+                    ref={enEditorRef}
                     theme="snow"
                     value={formData.content.en}
-                    onChange={(value: string) => {
-                      setFormData({
-                        ...formData,
-                        content: { ...formData.content, en: value },
-                      });
-                      handleFieldChange("contentEn", value);
-                    }}
+                    onChange={(value: string) =>
+                      updateEditorContent("en", value)
+                    }
                     onBlur={(_, __, ___) => handleFieldBlur("contentEn")}
-                    modules={modules}
+                    modules={editorModules}
                     formats={formats}
-                    className="bg-white"
-                    style={{ height: "300px", marginBottom: "42px" }}
+                    className="bg-white news-inline-editor"
                   />
                 </div>
                 {touched.contentEn && errors.contentEn && (
@@ -1660,11 +2237,6 @@ function NewsFormModal({
                     )}
                   </p>
                 )}
-                <p className="text-xs text-gray-500 mt-2">
-                  {language === "zh"
-                    ? "支持富文本格式、插入图片等"
-                    : "Supports rich text formatting and image insertion"}
-                </p>
               </div>
             </div>
           </div>
@@ -1675,14 +2247,14 @@ function NewsFormModal({
               type="button"
               onClick={onClose}
               className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-center disabled:opacity-60 disabled:cursor-not-allowed"
-              disabled={formLoading}
+              disabled={formLoading || hasPendingMediaUpload}
             >
               {language === "zh" ? "取消" : "Cancel"}
             </button>
             <button
               type="submit"
               className="flex-1 px-6 py-3 bg-[#6BA868] text-white rounded-lg hover:bg-[#5a9157] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-              disabled={formLoading}
+              disabled={formLoading || hasPendingMediaUpload}
             >
               <Save className="w-5 h-5" />
               {formLoading
@@ -1697,7 +2269,7 @@ function NewsFormModal({
               type="button"
               onClick={handlePublishAttempt}
               className="flex-1 px-6 py-3 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-              disabled={formLoading}
+              disabled={formLoading || hasPendingMediaUpload}
             >
               <Save className="w-5 h-5" />
               {formLoading
@@ -1709,27 +2281,14 @@ function NewsFormModal({
                   : "Publish"}
             </button>
           </div>
-        </form>
-
-        {/* Fullscreen Editor Modal */}
-        <AnimatePresence>
-          {fullscreenEditor && (
-            <FullscreenEditorModal
-              lang={fullscreenEditor}
-              content={formData.content[fullscreenEditor]}
-              onSave={(content) => {
-                setFormData({
-                  ...formData,
-                  content: { ...formData.content, [fullscreenEditor]: content },
-                });
-                setFullscreenEditor(null);
-              }}
-              onClose={() => setFullscreenEditor(null)}
-              modules={modules}
-              formats={formats}
-            />
+          {hasPendingMediaUpload && (
+            <p className="mt-3 text-sm text-amber-700">
+              {language === "zh"
+                ? "媒体仍在上传，上传完成后才能关闭、保存或发布。"
+                : "A media upload is still in progress. Wait for it to finish before closing, saving, or publishing."}
+            </p>
           )}
-        </AnimatePresence>
+        </form>
       </motion.div>
     </motion.div>
   );
@@ -1741,104 +2300,241 @@ function NewsFormModal({
   return createPortal(modal, document.body);
 }
 
-// Fullscreen Editor Modal Component
-function FullscreenEditorModal({
-  lang,
-  content,
-  onSave,
-  onClose,
-  modules,
-  formats,
-}: {
+type NewsMediaLibraryTarget = {
   lang: "zh" | "en";
-  content: string;
-  onSave: (content: string) => void;
-  onClose: () => void;
-  modules: NonNullable<ReactQuillProps["modules"]>;
-  formats: string[];
-}) {
-  const { language, t } = useLanguage();
-  const [editContent, setEditContent] = useState(content);
+  label: string;
+};
 
-  const handleSave = () => {
-    onSave(editContent);
+export function NewsMediaLibrary({
+  assets,
+  language,
+  uploading,
+  uploadingAssets,
+  error,
+  onUploadFile,
+  onInsertAsset,
+  onRemoveAsset,
+  onCancelUpload,
+  targets,
+}: {
+  assets: NewsMediaAsset[];
+  language: "zh" | "en";
+  uploading: boolean;
+  uploadingAssets: NewsMediaUploadPreview[];
+  error: string | null;
+  onUploadFile: (file: File) => void | Promise<void>;
+  onInsertAsset: (lang: "zh" | "en", asset: NewsMediaAsset) => void;
+  onRemoveAsset: (assetId: string) => void;
+  onCancelUpload: (uploadId: string) => void;
+  targets: NewsMediaLibraryTarget[];
+}) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const hasMediaItems = assets.length > 0 || uploadingAssets.length > 0;
+
+  const handleDragStart = (
+    event: React.DragEvent<HTMLElement>,
+    asset: NewsMediaAsset
+  ) => {
+    event.dataTransfer.effectAllowed = "copy";
+    event.dataTransfer.setData(NEWS_MEDIA_DRAG_TYPE, JSON.stringify(asset));
+    event.dataTransfer.setData("text/html", getNewsMediaAssetHtml(asset));
+    event.dataTransfer.setData("text/plain", asset.url);
+    event.dataTransfer.setData("text/uri-list", asset.url);
   };
 
-  const langLabel =
-    lang === "zh"
-      ? language === "zh"
-        ? "中文"
-        : "Chinese"
-      : language === "zh"
-        ? "英文"
-        : "English";
-
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/90 flex flex-col z-[60]"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
-    >
-      <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        onMouseDown={(e) => e.stopPropagation()}
-        onClick={(e) => e.stopPropagation()}
-        className="flex-1 flex flex-col m-4"
-      >
-        {/* Header */}
-        <div className="bg-gradient-to-r from-[#2B5F9E] to-[#6BA868] text-white p-4 sm:p-6 rounded-t-2xl flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl sm:text-2xl flex items-center gap-2">
-              <Maximize2 className="w-6 h-6" />
-              <span>
-                {t("admin.news.form.fullscreenTitle")}
-                {langLabel}
-              </span>
-            </h2>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleSave}
-                className="flex items-center gap-2 px-4 py-2 bg-[#6BA868] hover:bg-[#5a9157] rounded-lg transition-colors"
-              >
-                <Save className="w-5 h-5" />
-                <span className="hidden sm:inline">
-                  {t("admin.news.form.saveDraft")}
-                </span>
-              </button>
-              <button
-                onClick={onClose}
-                className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
-              >
-                <Minimize2 className="w-5 h-5" />
-                <span className="hidden sm:inline">
-                  {t("admin.news.form.exitFullscreen")}
-                </span>
-              </button>
-            </div>
-          </div>
+    <section className="sticky top-0 z-10 rounded-xl border border-blue-100 bg-white p-3 shadow-lg lg:static lg:p-4 lg:shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="text-sm font-medium text-[#2B5F9E] sm:text-base">
+            {language === "zh"
+              ? "当前新闻素材库"
+              : "Current News Media Library"}
+          </h3>
+          <p className="mt-1 hidden text-xs text-gray-600 sm:block">
+            {language === "zh"
+              ? "上传一次图片或视频后，可插入中文或英文正文。"
+              : "Upload an image or video once, then reuse it in either editor."}
+          </p>
+          <p className="mt-1 text-xs text-gray-600 sm:hidden">
+            {language === "zh"
+              ? "上传后点“中文”或“英文”插入到对应正文。"
+              : "Upload media, then tap ZH or EN to insert into that editor."}
+          </p>
         </div>
+        <div className="shrink-0">
+          <input
+            ref={inputRef}
+            type="file"
+            accept={NEWS_MEDIA_ACCEPT}
+            className="hidden"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              event.target.value = "";
+              if (!file) return;
+              void onUploadFile(file);
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            disabled={uploading}
+            className="flex items-center justify-center gap-1.5 rounded-lg bg-[#2B5F9E] px-3 py-2 text-xs text-white transition-colors hover:bg-[#234a7e] disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm"
+          >
+            <Upload className="h-4 w-4" />
+            <span>
+              {uploading
+                ? language === "zh"
+                  ? "上传中..."
+                  : "Uploading..."
+                : language === "zh"
+                  ? "上传素材"
+                  : "Upload media"}
+            </span>
+          </button>
+        </div>
+      </div>
 
-        {/* Editor Content */}
-        <div className="flex-1 bg-white rounded-b-2xl overflow-hidden flex flex-col">
-          <div className="flex-1 p-4 overflow-auto">
-            <ReactQuill
-              theme="snow"
-              value={editContent}
-              onChange={setEditContent}
-              modules={modules}
-              formats={formats}
-              className="bg-white h-full"
-              style={{ height: "calc(100% - 42px)" }}
-            />
-          </div>
+      {error && (
+        <p className="mt-3 text-xs text-red-600" role="alert">
+          {error}
+        </p>
+      )}
+
+      {!hasMediaItems ? (
+        <div className="mt-3 rounded-lg border border-dashed border-blue-200 bg-white/70 p-3 text-xs text-gray-500 sm:text-sm">
+          {language === "zh"
+            ? "还没有素材。上传封面、正文图片或视频后会自动出现在这里。"
+            : "No media yet. Cover images, body images, and videos will appear here after upload."}
         </div>
-      </motion.div>
-    </motion.div>
+      ) : (
+        <div className="mt-3 flex gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:overflow-visible">
+          {uploadingAssets.map((upload) => (
+            <article
+              key={upload.id}
+              style={NEWS_MEDIA_CARD_STYLE}
+              className="relative flex items-center gap-2 rounded-lg border border-blue-100 bg-white p-2 shadow-md ring-1 ring-black/5"
+            >
+              <button
+                type="button"
+                onClick={() => onCancelUpload(upload.id)}
+                style={NEWS_MEDIA_REMOVE_BUTTON_STYLE}
+                className="absolute z-20 rounded-full bg-red-600 p-0.5 text-white shadow-sm ring-2 ring-white transition-colors hover:bg-red-700"
+                aria-label={
+                  language === "zh" ? "取消上传素材" : "Cancel media upload"
+                }
+              >
+                <X className="h-3 w-3" strokeWidth={3} />
+              </button>
+              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-gray-100">
+                <div className="flex h-full w-full items-center justify-center bg-gray-100 text-gray-400">
+                  {upload.type === "image" ? (
+                    <ImageIcon className="h-6 w-6" />
+                  ) : (
+                    <Video className="h-6 w-6" />
+                  )}
+                </div>
+              </div>
+              <div className="min-w-0 flex-1 space-y-1.5 pr-3">
+                <p
+                  style={NEWS_MEDIA_NAME_STYLE}
+                  className="text-[11px] text-gray-600"
+                  title={upload.name}
+                >
+                  {upload.name}
+                </p>
+                <p className="text-[11px] font-medium text-[#2B5F9E]">
+                  {language === "zh" ? "上传中..." : "Uploading..."}{" "}
+                  {upload.progress}%
+                </p>
+                <div className="h-1.5 overflow-hidden rounded-full bg-blue-100">
+                  <div
+                    className="h-full rounded-full bg-[#2B5F9E] transition-[width]"
+                    style={{ width: `${upload.progress}%` }}
+                  />
+                </div>
+              </div>
+            </article>
+          ))}
+          {assets.map((asset) => (
+            <article
+              key={asset.id}
+              draggable
+              onDragStart={(event) => handleDragStart(event, asset)}
+              style={NEWS_MEDIA_CARD_STYLE}
+              className="relative flex items-center gap-2 rounded-lg border border-gray-200 bg-white p-2 shadow-md ring-1 ring-black/5"
+            >
+              <button
+                type="button"
+                onClick={() => onRemoveAsset(asset.id)}
+                style={NEWS_MEDIA_REMOVE_BUTTON_STYLE}
+                className="absolute z-20 rounded-full bg-red-600 p-0.5 text-white shadow-sm ring-2 ring-white transition-colors hover:bg-red-700"
+                aria-label={
+                  language === "zh" ? "删除素材" : "Remove media asset"
+                }
+              >
+                <X className="h-3 w-3" strokeWidth={3} />
+              </button>
+              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-gray-100">
+                {asset.type === "image" ? (
+                  <img
+                    src={asset.url}
+                    alt={asset.name}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <video
+                    src={`${asset.url}#t=0.1`}
+                    className="h-full w-full object-cover"
+                    muted
+                    playsInline
+                    preload="metadata"
+                  />
+                )}
+                <span className="absolute left-1 top-1 inline-flex items-center rounded-full bg-black/60 p-1 text-white">
+                  {asset.type === "image" ? (
+                    <ImageIcon className="h-3 w-3" />
+                  ) : (
+                    <Video className="h-3 w-3" />
+                  )}
+                </span>
+              </div>
+              <div className="min-w-0 flex-1 space-y-1.5 pr-3">
+                <p
+                  style={NEWS_MEDIA_NAME_STYLE}
+                  className="text-[11px] text-gray-600"
+                  title={asset.name}
+                >
+                  {asset.name}
+                </p>
+                <div className="flex gap-1">
+                  {targets.map((target) => (
+                    <button
+                      key={`${asset.id}:${target.lang}`}
+                      type="button"
+                      onClick={() => onInsertAsset(target.lang, asset)}
+                      className="rounded-md bg-[#6BA868] px-1.5 py-0.5 text-[10px] leading-4 text-white transition-colors hover:bg-[#5a9157]"
+                    >
+                      <span className="sm:hidden">
+                        {target.lang === "zh"
+                          ? language === "zh"
+                            ? "中文"
+                            : "ZH"
+                          : language === "zh"
+                            ? "英文"
+                            : "EN"}
+                      </span>
+                      <span className="hidden sm:inline">{target.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }

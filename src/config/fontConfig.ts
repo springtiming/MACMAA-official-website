@@ -153,8 +153,8 @@ export const CURRENT_FONT: keyof typeof AVAILABLE_FONTS = "interNotoSansSC";
 export const AVAILABLE_HEADING_FONTS: Record<string, HeadingFontConfig> = {
   serif: {
     name: "衬线字体",
-    family: "serif",
-    description: "系统默认衬线字体",
+    family: "Georgia, 'Times New Roman', 'Noto Sans SC', serif",
+    description: "衬线标题字体，并显式回退到 Noto Sans SC 以保证中文显示。",
   },
 };
 

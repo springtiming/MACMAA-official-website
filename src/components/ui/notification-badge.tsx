@@ -138,8 +138,7 @@ export function NotificationBadge({
   style,
   ...props
 }: NotificationBadgeProps) {
-  const safeCount =
-    Number.isFinite(count) && count > 0 ? Math.floor(count) : 0;
+  const safeCount = Number.isFinite(count) && count > 0 ? Math.floor(count) : 0;
   if (safeCount === 0 && !showZero) return null;
 
   const displayCount = safeCount > max ? `${max}+` : String(safeCount);
@@ -187,8 +186,10 @@ export function NotificationBadge({
       const resolvedSize =
         requestedSize ??
         (countLength === 1 ? "sm" : countLength === 2 ? "md" : "lg");
-      if (resolvedSize === "sm") return countLength >= 3 ? "text-[10px]" : "text-[11px]";
-      if (resolvedSize === "lg") return countLength >= 3 ? "text-[13px]" : "text-[15px]";
+      if (resolvedSize === "sm")
+        return countLength >= 3 ? "text-[10px]" : "text-[11px]";
+      if (resolvedSize === "lg")
+        return countLength >= 3 ? "text-[13px]" : "text-[15px]";
       return countLength >= 3 ? "text-[11px]" : "text-[13px]";
     }
 
@@ -211,7 +212,9 @@ export function NotificationBadge({
           toTailwindArbitraryValue(`[--nb-from:${RAISED_TONES[tone].from}]`),
           toTailwindArbitraryValue(`[--nb-via:${RAISED_TONES[tone].via}]`),
           toTailwindArbitraryValue(`[--nb-to:${RAISED_TONES[tone].to}]`),
-          toTailwindArbitraryValue(`[--nb-shadow:${RAISED_TONES[tone].shadow}]`),
+          toTailwindArbitraryValue(
+            `[--nb-shadow:${RAISED_TONES[tone].shadow}]`
+          ),
           toTailwindArbitraryValue(
             `group-hover:[--nb-from:${RAISED_TONES[tone].hoverFrom}]`
           ),

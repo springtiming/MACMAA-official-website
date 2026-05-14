@@ -22,7 +22,10 @@ export function Footer() {
   useEffect(() => {
     if (!showQrCode) return;
     function handleClickOutside(e: MouseEvent) {
-      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+      if (
+        popoverRef.current &&
+        !popoverRef.current.contains(e.target as Node)
+      ) {
         setShowQrCode(false);
       }
     }
@@ -62,7 +65,10 @@ export function Footer() {
               <div className="flex items-start gap-2">
                 <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 mt-0.5" />
                 <span>
-                  {organization.address?.streetAddress}, {organization.address?.addressLocality} {organization.address?.addressRegion} {organization.address?.postalCode}
+                  {organization.address?.streetAddress},{" "}
+                  {organization.address?.addressLocality}{" "}
+                  {organization.address?.addressRegion}{" "}
+                  {organization.address?.postalCode}
                 </span>
               </div>
               <div className="flex items-center gap-2">

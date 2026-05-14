@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useRouter } from "next/router";
 import { AnimatePresence, motion } from "motion/react";
 import {
@@ -43,7 +49,10 @@ const LANGUAGE_LABELS: Record<string, { zh: string; en: string }> = {
 
 const INTEREST_LABELS: Record<string, { zh: string; en: string }> = {
   "event-support": { zh: "活动现场协助", en: "Event Support" },
-  "elderly-support": { zh: "长者关怀与陪伴", en: "Elderly Support & Companionship" },
+  "elderly-support": {
+    zh: "长者关怀与陪伴",
+    en: "Elderly Support & Companionship",
+  },
   "migrant-support": { zh: "新移民服务", en: "Migrant Support" },
   administration: { zh: "行政协助", en: "Administration" },
   "photo-video": { zh: "摄影 / 视频", en: "Photography / Video" },
@@ -78,7 +87,9 @@ export function AdminVolunteers() {
   const { language, t } = useLanguage();
   const l = (zh: string, en: string) => (language === "zh" ? zh : en);
 
-  const [volunteers, setVolunteers] = useState<VolunteerApplicationRecord[]>([]);
+  const [volunteers, setVolunteers] = useState<VolunteerApplicationRecord[]>(
+    []
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<VolunteerFilter>("all");
   const [selectedVolunteer, setSelectedVolunteer] =
@@ -97,17 +108,29 @@ export function AdminVolunteers() {
     runWithFeedback,
     reset: resetProcessing,
   } = useProcessingFeedback();
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const loadVolunteers = useCallback(async () => {
     setLoading(true);
     try {
       const data = await fetchVolunteerApplications();
+      if (!isMountedRef.current) return;
       setVolunteers(data);
       setError(null);
     } catch {
-      setError(t("common.error"));
+      if (isMountedRef.current) {
+        setError(t("common.error"));
+      }
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
     }
   }, [t]);
 
@@ -169,6 +192,23 @@ export function AdminVolunteers() {
   ) => {
     if (!values || values.length === 0) return "-";
     return values.map((value) => mapLabel(value, labels)).join(", ");
+  };
+
+  const formatMultiValuesWithOther = (
+    values: string[] | null | undefined,
+    labels: Record<string, { zh: string; en: string }>,
+    otherText: string | null | undefined
+  ) => {
+    const base = formatMultiValues(values, labels);
+    if (base === "-") return "-";
+    if (otherText?.trim()) {
+      const suffix =
+        language === "zh"
+          ? `；其他：${otherText.trim()}`
+          : `; other: ${otherText.trim()}`;
+      return base + suffix;
+    }
+    return base;
   };
 
   const getProcessingMessages = (
@@ -277,8 +317,10 @@ export function AdminVolunteers() {
     };
   };
 
-  const openConfirmDialog = (type: ConfirmType, volunteer: VolunteerApplicationRecord) =>
-    setConfirmDialog({ type, volunteer });
+  const openConfirmDialog = (
+    type: ConfirmType,
+    volunteer: VolunteerApplicationRecord
+  ) => setConfirmDialog({ type, volunteer });
 
   const handleConfirm = async () => {
     if (!confirmDialog) return;
@@ -290,7 +332,9 @@ export function AdminVolunteers() {
       await runWithFeedback(messages, async () => {
         if (type === "delete") {
           await deleteVolunteerApplication(volunteer.id);
-          setVolunteers((prev) => prev.filter((item) => item.id !== volunteer.id));
+          setVolunteers((prev) =>
+            prev.filter((item) => item.id !== volunteer.id)
+          );
           if (selectedVolunteer?.id === volunteer.id) {
             setSelectedVolunteer(null);
           }
@@ -350,19 +394,27 @@ export function AdminVolunteers() {
     { label: l("居住区域", "Residential Suburb"), value: volunteer.suburb },
     {
       label: l("语言能力", "Language Skills"),
-      value: formatMultiValues(volunteer.language_skills, LANGUAGE_LABELS),
+      value: formatMultiValuesWithOther(
+        volunteer.language_skills,
+        LANGUAGE_LABELS,
+        volunteer.language_other
+      ),
     },
     {
       label: l("其他语言", "Other Language"),
-      value: volunteer.language_other || "-",
+      value: volunteer.language_other?.trim() || "-",
     },
     {
       label: l("服务意向", "Volunteer Interests"),
-      value: formatMultiValues(volunteer.volunteer_interests, INTEREST_LABELS),
+      value: formatMultiValuesWithOther(
+        volunteer.volunteer_interests,
+        INTEREST_LABELS,
+        volunteer.interest_other
+      ),
     },
     {
       label: l("其他服务意向", "Other Interests"),
-      value: volunteer.interest_other || "-",
+      value: volunteer.interest_other?.trim() || "-",
     },
     {
       label: l("平日可参与时间", "Weekday Availability"),
@@ -568,11 +620,17 @@ export function AdminVolunteers() {
                     <td className="px-4 py-3">
                       <div>
                         <div>{volunteer.name}</div>
-                        <div className="text-sm text-gray-500">{volunteer.suburb}</div>
+                        <div className="text-sm text-gray-500">
+                          {volunteer.suburb}
+                        </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 hidden sm:table-cell">{volunteer.phone}</td>
-                    <td className="px-4 py-3 hidden md:table-cell">{volunteer.email}</td>
+                    <td className="px-4 py-3 hidden sm:table-cell">
+                      {volunteer.phone}
+                    </td>
+                    <td className="px-4 py-3 hidden md:table-cell">
+                      {volunteer.email}
+                    </td>
                     <td className="px-4 py-3 hidden lg:table-cell">
                       {volunteer.apply_date ?? "-"}
                     </td>
@@ -595,14 +653,18 @@ export function AdminVolunteers() {
                         {volunteer.status === "pending" && (
                           <>
                             <button
-                              onClick={() => openConfirmDialog("approve", volunteer)}
+                              onClick={() =>
+                                openConfirmDialog("approve", volunteer)
+                              }
                               className="p-2 text-[#6BA868] hover:bg-[#6BA868] hover:text-white rounded-lg transition-colors"
                               title={l("通过", "Approve")}
                             >
                               <Check className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => openConfirmDialog("reject", volunteer)}
+                              onClick={() =>
+                                openConfirmDialog("reject", volunteer)
+                              }
                               className="p-2 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors"
                               title={l("拒绝", "Reject")}
                             >
@@ -612,7 +674,9 @@ export function AdminVolunteers() {
                         )}
                         {volunteer.status === "approved" && (
                           <button
-                            onClick={() => openConfirmDialog("revoke", volunteer)}
+                            onClick={() =>
+                              openConfirmDialog("revoke", volunteer)
+                            }
                             className="p-2 text-orange-500 hover:bg-orange-500 hover:text-white rounded-lg transition-colors"
                             title={l("撤销通过", "Revoke approval")}
                           >
@@ -622,14 +686,18 @@ export function AdminVolunteers() {
                         {volunteer.status === "rejected" && (
                           <>
                             <button
-                              onClick={() => openConfirmDialog("reopen", volunteer)}
+                              onClick={() =>
+                                openConfirmDialog("reopen", volunteer)
+                              }
                               className="p-2 text-[#2B5F9E] hover:bg-[#2B5F9E] hover:text-white rounded-lg transition-colors"
                               title={l("重新审核", "Reopen")}
                             >
                               <RotateCcw className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => openConfirmDialog("delete", volunteer)}
+                              onClick={() =>
+                                openConfirmDialog("delete", volunteer)
+                              }
                               className="p-2 text-gray-500 hover:bg-gray-500 hover:text-white rounded-lg transition-colors"
                               title={l("删除记录", "Delete record")}
                             >
@@ -646,7 +714,10 @@ export function AdminVolunteers() {
 
             {filteredVolunteers.length === 0 && !loading && (
               <div className="text-center py-12 text-gray-500">
-                {l("没有找到符合条件的志愿者申请", "No volunteer applications found")}
+                {l(
+                  "没有找到符合条件的志愿者申请",
+                  "No volunteer applications found"
+                )}
               </div>
             )}
           </div>
@@ -689,7 +760,8 @@ export function AdminVolunteers() {
                     reject: "Reject this volunteer application?",
                     revoke: "Move this application status to rejected?",
                     reopen: "Move this application status back to pending?",
-                    delete: "Delete this volunteer application record? This action cannot be undone.",
+                    delete:
+                      "Delete this volunteer application record? This action cannot be undone.",
                   }[confirmDialog.type]
                 )
               : ""

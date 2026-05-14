@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ProcessingState } from "../components/ProcessingOverlay";
 
 type FeedbackMessages = {
@@ -15,12 +15,20 @@ type RunWithFeedbackOptions = {
 };
 
 export function useProcessingFeedback() {
+  const mountedRef = useRef(true);
   const [state, setState] = useState<ProcessingState>("idle");
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
 
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
   const setFeedback = useCallback(
     (nextState: ProcessingState, nextTitle?: string, nextMessage?: string) => {
+      if (!mountedRef.current) return;
       setState(nextState);
       setTitle(nextTitle ?? "");
       setMessage(nextMessage ?? "");

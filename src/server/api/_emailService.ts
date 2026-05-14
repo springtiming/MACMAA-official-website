@@ -35,7 +35,9 @@ function normalize(value?: string | string[] | null) {
   return Array.isArray(value) ? value.filter(Boolean) : [value];
 }
 
-export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult> {
+export async function sendEmail(
+  input: SendEmailInput
+): Promise<SendEmailResult> {
   if (!resendClient) {
     console.warn("[Resend] Missing RESEND_API_KEY, skip send:", input.subject);
     return { ok: false, skipped: true, reason: "missing-api-key" };
@@ -161,29 +163,15 @@ function buildEventRegistrationHtml(payload: EventRegistrationEmailInput) {
       <p>活动：${payload.eventTitleZh ?? title}</p>
       <p>人数：${payload.tickets ?? 1}</p>
       ${
-        payload.paymentMethod
-          ? `<p>支付方式：${payload.paymentMethod}</p>`
-          : ""
+        payload.paymentMethod ? `<p>支付方式：${payload.paymentMethod}</p>` : ""
       }
-      ${
-        payload.notes
-          ? `<p>备注：${payload.notes}</p>`
-          : ""
-      }
+      ${payload.notes ? `<p>备注：${payload.notes}</p>` : ""}
       <hr style="margin: 20px 0; border: none; border-top: 1px solid #e5e7eb;" />
       <p style="color: #111827; font-weight: 600;">Hi ${payload.name}, your registration is confirmed.</p>
       <p>Event: ${payload.eventTitleEn ?? title}</p>
       <p>Tickets: ${payload.tickets ?? 1}</p>
-      ${
-        payload.paymentMethod
-          ? `<p>Payment: ${payload.paymentMethod}</p>`
-          : ""
-      }
-      ${
-        payload.notes
-          ? `<p>Notes: ${payload.notes}</p>`
-          : ""
-      }
+      ${payload.paymentMethod ? `<p>Payment: ${payload.paymentMethod}</p>` : ""}
+      ${payload.notes ? `<p>Notes: ${payload.notes}</p>` : ""}
     </div>
   `;
 }
@@ -236,7 +224,11 @@ export async function sendMemberApplicationSubmitted(
 
 export async function sendMemberApprovedEmail(member: MemberRecordLike) {
   if (!member.email) {
-    return { ok: false, skipped: true, reason: "no-recipient" } as SendEmailResult;
+    return {
+      ok: false,
+      skipped: true,
+      reason: "no-recipient",
+    } as SendEmailResult;
   }
   return sendEmail({
     to: member.email,

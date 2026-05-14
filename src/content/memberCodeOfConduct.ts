@@ -72,12 +72,8 @@ export const MEMBER_CODE_OF_CONDUCT: MemberCodeOfConduct = {
           en: "Members must comply with the Association Constitution and this Code.",
         },
         {
-          zh: "按时缴纳年度会费（2025年 AUD 20，2026年起 AUD 30，周期为每年1月1日至12月31日）。",
-          en: "Members must pay annual membership fees on time (AUD 20 in 2025, AUD 30 from 2026, for the period 1 January to 31 December each year).",
-        },
-        {
-          zh: "留学生会员享受长期免费资格，须提供有效证明（签证、学生卡或入学证明），证明失效后按普通会员标准缴费。",
-          en: "International student members are eligible for long-term fee waiver upon valid proof (visa, student ID, or enrolment letter). Standard fees apply once proof is no longer valid.",
+          zh: "按时缴纳年度会费。",
+          en: "Members must pay annual membership fees on time.",
         },
         {
           zh: "不得以协会名义谋取个人利益。",

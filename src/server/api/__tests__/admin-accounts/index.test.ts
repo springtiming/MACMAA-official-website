@@ -104,7 +104,9 @@ describe("admin-accounts API", () => {
     };
 
     getSupabaseServiceClientMock.mockReturnValue(supabase);
-    const { default: handler } = await import("@/pages/api/admin-accounts/index");
+    const { default: handler } = await import(
+      "@/pages/api/admin-accounts/index"
+    );
     const req = { method: "GET" } as NextApiRequest;
     const res = createMockResponse() as unknown as NextApiResponse;
 

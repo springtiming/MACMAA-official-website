@@ -3961,6 +3961,30 @@ html {
   line-height: 1.6;
 }
 
+.news-inline-editor {
+  height: 420px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.news-inline-editor .ql-toolbar.ql-snow {
+  flex-shrink: 0;
+}
+
+.news-inline-editor .ql-container.ql-snow {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.news-inline-editor .ql-editor {
+  min-height: 0;
+  height: 100%;
+  overflow-y: auto;
+  padding-bottom: 2rem;
+}
+
 .ql-editor p {
   margin-bottom: 0.75rem;
 }
@@ -4046,10 +4070,39 @@ html {
 }
 
 .news-content img {
+  display: block;
   border-radius: 0.5rem;
-  max-width: 100%;
+  width: 85%;
+  max-width: 85%;
   height: auto;
+  margin: 1rem auto;
+}
+
+.news-content video,
+.news-content .news-inline-video {
+  width: 85%;
+  max-width: 85%;
+  border-radius: 0.75rem;
+  margin: 1rem auto;
+  background: #000;
+}
+
+@media (min-width: 1024px) {
+  .news-content video,
+  .news-content img,
+  .news-content .news-inline-video {
+    width: 80%;
+    max-width: 80%;
+  }
+}
+
+.ql-editor video,
+.ql-editor .news-inline-video {
+  width: 100%;
+  max-width: 100%;
+  border-radius: 0.75rem;
   margin: 1rem 0;
+  background: #000;
 }
 
 .news-content ul,
@@ -5431,6 +5484,14 @@ html {
 }
 .ql-container.ql-snow {
   border: 1px solid #ccc;
+}
+.site-header-actions {
+  margin-left: auto;
+}
+.news-summary-text {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 /*!
  * Quill Editor v1.3.7

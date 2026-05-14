@@ -8,7 +8,10 @@ import {
   normalizeEmail,
 } from "@/server/api/_memberVerificationStore";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method === "OPTIONS") {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -23,10 +26,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   res.setHeader("Access-Control-Allow-Origin", "*");
 
-  const body =
-    (typeof req.body === "string"
-      ? JSON.parse(req.body)
-      : (req.body ?? {})) as { email?: string };
+  const body = (
+    typeof req.body === "string" ? JSON.parse(req.body) : (req.body ?? {})
+  ) as { email?: string };
   const rawEmail = body.email ?? "";
   const email = normalizeEmail(rawEmail);
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -73,7 +75,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       );
 
     if (upsertError) {
-      return res.status(500).json({ error: "Failed to save verification code" });
+      return res
+        .status(500)
+        .json({ error: "Failed to save verification code" });
     }
 
     const result = await sendEmail({

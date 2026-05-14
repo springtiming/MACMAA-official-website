@@ -111,8 +111,13 @@ export function ReviewAuditLogModal({
                         <span className="text-gray-500">
                           {language === "zh" ? "状态变更：" : "Status: "}
                         </span>
-                        {getReviewStatusLabel(module, log.from_status, language)}{" "}
-                        → {getReviewStatusLabel(module, log.to_status, language)}
+                        {getReviewStatusLabel(
+                          module,
+                          log.from_status,
+                          language
+                        )}{" "}
+                        →{" "}
+                        {getReviewStatusLabel(module, log.to_status, language)}
                       </p>
                     </div>
                   </div>
