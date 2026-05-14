@@ -31,21 +31,26 @@ Deno.serve(async (req) => {
   if (!admin) {
     return new Response(
       JSON.stringify({ error: "Unauthorized", code: "INVALID_TOKEN" }),
-      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
     );
   }
 
   const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
   try {
-    const body = await req.json().catch(() => null) as { versionId?: string } | null;
+    const body = (await req.json().catch(() => null)) as {
+      versionId?: string;
+    } | null;
     const versionId = body?.versionId;
 
     if (!versionId) {
-      return new Response(
-        JSON.stringify({ error: "Missing versionId" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+      return new Response(JSON.stringify({ error: "Missing versionId" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const { data: draft, error: draftError } = await supabase
@@ -58,10 +63,10 @@ Deno.serve(async (req) => {
 
     if (draftError || !draft) {
       console.error("[news-publish] draft fetch", draftError);
-      return new Response(
-        JSON.stringify({ error: "Draft not found" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+      return new Response(JSON.stringify({ error: "Draft not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // 使用 article_id 作为统一的新闻编号
@@ -76,25 +81,38 @@ Deno.serve(async (req) => {
         .update({ article_id: articleId })
         .eq("id", draft.id);
       if (updateDraftArticleIdError) {
-        console.error("[news-publish] set article_id on draft", updateDraftArticleIdError);
+        console.error(
+          "[news-publish] set article_id on draft",
+          updateDraftArticleIdError
+        );
         return new Response(
           JSON.stringify({ error: "Failed to prepare draft for publish" }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
         );
       }
     }
 
-    const { data: existingArticle, error: existingArticleError } = await supabase
-      .from("articles")
-      .select("author_id")
-      .eq("id", articleId)
-      .maybeSingle();
+    const { data: existingArticle, error: existingArticleError } =
+      await supabase
+        .from("articles")
+        .select("author_id")
+        .eq("id", articleId)
+        .maybeSingle();
 
     if (existingArticleError) {
-      console.error("[news-publish] fetch article author", existingArticleError);
+      console.error(
+        "[news-publish] fetch article author",
+        existingArticleError
+      );
       return new Response(
         JSON.stringify({ error: "Failed to resolve article author" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
@@ -110,10 +128,15 @@ Deno.serve(async (req) => {
         summary_en: draft.summary_en,
         content_zh: draft.content_zh,
         content_en: draft.content_en,
-        cover_source: draft.cover_url ?? draft.cover_keyword ?? draft.cover_source,
+        cover_source:
+          draft.cover_url ?? draft.cover_keyword ?? draft.cover_source,
         cover_type:
           draft.cover_type ??
-          (draft.cover_url ? "upload" : draft.cover_keyword ? "unsplash" : null),
+          (draft.cover_url
+            ? "upload"
+            : draft.cover_keyword
+              ? "unsplash"
+              : null),
         cover_keyword: draft.cover_keyword ?? null,
         cover_url: draft.cover_url ?? null,
         published: true,
@@ -121,7 +144,7 @@ Deno.serve(async (req) => {
         author_id: authorId,
       })
       .select(
-        "id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, cover_type, cover_keyword, cover_url, published_at, published, author_id"
+        "id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, cover_type, cover_keyword, cover_url, published_at, published, author_id, view_count, like_count"
       )
       .single();
 
@@ -129,7 +152,10 @@ Deno.serve(async (req) => {
       console.error("[news-publish] article upsert", articleError);
       return new Response(
         JSON.stringify({ error: "Failed to publish article" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
@@ -147,7 +173,10 @@ Deno.serve(async (req) => {
       console.error("[news-publish] draft update", versionError);
       return new Response(
         JSON.stringify({ error: "Failed to mark draft published" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
@@ -159,22 +188,31 @@ Deno.serve(async (req) => {
       .eq("status", "draft");
 
     if (deleteDraftsError) {
-      console.error("[news-publish] delete remaining drafts", deleteDraftsError);
+      console.error(
+        "[news-publish] delete remaining drafts",
+        deleteDraftsError
+      );
       return new Response(
         JSON.stringify({ error: "Failed to clean up drafts after publish" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
-    return new Response(
-      JSON.stringify({ article, version }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ article, version }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (err) {
     console.error("[news-publish] unhandled", err);
     return new Response(
       JSON.stringify({ error: "Internal error", detail: String(err) }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
     );
   }
 });

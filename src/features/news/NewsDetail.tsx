@@ -3,9 +3,21 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "motion/react";
-import { Calendar, ArrowLeft, Share2, Quote } from "lucide-react";
-import { fetchNewsPostById, type NewsPostRecord } from "@/lib/supabaseApi";
+import { Calendar, ArrowLeft, Share2, Quote, Eye, Heart } from "lucide-react";
+import {
+  fetchNewsPostById,
+  recordNewsArticleView,
+  updateNewsArticleLike,
+  type NewsPostRecord,
+} from "@/lib/supabaseApi";
 import { normalizeNewsMediaHtml } from "@/lib/newsMedia";
+import {
+  formatNewsEngagementCount,
+  hasRecentNewsView,
+  isNewsArticleLiked,
+  rememberNewsArticleLike,
+  rememberNewsView,
+} from "@/lib/newsEngagement";
 import { pickLocalized, resolveNewsCover } from "@/lib/supabaseHelpers";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 
@@ -24,6 +36,14 @@ export function NewsDetail({ initialNews }: NewsDetailProps) {
   const [loading, setLoading] = useState(() => !initialNews);
   const [error, setError] = useState<string | null>(null);
   const [shareSuccess, setShareSuccess] = useState(false);
+  const [viewCount, setViewCount] = useState(
+    () => initialNews?.view_count ?? 0
+  );
+  const [likeCount, setLikeCount] = useState(
+    () => initialNews?.like_count ?? 0
+  );
+  const [liked, setLiked] = useState(false);
+  const [likePending, setLikePending] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -51,6 +71,33 @@ export function NewsDetail({ initialNews }: NewsDetailProps) {
       active = false;
     };
   }, [id, initialNews, t]);
+
+  useEffect(() => {
+    if (!news?.id) return;
+    setViewCount(news.view_count ?? 0);
+    setLikeCount(news.like_count ?? 0);
+    setLiked(isNewsArticleLiked(news.id));
+  }, [news]);
+
+  useEffect(() => {
+    if (!news?.id || hasRecentNewsView(news.id)) return;
+
+    let active = true;
+    recordNewsArticleView(news.id)
+      .then((counts) => {
+        if (!active) return;
+        setViewCount(counts.viewCount);
+        setLikeCount(counts.likeCount);
+        rememberNewsView(news.id);
+      })
+      .catch(() => {
+        // Engagement should never block article reading.
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [news?.id]);
 
   const handleShare = async () => {
     if (!news || !id) return;
@@ -85,6 +132,37 @@ export function NewsDetail({ initialNews }: NewsDetailProps) {
       // Clipboard API failed, show error
       setError(language === "zh" ? "复制失败" : "Failed to copy");
       setTimeout(() => setError(null), 3000);
+    }
+  };
+
+  const handleLike = async () => {
+    if (!news?.id || likePending) return;
+
+    const nextLiked = !liked;
+    const previousLiked = liked;
+    const previousLikeCount = likeCount;
+
+    setLiked(nextLiked);
+    setLikeCount((count) => Math.max(0, count + (nextLiked ? 1 : -1)));
+    rememberNewsArticleLike(news.id, nextLiked);
+    setLikePending(true);
+
+    try {
+      const counts = await updateNewsArticleLike(news.id, nextLiked);
+      setViewCount(counts.viewCount);
+      setLikeCount(counts.likeCount);
+    } catch {
+      setLiked(previousLiked);
+      setLikeCount(previousLikeCount);
+      rememberNewsArticleLike(news.id, previousLiked);
+      setError(
+        language === "zh"
+          ? "点赞更新失败，请稍后再试"
+          : "Failed to update like. Please try again later."
+      );
+      setTimeout(() => setError(null), 3000);
+    } finally {
+      setLikePending(false);
     }
   };
 
@@ -178,6 +256,52 @@ export function NewsDetail({ initialNews }: NewsDetailProps) {
                   ? "已复制"
                   : "Copied"
                 : t("news.share")}
+            </motion.button>
+          </div>
+          <div className="news-engagement-row mt-5 flex flex-col gap-3 border-y border-[#2B5F9E]/20 py-3 text-[#2B5F9E] sm:flex-row sm:items-center sm:justify-between">
+            <div className="inline-flex items-center gap-2 text-sm sm:text-base">
+              <Eye className="h-4 w-4" aria-hidden="true" />
+              <span>
+                {language === "zh" ? "阅读次数" : "Reads"}{" "}
+                {formatNewsEngagementCount(viewCount, language)}
+              </span>
+            </div>
+            <motion.button
+              type="button"
+              onClick={handleLike}
+              whileHover={{ scale: likePending ? 1 : 1.03 }}
+              whileTap={{ scale: likePending ? 1 : 0.97 }}
+              disabled={likePending}
+              aria-pressed={liked}
+              aria-label={
+                liked
+                  ? language === "zh"
+                    ? "已点赞这篇新闻"
+                    : "Unlike this news article"
+                  : language === "zh"
+                    ? "给这篇新闻点赞"
+                    : "Like this news article"
+              }
+              className={`inline-flex w-fit items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${
+                liked
+                  ? "border-[#6BA868]/40 bg-[#F5EFE6] text-[#5a9157]"
+                  : "border-[#2B5F9E]/25 bg-white text-[#5a9157] hover:bg-[#F5EFE6]"
+              }`}
+            >
+              <Heart
+                className={`h-4 w-4 ${liked ? "fill-current" : ""}`}
+                aria-hidden="true"
+              />
+              <span>
+                {liked
+                  ? language === "zh"
+                    ? "已点赞"
+                    : "Liked"
+                  : language === "zh"
+                    ? "赞"
+                    : "Like"}{" "}
+                {formatNewsEngagementCount(likeCount, language)}
+              </span>
             </motion.button>
           </div>
         </div>

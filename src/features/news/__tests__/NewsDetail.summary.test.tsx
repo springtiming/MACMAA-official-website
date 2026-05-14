@@ -75,6 +75,8 @@ const news: NewsPostRecord = {
   published_at: "2026-05-07T00:00:00.000Z",
   published: true,
   author_id: null,
+  view_count: 1240,
+  like_count: 85,
 };
 
 describe("NewsDetail summary", () => {
@@ -108,5 +110,19 @@ describe("NewsDetail summary", () => {
     expect(css).toMatch(
       /@media \(min-width:\s*1024px\)\s*{[^}]*\.news-content img,[^}]*width:\s*80%;[^}]*max-width:\s*80%;/s
     );
+  });
+
+  it("renders the Heritage Archive engagement row with views and likes", () => {
+    const html = renderToStaticMarkup(
+      <LanguageProvider>
+        <NewsDetail initialNews={news} />
+      </LanguageProvider>
+    );
+
+    expect(html).toContain("news-engagement-row");
+    expect(html).toContain("阅读次数");
+    expect(html).toContain("1,240");
+    expect(html).toContain("赞 85");
+    expect(html).toContain('aria-pressed="false"');
   });
 });

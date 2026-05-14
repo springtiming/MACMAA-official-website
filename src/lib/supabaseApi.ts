@@ -18,6 +18,8 @@ export interface NewsPostRecord {
   published_at: string | null;
   published: boolean;
   author_id: string | null;
+  view_count?: number | null;
+  like_count?: number | null;
 }
 
 export interface EventRecord {
@@ -127,6 +129,9 @@ interface FetchEventsOptions {
   limit?: number;
 }
 
+const NEWS_POST_SELECT =
+  "id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, cover_type, cover_keyword, cover_url, published_at, published, author_id, view_count, like_count";
+
 interface FetchRegistrationsOptions {
   eventId?: string;
   userId?: string;
@@ -151,9 +156,7 @@ export async function fetchNewsPosts(options: FetchNewsOptions = {}) {
 
   let query = supabase
     .from("articles")
-    .select(
-      "id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, cover_type, cover_keyword, cover_url, published_at, published, author_id"
-    )
+    .select(NEWS_POST_SELECT)
     .order("published_at", { ascending: false });
 
   if (publishedOnly) {
@@ -216,9 +219,7 @@ export async function fetchNewsPostById(id: string) {
   const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from("articles")
-    .select(
-      "id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_source, cover_type, cover_keyword, cover_url, published_at, published, author_id"
-    )
+    .select(NEWS_POST_SELECT)
     .eq("id", id)
     .eq("published", true)
     .single<NewsPostRecord>();
@@ -1077,6 +1078,47 @@ export async function deleteArticle(id: string) {
         : "Failed to delete article"
     );
   }
+}
+
+export type NewsEngagementCounts = {
+  viewCount: number;
+  likeCount: number;
+};
+
+async function updateNewsEngagement(
+  articleId: string,
+  action: "view" | "like" | "unlike"
+): Promise<NewsEngagementCounts> {
+  const res = await callEdgeFunction("news-engagement", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({ articleId, action }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to update news engagement");
+  }
+
+  const body = (await res.json()) as {
+    viewCount?: number;
+    likeCount?: number;
+  };
+
+  return {
+    viewCount: Number(body.viewCount ?? 0),
+    likeCount: Number(body.likeCount ?? 0),
+  };
+}
+
+export function recordNewsArticleView(articleId: string) {
+  return updateNewsEngagement(articleId, "view");
+}
+
+export function updateNewsArticleLike(articleId: string, liked: boolean) {
+  return updateNewsEngagement(articleId, liked ? "like" : "unlike");
 }
 
 export async function deleteDraft(versionId: string) {
