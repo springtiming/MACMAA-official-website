@@ -112,17 +112,22 @@ describe("NewsDetail summary", () => {
     );
   });
 
-  it("renders the Heritage Archive engagement row with views and likes", () => {
+  it("renders Modern Archive metadata and bottom engagement actions", () => {
     const html = renderToStaticMarkup(
       <LanguageProvider>
         <NewsDetail initialNews={news} />
       </LanguageProvider>
     );
 
-    expect(html).toContain("news-engagement-row");
-    expect(html).toContain("阅读次数");
+    expect(html).toContain("news-archive-metadata");
+    expect(html).toContain("news-archive-actions");
     expect(html).toContain("1,240");
-    expect(html).toContain("赞 85");
+    expect(html).toContain("阅读");
+    expect(html).toContain("85 赞");
+    expect(html).toContain("<span>赞</span>");
+    expect(html).toContain('aria-label="给这篇新闻点赞"');
+    expect(html).toContain("分享");
     expect(html).toContain('aria-pressed="false"');
+    expect(html).not.toContain("查看我们即将举办的精彩活动");
   });
 });

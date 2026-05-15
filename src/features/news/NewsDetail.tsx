@@ -190,6 +190,35 @@ export function NewsDetail({ initialNews }: NewsDetailProps) {
 
   const summary =
     pickLocalized(news.summary_zh, news.summary_en, language)?.trim() ?? "";
+  const publishedDate = news.published_at
+    ? new Date(news.published_at).toLocaleDateString(
+        language === "zh" ? "zh-CN" : "en-US",
+        {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          timeZone: "UTC",
+        }
+      )
+    : language === "zh"
+      ? "未公布"
+      : "N/A";
+  const formattedViewCount = formatNewsEngagementCount(viewCount, language);
+  const formattedLikeCount = formatNewsEngagementCount(likeCount, language);
+  const shareLabel = shareSuccess
+    ? language === "zh"
+      ? "已复制"
+      : "Copied"
+    : language === "zh"
+      ? "分享"
+      : "Share";
+  const likeActionLabel = liked
+    ? language === "zh"
+      ? "已赞"
+      : "Liked"
+    : language === "zh"
+      ? "赞"
+      : "Like";
 
   return (
     <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-12">
@@ -225,83 +254,49 @@ export function NewsDetail({ initialNews }: NewsDetailProps) {
           <h1 className="text-[#2B5F9E] mb-4">
             {pickLocalized(news.title_zh, news.title_en, language)}
           </h1>
-          <div className="flex items-center justify-between text-gray-600">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              <span>
-                {news.published_at
-                  ? new Date(news.published_at).toLocaleDateString(
-                      language === "zh" ? "zh-CN" : "en-US",
-                      {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                        timeZone: "UTC",
-                      }
-                    )
-                  : language === "zh"
-                    ? "未公布"
-                    : "N/A"}
+          <div className="news-archive-metadata flex flex-col gap-3 border-b border-[#2B5F9E]/10 pb-4 text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-[#5F6B7D] sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+              <span className="inline-flex items-center gap-1.5">
+                <Calendar
+                  className="h-3.5 w-3.5 text-[#2B5F9E]"
+                  strokeWidth={1.4}
+                  aria-hidden="true"
+                />
+                {publishedDate}
               </span>
-            </div>
-            <motion.button
-              onClick={handleShare}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className="flex items-center gap-2 text-[#2B5F9E] hover:underline"
-            >
-              <Share2 className="w-4 h-4" />
-              {shareSuccess
-                ? language === "zh"
-                  ? "已复制"
-                  : "Copied"
-                : t("news.share")}
-            </motion.button>
-          </div>
-          <div className="news-engagement-row mt-5 flex flex-col gap-3 border-y border-[#2B5F9E]/20 py-3 text-[#2B5F9E] sm:flex-row sm:items-center sm:justify-between">
-            <div className="inline-flex items-center gap-2 text-sm sm:text-base">
-              <Eye className="h-4 w-4" aria-hidden="true" />
-              <span>
-                {language === "zh" ? "阅读次数" : "Reads"}{" "}
-                {formatNewsEngagementCount(viewCount, language)}
+              <span className="inline-flex items-center gap-1.5">
+                <Eye
+                  className="h-3.5 w-3.5 text-[#2B5F9E]"
+                  strokeWidth={1.4}
+                  aria-hidden="true"
+                />
+                {formattedViewCount} {language === "zh" ? "阅读" : "Reads"}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Heart
+                  className="h-3.5 w-3.5 text-[#2B5F9E]"
+                  strokeWidth={1.4}
+                  aria-hidden="true"
+                />
+                {formattedLikeCount} {language === "zh" ? "赞" : "Likes"}
               </span>
             </div>
             <motion.button
               type="button"
-              onClick={handleLike}
-              whileHover={{ scale: likePending ? 1 : 1.03 }}
-              whileTap={{ scale: likePending ? 1 : 0.97 }}
-              disabled={likePending}
-              aria-pressed={liked}
+              onClick={handleShare}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
               aria-label={
-                liked
-                  ? language === "zh"
-                    ? "已点赞这篇新闻"
-                    : "Unlike this news article"
-                  : language === "zh"
-                    ? "给这篇新闻点赞"
-                    : "Like this news article"
+                language === "zh" ? "分享这篇新闻" : "Share this news article"
               }
-              className={`inline-flex w-fit items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${
-                liked
-                  ? "border-[#6BA868]/40 bg-[#F5EFE6] text-[#5a9157]"
-                  : "border-[#2B5F9E]/25 bg-white text-[#5a9157] hover:bg-[#F5EFE6]"
-              }`}
+              className="inline-flex w-fit items-center gap-1.5 text-[#2B5F9E] transition-colors hover:text-[#234a7e]"
             >
-              <Heart
-                className={`h-4 w-4 ${liked ? "fill-current" : ""}`}
+              <Share2
+                className="h-3.5 w-3.5"
+                strokeWidth={1.4}
                 aria-hidden="true"
               />
-              <span>
-                {liked
-                  ? language === "zh"
-                    ? "已点赞"
-                    : "Liked"
-                  : language === "zh"
-                    ? "赞"
-                    : "Like"}{" "}
-                {formatNewsEngagementCount(likeCount, language)}
-              </span>
+              {shareLabel}
             </motion.button>
           </div>
         </div>
@@ -340,22 +335,54 @@ export function NewsDetail({ initialNews }: NewsDetailProps) {
           />
         </div>
 
-        {/* Related News or CTA */}
-        <div className="mt-12 py-10 px-6 bg-[#F5EFE6] rounded-2xl text-center">
-          <p className="text-gray-700 text-lg mb-6">
-            {language === "zh"
-              ? "查看我们即将举办的精彩活动"
-              : "Check out our upcoming exciting events"}
-          </p>
-          <Link href="/events">
-            <motion.button
-              className="px-8 py-3 bg-[#2B5F9E] text-white rounded-lg hover:bg-[#234a7e] transition-colors"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              {t("nav.events")}
-            </motion.button>
-          </Link>
+        <div className="news-archive-actions mt-12 flex flex-col gap-3 border-t border-[#2B5F9E]/10 pt-6 sm:flex-row sm:flex-wrap sm:items-center">
+          <motion.button
+            type="button"
+            onClick={handleLike}
+            whileHover={{ scale: likePending ? 1 : 1.03 }}
+            whileTap={{ scale: likePending ? 1 : 0.97 }}
+            disabled={likePending}
+            aria-pressed={liked}
+            aria-label={
+              liked
+                ? language === "zh"
+                  ? "取消点赞这篇新闻"
+                  : "Unlike this news article"
+                : language === "zh"
+                  ? "给这篇新闻点赞"
+                  : "Like this news article"
+            }
+            className={`inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border px-5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto ${
+              liked
+                ? "border-[#6BA868]/70 bg-[#6BA868]/10 text-[#4f8650] hover:bg-[#6BA868]/15"
+                : "border-[#2B5F9E]/20 bg-transparent text-[#2B5F9E] hover:border-[#2B5F9E] hover:bg-[#2B5F9E]/5"
+            }`}
+          >
+            <Heart
+              className={`h-[18px] w-[18px] ${liked ? "fill-current" : ""}`}
+              strokeWidth={1.25}
+              aria-hidden="true"
+            />
+            <span>{likeActionLabel}</span>
+            <span className="font-bold">{formattedLikeCount}</span>
+          </motion.button>
+          <motion.button
+            type="button"
+            onClick={handleShare}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            aria-label={
+              language === "zh" ? "分享这篇新闻" : "Share this news article"
+            }
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-[#2B5F9E]/20 bg-transparent px-5 text-sm font-semibold text-[#2B5F9E] transition-colors hover:border-[#2B5F9E] hover:bg-[#2B5F9E]/5 sm:w-auto"
+          >
+            <Share2
+              className="h-[18px] w-[18px]"
+              strokeWidth={1.25}
+              aria-hidden="true"
+            />
+            <span>{shareLabel}</span>
+          </motion.button>
         </div>
       </motion.div>
     </div>
