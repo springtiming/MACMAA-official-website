@@ -251,12 +251,12 @@ export function NewsDetail({ initialNews }: NewsDetailProps) {
 
         {/* Article Header */}
         <div className="mb-8">
-          <h1 className="text-[#2B5F9E] mb-4">
+          <h1 className="text-[#2B5F9E] mb-6 text-3xl font-bold leading-tight md:text-4xl">
             {pickLocalized(news.title_zh, news.title_en, language)}
           </h1>
-          <div className="news-archive-metadata flex flex-col gap-3 border-b border-[#2B5F9E]/10 pb-4 text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-[#5F6B7D] sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-              <span className="inline-flex items-center gap-1.5">
+          <div className="news-archive-metadata flex flex-col gap-3 pb-8 text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-[#5F6B7D] sm:flex-row sm:items-center sm:justify-between">
+            <div className="news-archive-metadata-items">
+              <span className="news-archive-metadata-item">
                 <Calendar
                   className="h-3.5 w-3.5 text-[#2B5F9E]"
                   strokeWidth={1.4}
@@ -264,7 +264,7 @@ export function NewsDetail({ initialNews }: NewsDetailProps) {
                 />
                 {publishedDate}
               </span>
-              <span className="inline-flex items-center gap-1.5">
+              <span className="news-archive-metadata-item">
                 <Eye
                   className="h-3.5 w-3.5 text-[#2B5F9E]"
                   strokeWidth={1.4}
@@ -272,7 +272,7 @@ export function NewsDetail({ initialNews }: NewsDetailProps) {
                 />
                 {formattedViewCount} {language === "zh" ? "阅读" : "Reads"}
               </span>
-              <span className="inline-flex items-center gap-1.5">
+              <span className="news-archive-metadata-item">
                 <Heart
                   className="h-3.5 w-3.5 text-[#2B5F9E]"
                   strokeWidth={1.4}
@@ -352,10 +352,10 @@ export function NewsDetail({ initialNews }: NewsDetailProps) {
                   ? "给这篇新闻点赞"
                   : "Like this news article"
             }
-            className={`inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border px-5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto ${
+            className={`inline-flex h-11 w-full items-center justify-center gap-2 rounded-full px-6 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto ${
               liked
-                ? "border-[#6BA868]/70 bg-[#6BA868]/10 text-[#4f8650] hover:bg-[#6BA868]/15"
-                : "border-[#2B5F9E]/20 bg-transparent text-[#2B5F9E] hover:border-[#2B5F9E] hover:bg-[#2B5F9E]/5"
+                ? "bg-[#6BA868]/15 text-[#4f8650] hover:bg-[#6BA868]/25"
+                : "bg-[#2B5F9E]/5 text-[#2B5F9E] hover:bg-[#2B5F9E]/10"
             }`}
           >
             <Heart
@@ -374,7 +374,7 @@ export function NewsDetail({ initialNews }: NewsDetailProps) {
             aria-label={
               language === "zh" ? "分享这篇新闻" : "Share this news article"
             }
-            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-[#2B5F9E]/20 bg-transparent px-5 text-sm font-semibold text-[#2B5F9E] transition-colors hover:border-[#2B5F9E] hover:bg-[#2B5F9E]/5 sm:w-auto"
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#2B5F9E]/5 px-6 text-sm font-semibold text-[#2B5F9E] transition-colors hover:bg-[#2B5F9E]/10 sm:w-auto"
           >
             <Share2
               className="h-[18px] w-[18px]"

@@ -5493,6 +5493,27 @@ html {
   overflow-wrap: anywhere;
   word-break: break-word;
 }
+
+.news-archive-metadata-items {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 0.8rem;
+  row-gap: 0.5rem;
+}
+
+.news-archive-metadata-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .news-archive-metadata-items {
+    column-gap: 0.8rem;
+  }
+}
 /*!
  * Quill Editor v1.3.7
  * https://quilljs.com/
