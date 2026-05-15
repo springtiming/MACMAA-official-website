@@ -108,21 +108,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Validate Supabase deployment config
+      - name: Check Supabase deployment config
+        id: supabase-config
         run: |
-          test -n "$SUPABASE_ACCESS_TOKEN" || {
-            echo "Missing GitHub secret: SUPABASE_ACCESS_TOKEN"
-            exit 1
-          }
-          test -n "$SUPABASE_PROJECT_REF" || {
-            echo "Missing GitHub repository variable: SUPABASE_PROJECT_REF"
-            exit 1
-          }
+          if [ -n "$SUPABASE_ACCESS_TOKEN" ] && [ -n "$SUPABASE_PROJECT_REF" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Supabase deployment credentials are not configured; skipping Edge Function deploy."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Setup Supabase CLI
+        if: steps.supabase-config.outputs.configured == 'true'
         uses: supabase/setup-cli@v1
         with:
           version: 2.78.1
 
       - name: Deploy Edge Functions
+        if: steps.supabase-config.outputs.configured == 'true'
         run: supabase functions deploy --project-ref "$SUPABASE_PROJECT_REF" --use-api
